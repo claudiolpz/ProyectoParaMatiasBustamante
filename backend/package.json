@@ -1,0 +1,28 @@
+{
+  "name": "inventario_matias",
+  "version": "1.0.0",
+  "description": "Sistema de Inventario Para Matias Bustamante (Express, TypeScript y React)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/claudiolpz/ProyectoParaMatiasBustamante.git"
+  },
+  "author": "Claudio Lopez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/claudiolpz/ProyectoParaMatiasBustamante/issues"
+  },
+  "homepage": "https://github.com/claudiolpz/ProyectoParaMatiasBustamante#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
