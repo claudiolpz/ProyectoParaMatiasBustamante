@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement()) 
+  email String @unique
+  password String
+  name String
+  lastname String?
+}
+
+
+// USO EN TYPESCRIPT
+// npx prisma migrate dev
+// npx prisma migrate reset
+// npx prisma generate
+// npx prisma studio (Para verificar el estado de la db)
+// import { PrismaClient } from "./generated/prisma"
+
+// const db = new PrismaClient()
+
+// async function main() {
+//   const newUser = await db.user.create({
+//     data: {
+//       name: "Claudio",
+//       email: "claudio1@gmail.com",
+//       password: "12345678",
+//     }
+//   })
+//   console.log('New User:', newUser);
+// }
+// main()
