@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import { body } from 'express-validator'
-import { createAccount } from './handlers';
+import { createAccount, login } from './handlers';
+import { handleInputErrors } from './middleware/validation';
 
 const router = Router();
 
-/** AUTENTICACION */
+/* REGISTRO */
 router.post('/auth/register', 
     body('email')
         .notEmpty()
-        .withMessage('El email es obligatorio')
+        .withMessage('El E-mail es obligatorio')
         .isEmail()
         .withMessage('Formato de E-mail incorrecto'),
     body('password')
@@ -22,6 +23,19 @@ router.post('/auth/register',
     body('lastname')     
         .notEmpty()
         .withMessage('El apellido es obligatorio'),
+    handleInputErrors,
     createAccount);
 
+/* AUTENTICAR */
+router.post('/auth/login',
+    body('email')
+        .notEmpty()
+        .withMessage('El E-mail es obligatorio')
+        .isEmail()
+        .withMessage('Formato de E-mail incorrecto'),
+    body('password')
+        .notEmpty()
+        .withMessage('La contraseña es obligatoria'),
+    handleInputErrors,
+    login)
 export default router;
