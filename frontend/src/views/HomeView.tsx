@@ -22,6 +22,22 @@ const HomeView = () => {
                 >
                     SobreNosotros
                 </NavLink>
+                <NavLink
+                    to="/auth/login"
+                    className={({ isActive }) =>
+                        isActive ? "text-blue-600 font-bold underline" : "text-gray-600"
+                    }
+                >
+                    Login
+                </NavLink>
+                <NavLink
+                    to="/auth/register"
+                    className={({ isActive }) =>
+                        isActive ? "text-blue-600 font-bold underline" : "text-gray-600"
+                    }
+                >
+                    register
+                </NavLink>
             </nav>
     </div>
   )
