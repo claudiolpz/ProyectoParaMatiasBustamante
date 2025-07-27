@@ -10,12 +10,11 @@ export default function AuthLayout() {
                         alt="mancuerna Icon"
                         className="w-16 h-16 mx-auto mb-4"
                     />
-                    <div className="py-10">
+                    <div className="py-4">
                         <Outlet />
                     </div>
                 </div>
             </div>
-            
     </>
   )
 }
