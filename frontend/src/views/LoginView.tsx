@@ -19,6 +19,7 @@ const LoginView = () => {
         try {
             const { data } = await api.post(`/auth/login`, formData);
             toast.success(data.message);
+            localStorage.setItem("AUTH_TOKEN", data.token);
         } catch (error) {
             if (isAxiosError(error) && error.response) {
                 if (error.response.data.error) {
