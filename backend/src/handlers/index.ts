@@ -8,7 +8,7 @@ export const createAccount = async (req: Request, res: Response) => {
         const normalizedEmail = email.toLowerCase();
         const userExists = await prisma.user.findUnique({
             where: {
-                email: email,
+                email: normalizedEmail,
             },
         });
 
