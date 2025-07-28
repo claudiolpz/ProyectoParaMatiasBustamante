@@ -9,20 +9,20 @@ const router = Router();
 router.post('/auth/register', 
     body('email')
         .notEmpty()
-        .withMessage('El E-mail es obligatorio')
+        .withMessage('El Email es obligatorio')
         .isEmail()
-        .withMessage('Formato de E-mail incorrecto'),
+        .withMessage('Formato de Email incorrecto'),
     body('password')
         .notEmpty()
-        .withMessage('La contraseña es obligatoria')
+        .withMessage('La Contraseña es obligatoria')
         .isLength({ min: 6 })
-        .withMessage('La contraseña debe tener al menos 6 caracteres'),
+        .withMessage('La Contraseña debe tener al menos 6 caracteres'),
     body('name')
         .notEmpty()
-        .withMessage('El nombre es obligatorio'),
+        .withMessage('El Nombre es obligatorio'),
     body('lastname')     
         .notEmpty()
-        .withMessage('El apellido es obligatorio'),
+        .withMessage('El Apellido es obligatorio'),
     handleInputErrors,
     createAccount);
 
@@ -30,12 +30,12 @@ router.post('/auth/register',
 router.post('/auth/login',
     body('email')
         .notEmpty()
-        .withMessage('El E-mail es obligatorio')
+        .withMessage('El Email es obligatorio')
         .isEmail()
-        .withMessage('Formato de E-mail incorrecto'),
+        .withMessage('Formato de Email incorrecto'),
     body('password')
         .notEmpty()
-        .withMessage('La contraseña es obligatoria'),
+        .withMessage('La Contraseña es obligatoria'),
     handleInputErrors,
     login)
 export default router;

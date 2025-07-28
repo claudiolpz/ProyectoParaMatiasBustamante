@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { validationResult } from "express-validator";
 import prisma from "../config/prisma";
 import { checkPassword, hashPassword } from "../utils/auth";
 
 export const createAccount = async (req: Request, res: Response) => {
     try {
         const { name, email, password, lastname } = req.body;
+        const normalizedEmail = email.toLowerCase();
         const userExists = await prisma.user.findUnique({
             where: {
                 email: email,
@@ -13,7 +13,7 @@ export const createAccount = async (req: Request, res: Response) => {
         });
 
         if (userExists) {
-            const error = new Error("El correo electrónico ya está en uso");
+            const error = new Error("El Email ya está asociado a otra cuenta");
             res.status(409).json({ error: error.message });
             return;
         }
@@ -22,16 +22,16 @@ export const createAccount = async (req: Request, res: Response) => {
         await prisma.user.create({
             data: {
                 name,
-                email,
+                email: normalizedEmail,
                 password: passwordHashed,
                 lastname,
             },
         });
 
-        res.status(201).json("Usuario registrado correctamente");
+        res.status(201).json("Usuario Registrado Correctamente");
     } catch (error) {
-        console.error("Error al registrar usuario:", error);
-        res.status(500).json({ error: "Error al registrar usuario" });
+        console.error("Error al Registrar Usuario:", error);
+        res.status(500).json({ error: "Error al Registrar Usuario" });
     }
 };
 
@@ -45,21 +45,21 @@ export const login = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            const error = new Error("El usuario no existe");
+            const error = new Error("Contraseña Incorrecta o Email no Incorrecto");
             res.status(404).json({ error: error.message });
             return;
         }
         const isPasswordCorrect = await checkPassword(password, user.password);
         if (!isPasswordCorrect) {
-            const error = new Error("Contraseña incorrecta");
+            const error = new Error("Contraseña Incorrecta o Email no Incorrecto");
             res.status(401).json({ error: error.message });
             return;
         }
         res
             .status(200)
-            .json({ message: "Inicio de sesión exitoso", userId: user.id });
+            .json({ message: "Inicio de Sesión Exitoso", userId: user.id });
     } catch (error) {
         console.error("Error al registrar usuario:", error);
-        res.status(500).json({ error: "Error al registrar usuario" });
+        res.status(500).json({ error: "Error al Registrar Usuario" });
     }
 };

@@ -1,26 +1,42 @@
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import { isAxiosError } from "axios";
+import { toast } from 'sonner'
 import type { RegisterForm } from "../types";
 import ErrorMessage from "../components/ErrorMessage";
+import api from "../config/axios";
 
 const RegisterView = () => {
+
     const initialValues: RegisterForm = {
         name: "",
         lastname: "",
         email: "",
         password: "",
-        password_confirmation: "",
+        password_confirmation: ""
     };
-    const {register,watch,handleSubmit,formState: { errors },} = useForm({ defaultValues: initialValues });
-    const password = watch("password", "password_confirmation");
+    const { register, watch, reset, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialValues });
+    const password = watch("password");
 
     const handelRegister = async (formData: RegisterForm) => {
-        try{
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}register`, formData);
-            console.log(response)
-        }catch (error) {
-            console.error(error);
+        try {
+            const { data } = await api.post(`auth/register`, formData);
+            toast.success(data);
+            reset();
+        } catch (error) {
+            if (isAxiosError(error) && error.response) {
+                if (error.response.data.error) {
+                    toast.error(error.response.data.error);
+                } 
+                    if (error.response.data.errors) {
+                        error.response.data.errors.forEach((err: any) => {
+                        console.log(err);
+                        if (err.msg) {
+                            toast.error(err.msg);
+                        }
+                    });
+                }
+            }
         }
     };
     return (
@@ -54,13 +70,11 @@ const RegisterView = () => {
                         type="text"
                         placeholder="Apellido"
                         className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
-                        {...register("name", {
+                        {...register("lastname", {
                             required: "El Apellido es obligatorio",
                         })}
                     />
-                    {errors.lastname && (
-                        <ErrorMessage>{errors.lastname.message}</ErrorMessage>
-                    )}
+                    {errors.lastname && (<ErrorMessage>{errors.lastname.message}</ErrorMessage>)}
                 </div>
                 <div className="grid grid-cols-1 space-y-3">
                     <label htmlFor="email" className="text-2xl text-slate-500">
@@ -77,9 +91,11 @@ const RegisterView = () => {
                                 value: /\S+@\S+\.\S+/,
                                 message: "E-mail no válido",
                             },
+                            setValueAs: (value) => value?.toLowerCase()
                         })}
                     />
                     {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
+
                 </div>
 
                 <div className="grid grid-cols-1 space-y-3">
@@ -99,9 +115,8 @@ const RegisterView = () => {
                             },
                         })}
                     />
-                    {errors.password && (
-                        <ErrorMessage>{errors.password.message}</ErrorMessage>
-                    )}
+                    {errors.password && (<ErrorMessage>{errors.password.message}</ErrorMessage>)}
+
                 </div>
 
                 <div className="grid grid-cols-1 space-y-3">
@@ -118,8 +133,7 @@ const RegisterView = () => {
                         className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
                         {...register("password_confirmation", {
                             required: "La Constraseña es obligatoria",
-                            validate: (value) =>
-                                value === password || "Las contraseñas no coinciden",
+                            validate: (value) => value === password || 'Los Constraseñas no son iguales'
                         })}
                     />
 
