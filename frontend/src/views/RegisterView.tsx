@@ -20,7 +20,7 @@ const RegisterView = () => {
 
     const handelRegister = async (formData: RegisterForm) => {
         try {
-            const { data } = await api.post(`auth/register`, formData);
+            const { data } = await api.post(`/auth/register`, formData);
             toast.success(data);
             reset();
         } catch (error) {

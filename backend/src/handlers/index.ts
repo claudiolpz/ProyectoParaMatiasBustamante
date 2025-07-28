@@ -38,9 +38,10 @@ export const createAccount = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
+        const normalizedEmail = email.toLowerCase();
         const user = await prisma.user.findUnique({
             where: {
-                email: email,
+                email: normalizedEmail,
             },
         });
 
@@ -55,9 +56,7 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ error: error.message });
             return;
         }
-        res
-            .status(200)
-            .json({ message: "Inicio de Sesión Exitoso", userId: user.id });
+        res.status(200).json({ message: "Inicio de Sesión Exitoso", userId: user.id });
     } catch (error) {
         console.error("Error al registrar usuario:", error);
         res.status(500).json({ error: "Error al Registrar Usuario" });
