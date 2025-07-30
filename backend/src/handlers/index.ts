@@ -26,6 +26,7 @@ export const createAccount = async (req: Request, res: Response) => {
                 email: normalizedEmail,
                 password: passwordHashed,
                 lastname,
+                role: "user"
             },
         });
 
@@ -57,7 +58,7 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ error: error.message });
             return;
         }
-        const token = generateJWT({id: user.id});
+        const token = generateJWT({id: user.id, role: user.role});
         res.status(200).json({ message: "Inicio de Sesión Exitoso", token:token});
     } catch (error) {
         console.error("Error al registrar usuario:", error);
