@@ -26,13 +26,14 @@ export const createAccount = async (req: Request, res: Response) => {
                 email: normalizedEmail,
                 password: passwordHashed,
                 lastname,
+                role: "user"
             },
         });
 
-        res.status(201).json("Usuario Registrado Correctamente");
+        return res.status(201).json("Usuario Registrado Correctamente");
     } catch (error) {
         console.error("Error al Registrar Usuario:", error);
-        res.status(500).json({ error: "Error al Registrar Usuario" });
+        return res.status(500).json({ error: "Error al Registrar Usuario" });
     }
 };
 
@@ -57,10 +58,10 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ error: error.message });
             return;
         }
-        const token = generateJWT({id: user.id});
-        res.status(200).json({ message: "Inicio de Sesión Exitoso", token:token});
+        const token = generateJWT({id: user.id, role: user.role});
+        return res.status(200).json({ message: "Inicio de Sesión Exitoso", token:token});
     } catch (error) {
         console.error("Error al registrar usuario:", error);
-        res.status(500).json({ error: "Error al Registrar Usuario" });
+        return res.status(500).json({ error: "Error al Registrar Usuario" });
     }
 };
