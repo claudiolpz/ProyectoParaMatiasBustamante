@@ -4,6 +4,7 @@ import { createAccount, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProducts } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
+import { getCategories } from './handlers/category';
 
 const router = Router();
 
@@ -100,5 +101,8 @@ router.get('/products',
         .trim(),
     handleInputErrors,
     getProducts);
+
+    // OBTENER CATEGORÍAS
+    router.get('/categories', getCategories);
 
 export default router;

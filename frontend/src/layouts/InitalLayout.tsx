@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router';
 import { Toaster } from 'sonner';
-export default function AuthLayout() {
+export default function InitialLayout() {
   return (
     <>
     <div className="bg-slate-800 min-h-screen">
