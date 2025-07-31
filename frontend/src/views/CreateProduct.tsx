@@ -1,9 +1,14 @@
 import { Link } from "react-router";
+import { useState } from "react";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import CategorySelector from "../components/CategorySelector";
 import ProductFormFields from "../components/ProductForm";
 import ErrorMessage from "../components/ErrorMessage";
-import { useState } from "react";
+import {
+    CameraOutlined,
+    CheckCircleOutlined,
+    CloseCircleOutlined, PaperClipOutlined
+} from "@ant-design/icons";
 
 const CreateProduct = () => {
     // Estado para drag & drop
@@ -15,7 +20,7 @@ const CreateProduct = () => {
         categories,
         loadingCategories,
         showNewCategoryInput,
-        handleCreateProduct
+        handleCreateProduct,
     } = useCreateProduct();
 
     // Manejar drag & drop
@@ -36,21 +41,28 @@ const CreateProduct = () => {
         const files = e.dataTransfer.files;
         if (files?.[0]) {
             const file = files[0];
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/jpg",
+                "image/webp",
+            ];
 
             if (allowedTypes.includes(file.type)) {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
 
-                const fileInput = document.getElementById('image') as HTMLInputElement;
+                const fileInput = document.getElementById("image") as HTMLInputElement;
                 if (fileInput) {
                     fileInput.files = dataTransfer.files;
                     setSelectedFileName(file.name);
-                    const event = new Event('change', { bubbles: true });
+                    const event = new Event("change", { bubbles: true });
                     fileInput.dispatchEvent(event);
                 }
             } else {
-                alert('Por favor, selecciona solo archivos de imagen (JPEG, PNG, JPG, WEBP)');
+                alert(
+                    "Por favor, selecciona solo archivos de imagen (JPEG, PNG, JPG, WEBP)"
+                );
             }
         }
     };
@@ -62,42 +74,72 @@ const CreateProduct = () => {
 
     const handleRemoveFile = (e: React.MouseEvent) => {
         e.preventDefault();
-        const fileInput = document.getElementById('image') as HTMLInputElement;
+        const fileInput = document.getElementById("image") as HTMLInputElement;
         if (fileInput) {
-            fileInput.value = '';
+            fileInput.value = "";
             setSelectedFileName(null);
         }
     };
 
     // Funciones para obtener clases CSS
     const getInputLabelClasses = () => {
-        if (isDragOver) return 'bg-blue-50 border-blue-500 text-blue-700';
-        if (selectedFileName) return 'bg-green-50 border-green-300';
-        return 'bg-slate-100 border-slate-300 hover:bg-slate-200';
+        if (isDragOver) return "bg-blue-50 border-blue-500 text-blue-700";
+        if (selectedFileName) return "bg-green-50 border-green-300";
+        return "bg-slate-100 border-slate-300 hover:bg-slate-200";
     };
 
     const getTextClasses = () => {
-        if (isDragOver) return 'text-blue-700';
-        if (selectedFileName) return 'text-green-700 font-medium';
-        return 'text-slate-500';
+        if (isDragOver) return "text-blue-700";
+        if (selectedFileName) return "text-green-700 font-medium";
+        return "text-slate-500";
     };
 
     const getButtonClasses = () => {
-        if (isDragOver) return 'bg-blue-200 text-blue-800';
-        if (selectedFileName) return 'bg-green-100 text-green-700';
-        return 'bg-blue-100 text-blue-700';
+        if (isDragOver) return "bg-blue-200 text-blue-800";
+        if (selectedFileName) return "bg-green-100 text-green-700";
+        return "bg-blue-100 text-blue-700";
     };
 
     const getDisplayText = () => {
-        if (isDragOver) return '¡Suelta la imagen aquí!';
-        if (selectedFileName) return `📷 ${selectedFileName}`;
-        return 'Seleccionar archivo o arrastra aquí...';
+        if (isDragOver) return "¡Suelta la imagen aquí!";
+        if (selectedFileName)
+            return (
+                <div className="flex items-center space-x-2">
+                    <div className="bg-green-100 p-1 rounded">
+                        <CameraOutlined className="text-green-600" />
+                    </div>
+                    <div>
+                        <div className="font-medium text-green-700">{selectedFileName}</div>
+                        <div className="text-xs text-green-600">
+                            Archivo subido correctamente
+                        </div>
+                    </div>
+                </div>
+            );
+        return "Seleccionar archivo o arrastra aquí...";
     };
 
     const getButtonText = () => {
-        if (selectedFileName) return '✓ Subido';
-        if (isDragOver) return '📷 Soltar';
-        return '📷 Examinar';
+        if (selectedFileName)
+            return (
+                <span className="flex items-center space-x-1">
+                    <CheckCircleOutlined />
+                    <span>Subido</span>
+                </span>
+            );
+        if (isDragOver)
+            return (
+                <span className="flex items-center space-x-1">
+                    <CameraOutlined />
+                    <span>Soltar</span>
+                </span>
+            );
+        return (
+            <span className="flex items-center space-x-1">
+                <CameraOutlined />
+                <span>Examinar</span>
+            </span>
+        );
     };
 
     return (
@@ -110,10 +152,7 @@ const CreateProduct = () => {
                 encType="multipart/form-data"
             >
                 {/* 1. Nombre y SKU */}
-                <ProductFormFields
-                    register={form.register}
-                    errors={form.errors}
-                />
+                <ProductFormFields register={form.register} errors={form.errors} />
 
                 {/* 2. Categoría */}
                 <CategorySelector
@@ -126,7 +165,9 @@ const CreateProduct = () => {
 
                 {/* 3. Stock */}
                 <div className="grid grid-cols-1 space-y-3">
-                    <label htmlFor="stock" className="text-2xl text-slate-500">Stock</label>
+                    <label htmlFor="stock" className="text-2xl text-slate-500">
+                        Stock
+                    </label>
                     <input
                         id="stock"
                         type="number"
@@ -136,15 +177,20 @@ const CreateProduct = () => {
                         {...form.register("stock", {
                             required: "El Stock es obligatorio",
                             min: { value: 0, message: "El Stock debe ser mayor o igual a 0" },
-                            valueAsNumber: true
+                            valueAsNumber: true,
                         })}
                     />
-                    {form.errors.stock && <ErrorMessage>{form.errors.stock.message}</ErrorMessage>}
+                    {form.errors.stock && (
+                        <ErrorMessage>{form.errors.stock.message}</ErrorMessage>
+                    )}
                 </div>
 
                 {/* 4. Precio */}
                 <div className="grid grid-cols-1 space-y-3">
-                    <label htmlFor="price" className="text-2xl text-slate-500">Precio</label>
+                    <label htmlFor="price" className="text-2xl text-slate-500">
+                        Precio
+                    </label>
+
                     <input
                         id="price"
                         type="number"
@@ -154,10 +200,12 @@ const CreateProduct = () => {
                         {...form.register("price", {
                             required: "El Precio es obligatorio",
                             min: { value: 0, message: "El precio debe ser mayor a 0" },
-                            valueAsNumber: true
+                            valueAsNumber: true,
                         })}
                     />
-                    {form.errors.price && <ErrorMessage>{form.errors.price.message}</ErrorMessage>}
+                    {form.errors.price && (
+                        <ErrorMessage>{form.errors.price.message}</ErrorMessage>
+                    )}
                 </div>
 
                 {/* 5. Imagen */}
@@ -179,15 +227,13 @@ const CreateProduct = () => {
                         <button
                             type="button"
                             className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${getInputLabelClasses()}`}
-                            onClick={() => document.getElementById('image')?.click()}
+                            onClick={() => document.getElementById("image")?.click()}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
                             aria-label="Seleccionar archivo de imagen. Puedes hacer clic o arrastrar archivos aquí"
                         >
-                            <span className={getTextClasses()}>
-                                {getDisplayText()}
-                            </span>
+                            <span className={getTextClasses()}>{getDisplayText()}</span>
                             <div className="flex items-center space-x-2">
                                 {selectedFileName && (
                                     <button
@@ -196,21 +242,16 @@ const CreateProduct = () => {
                                             e.stopPropagation();
                                             handleRemoveFile(e);
                                         }}
-                                        className="text-red-500 hover:text-red-700 p-1"
+                                        className="text-red-500 hover:text-red-700 p-1 flex items-center space-x-1"
                                         title="Eliminar archivo"
                                     >
-                                        ✕
+                                        <CloseCircleOutlined />
+                                        <span className="text-xs">Eliminar</span>
                                     </button>
                                 )}
-                                <svg
-                                    className={`w-5 h-5 transition-colors duration-200 ${isDragOver ? 'text-blue-500' : 'text-slate-400'}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                                <span
+                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                </svg>
-                                <span className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}>
                                     {getButtonText()}
                                 </span>
                             </div>
@@ -222,10 +263,13 @@ const CreateProduct = () => {
                     </div>
 
                     <p className="text-xs text-slate-500">
-                        📎 Formatos aceptados: JPEG, PNG, JPG, WEBP (máx. 5MB) • Puedes hacer clic o arrastrar
+                        <PaperClipOutlined /> Formatos aceptados: JPEG, PNG, JPG, WEBP (máx.
+                        5MB) • Puedes hacer clic o arrastrar
                     </p>
 
-                    {form.errors.image && <ErrorMessage>{form.errors.image.message}</ErrorMessage>}
+                    {form.errors.image && (
+                        <ErrorMessage>{form.errors.image.message}</ErrorMessage>
+                    )}
                 </div>
 
                 <input
