@@ -21,7 +21,7 @@ const ProductFormFields = ({ register, errors }: ProductFormFieldsProps) => {
                     placeholder="Nombre del producto"
                     className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
                     {...register("name", {
-                        required: "El nombre del producto es obligatorio",
+                        required: "El Nombre del Producto es obligatorio",
                     })}
                 />
                 {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}

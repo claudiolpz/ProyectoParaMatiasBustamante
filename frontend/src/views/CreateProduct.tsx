@@ -134,8 +134,8 @@ const CreateProduct = () => {
                         placeholder="0"
                         className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
                         {...form.register("stock", {
-                            required: "El stock es obligatorio",
-                            min: { value: 0, message: "El stock debe ser mayor o igual a 0" },
+                            required: "El Stock es obligatorio",
+                            min: { value: 0, message: "El Stock debe ser mayor o igual a 0" },
                             valueAsNumber: true
                         })}
                     />
@@ -149,10 +149,10 @@ const CreateProduct = () => {
                         id="price"
                         type="number"
                         min="0"
-                        placeholder="Ingresa el precio"
+                        placeholder="0"
                         className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         {...form.register("price", {
-                            required: "El precio es obligatorio",
+                            required: "El Precio es obligatorio",
                             min: { value: 0, message: "El precio debe ser mayor a 0" },
                             valueAsNumber: true
                         })}

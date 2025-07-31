@@ -13,12 +13,12 @@ export type LoginForm = Pick<User, 'email'> & {
     password: string;
 }
 
-export type CreateProductForm = {
+export interface CreateProductForm {
     name: string;
-    price: number;
-    stock: number;
+    price: number | undefined; // Permitir undefined
+    stock: number | undefined; // Permitir undefined
     sku?: string;
-    categoryId?: string | number; 
+    categoryId?: string;
     categoryName?: string;
     image?: FileList;
 }

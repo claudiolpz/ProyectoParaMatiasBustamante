@@ -28,7 +28,7 @@ const CategorySelector = ({
                     id="categoryId"
                     className="bg-slate-100 border-none p-3 rounded-lg"
                     {...register("categoryId", {
-                        required: showNewCategoryInput ? false : "Debe seleccionar una categoría"
+                        required: showNewCategoryInput ? false : "Debe Seleccionar una Categoría"
                     })}
                     disabled={loadingCategories}
                 >
@@ -57,14 +57,14 @@ const CategorySelector = ({
                         placeholder="Ingresa el nombre de la nueva categoría"
                         className="bg-white border-2 border-blue-300 p-3 rounded-lg placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                         {...register("categoryName", {
-                            required: showNewCategoryInput ? "El nombre de la categoría es obligatorio" : false,
+                            required: showNewCategoryInput ? "El Nombre de la Categoría es obligatorio" : false,
                             minLength: {
                                 value: 2,
-                                message: "El nombre debe tener al menos 2 caracteres"
+                                message: "El Nombre de la Categoría debe tener al menos 2 caracteres"
                             },
                             maxLength: {
                                 value: 50,
-                                message: "El nombre no puede tener más de 50 caracteres"
+                                message: "El Nombre de la Categoría no puede tener más de 50 caracteres"
                             }
                         })}
                     />

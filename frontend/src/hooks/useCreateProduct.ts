@@ -11,14 +11,14 @@ export const useCreateProduct = () => {
     const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
     const initialValues: CreateProductForm = {
-        name: "",
-        price: 0,
-        stock: 0,
-        sku: "",
-        categoryId: undefined,
-        categoryName: "",
-        image: undefined
-    };
+    name: "",
+    price: undefined, // Cambiar de 0 a undefined
+    stock: undefined, // Cambiar de 0 a undefined
+    sku: "",
+    categoryId: undefined,
+    categoryName: "",
+    image: undefined
+};
 
     const form = useForm({ defaultValues: initialValues });
     const { register, reset, handleSubmit, watch, setValue, formState: { errors } } = form;
@@ -51,28 +51,41 @@ export const useCreateProduct = () => {
         }
     }, [watchCategoryId, setValue]);
 
+    // Helper function to prepare FormData
+    const prepareProductData = (formData: CreateProductForm): FormData => {
+        const productData = new FormData();
+
+        productData.append('name', formData.name);
+        if (formData.price !== undefined) {
+            productData.append('price', formData.price.toString());
+        }
+        
+        // Validar que stock no sea undefined
+        if (formData.stock !== undefined) {
+            productData.append('stock', formData.stock.toString());
+        }
+
+        if (formData.sku) {
+            productData.append('sku', formData.sku);
+        }
+
+        if (formData.categoryId && formData.categoryId !== "0" && Number(formData.categoryId) > 0) {
+            productData.append('categoryId', formData.categoryId.toString());
+        } else if (formData.categoryName) {
+            productData.append('categoryName', formData.categoryName);
+        }
+
+        if (formData.image?.[0]) {
+            productData.append('image', formData.image[0]);
+        }
+
+        return productData;
+    };
+
     // Crear producto
     const handleCreateProduct = async (formData: CreateProductForm) => {
         try {
-            const productData = new FormData();
-
-            productData.append('name', formData.name);
-            productData.append('price', formData.price.toString());
-            productData.append('stock', formData.stock.toString());
-
-            if (formData.sku) {
-                productData.append('sku', formData.sku);
-            }
-
-            if (formData.categoryId && formData.categoryId !== "0" && Number(formData.categoryId) > 0) {
-                productData.append('categoryId', formData.categoryId.toString());
-            } else if (formData.categoryName) {
-                productData.append('categoryName', formData.categoryName);
-            }
-
-            if (formData.image?.[0]) {
-                productData.append('image', formData.image[0]);
-            }
+            const productData = prepareProductData(formData);
 
             const { data } = await api.post(`/products`, productData, {
                 headers: { 'Content-Type': 'multipart/form-data' }

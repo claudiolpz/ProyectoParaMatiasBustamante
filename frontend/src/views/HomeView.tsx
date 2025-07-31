@@ -38,6 +38,14 @@ const HomeView = () => {
                 >
                     register
                 </NavLink>
+                <NavLink
+                    to="/products/create"
+                    className={({ isActive }) =>
+                        isActive ? "text-blue-600 font-bold underline" : "text-gray-600"
+                    }
+                >
+                    Crear Producto
+                </NavLink>
             </nav>
     </div>
   )
