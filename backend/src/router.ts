@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { body } from 'express-validator'
-import { createAccount, login } from './handlers';
+import { body, query } from 'express-validator'
+import { createAccount, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
+import { createProduct, getProducts } from './handlers/product';
+import { uploadProductImage } from './middleware/upload';
 
 const router = Router();
 
@@ -37,5 +39,66 @@ router.post('/auth/login',
         .notEmpty()
         .withMessage('La Contraseña es obligatoria'),
     handleInputErrors,
-    login)
+    login);
+
+/* CREAR PRODUCTO */
+router.post('/products',
+    uploadProductImage, // ← Primero el middleware de upload
+    body('name')
+        .notEmpty()
+        .withMessage('El nombre del producto es obligatorio')
+        .trim(),
+    body('price')
+        .isFloat({ gt: 0 })
+        .withMessage('El precio debe ser un número mayor a 0'),
+    body('stock')
+        .isInt({ min: 0 })
+        .withMessage('El stock debe ser un número entero mayor o igual a 0'),
+    body('sku')
+        .optional()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('El SKU debe tener entre 1 y 50 caracteres')
+        .trim(),
+    body('categoryId')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('categoryId debe ser un número entero válido'),
+    body('categoryName')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre de la categoría debe tener entre 2 y 50 caracteres')
+        .trim(),
+    handleInputErrors,
+    createProduct);
+    
+/* OBTENER PRODUCTOS */
+router.get('/products',
+    query('page')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('La página debe ser un número entero mayor a 0'),
+    query('limit')
+        .optional()
+        .isInt({ min: 1, max: 100 })
+        .withMessage('El límite debe ser un número entre 1 y 100'),
+    query('orderBy')
+        .optional()
+        .isIn(['name', 'price', 'stock'])
+        .withMessage('orderBy debe ser: name, price o stock'),
+    query('order')
+        .optional()
+        .isIn(['asc', 'desc'])
+        .withMessage('order debe ser: asc o desc'),
+    query('categoryId')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('categoryId debe ser un número entero válido'),
+    query('search')
+        .optional()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('La búsqueda debe tener entre 1 y 100 caracteres')
+        .trim(),
+    handleInputErrors,
+    getProducts);
+
 export default router;
