@@ -84,7 +84,7 @@ router.get('/products',
         .withMessage('El límite debe ser un número entre 1 y 100'),
     query('orderBy')
         .optional()
-        .isIn(['name', 'price', 'stock'])
+        .isIn(['name', 'price', 'stock', 'category'])
         .withMessage('orderBy debe ser: name, price o stock'),
     query('order')
         .optional()

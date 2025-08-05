@@ -9,6 +9,7 @@ import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
 import InitialLayout from "./layouts/InitalLayout";
 import CreateProduct from "./views/CreateProduct";
+import TableProduct from "./views/TableProduct";
 
 
 const router = createBrowserRouter([
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
       {
         path: "/products/create",
         element: <CreateProduct />,
+      },
+      {
+        path: "/list-products",
+        element: <TableProduct />,
       }
     ],
   },

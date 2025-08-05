@@ -46,6 +46,14 @@ const HomeView = () => {
                 >
                     Crear Producto
                 </NavLink>
+                <NavLink
+                    to="/list-products"
+                    className={({ isActive }) =>
+                        isActive ? "text-blue-600 font-bold underline" : "text-gray-600"
+                    }
+                >
+                    Tabla Productos
+                </NavLink>
             </nav>
     </div>
   )
