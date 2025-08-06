@@ -20,11 +20,12 @@ export const getProducts = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "categoryId debe ser un número válido mayor a 0" });
         }
 
-        const allowedFields = ['name', 'price', 'stock'];
+        // MODIFICADO: Agregar 'category' a los campos permitidos
+        const allowedFields = ['name', 'price', 'stock', 'category'];
 
         if (!allowedFields.includes(orderBy)) {
             return res.status(400).json({
-                error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock'
+                error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category'
             });
         }
 
@@ -68,6 +69,23 @@ export const getProducts = async (req: Request, res: Response) => {
             ];
         }
 
+        // MODIFICADO: Construir orderBy dinámicamente para manejar 'category'
+        let orderByClause: any;
+        
+        if (orderBy === 'category') {
+            // Ordenar por el nombre de la categoría
+            orderByClause = {
+                category: {
+                    name: order
+                }
+            };
+        } else {
+            // Ordenamiento normal para otros campos
+            orderByClause = {
+                [orderBy]: order
+            };
+        }
+
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where,
@@ -81,9 +99,7 @@ export const getProducts = async (req: Request, res: Response) => {
                         }
                     }
                 },
-                orderBy: {
-                    [orderBy]: order,
-                },
+                orderBy: orderByClause, // ← USAR orderByClause dinámico
             }),
             prisma.product.count({ where }),
         ]);
@@ -120,7 +136,6 @@ export const getProducts = async (req: Request, res: Response) => {
         });
     }
 };
-
 export const createProduct = async (req: Request, res: Response) => {
     try {
         const { name, price, stock, sku, categoryId, categoryName } = req.body;

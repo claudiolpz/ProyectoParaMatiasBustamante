@@ -4,6 +4,7 @@ import { createAccount, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProducts } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
+import { getCategories } from './handlers/category';
 
 const router = Router();
 
@@ -83,7 +84,7 @@ router.get('/products',
         .withMessage('El límite debe ser un número entre 1 y 100'),
     query('orderBy')
         .optional()
-        .isIn(['name', 'price', 'stock'])
+        .isIn(['name', 'price', 'stock', 'category'])
         .withMessage('orderBy debe ser: name, price o stock'),
     query('order')
         .optional()
@@ -100,5 +101,8 @@ router.get('/products',
         .trim(),
     handleInputErrors,
     getProducts);
+
+    // OBTENER CATEGORÍAS
+    router.get('/categories', getCategories);
 
 export default router;

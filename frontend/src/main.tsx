@@ -7,34 +7,47 @@ import HomeView from "./views/HomeView";
 import SobreNosotrosView from "./views/SobreNosotrosView";
 import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
-import AuthLayout from "./layouts/AuthLayout";
+import InitialLayout from "./layouts/InitalLayout";
+import CreateProduct from "./views/CreateProduct";
+import TableProduct from "./views/TableProduct";
+import FrontendLayout from "./layouts/FrontendLayout";
+
 
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <FrontendLayout />,
     children: [
       {
-        index: true,
-        element: <HomeView />,
-      },
-      {
-        path: "/sobre-nosotros",
-        element: <SobreNosotrosView />,
-      },
-      {
-        path: "/auth",
-        element: <AuthLayout />,
+        path: "/",
+        element: <InitialLayout />,
         children: [
           {
-            path: "login",
+            index: true,
+            element: <HomeView />,
+          },
+          {
+            path: "/sobre-nosotros",
+            element: <SobreNosotrosView />,
+          },
+          {
+            path: "/auth/login",
             element: <LoginView />,
           },
           {
-            path: "register",
+            path: "/auth/register",
             element: <RegisterView />,
           },
-        ],
+          {
+            path:"/products/create",
+            element: <CreateProduct />,
+          }
+        ]
       },
+      {
+        path: "/list-products",
+        element: <TableProduct />,
+      }
     ],
   },
 ]);

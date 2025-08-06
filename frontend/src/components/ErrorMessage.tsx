@@ -1,6 +1,4 @@
-type ErrorMessageProps = {
-    children: React.ReactNode;
-}
+import type { ErrorMessageProps } from "../types";
 
 const ErrorMessage = ({children} : ErrorMessageProps) => {
   return (

@@ -9,6 +9,7 @@ import 'dotenv/config'
 //Cors
 app.use(cors(corsConfig));
 
+app.use(express.static('public'))
 //Leer datos de fomularios
 app.use(express.json())
 
