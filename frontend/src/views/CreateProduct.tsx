@@ -247,69 +247,69 @@ const CreateProduct = () => {
                 </div>
 
                 {/* 5. Imagen -  Sin botones anidados */}
-<div className="grid grid-cols-1 space-y-3">
-    <label htmlFor="image" className="text-2xl text-slate-500">
-        Imagen del Producto (Opcional)
-    </label>
+                <div className="grid grid-cols-1 space-y-3">
+                    <label htmlFor="image" className="text-2xl text-slate-500">
+                        Imagen del Producto (Opcional)
+                    </label>
 
-    <div className="relative">
-        <input
-            id="image"
-            type="file"
-            accept="image/jpeg,image/png,image/jpg,image/webp"
-            className="sr-only"
-            {...form.register("image")}
-            onChange={handleFileChange}
-        />
+                    <div className="relative">
+                        <input
+                            id="image"
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            className="sr-only"
+                            {...form.register("image")}
+                            onChange={handleFileChange}
+                        />
 
-        {/* SOLUCION: Separar el área de upload del botón eliminar */}
-        <div className="space-y-2">
-            {/* Área principal de upload */}
-            <button
-                type="button"
-                className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${getInputLabelClasses()}`}
-                onClick={() => document.getElementById("image")?.click()}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                aria-label="Seleccionar archivo de imagen. Puedes hacer clic o arrastrar archivos aquí"
-            >
-                <span className={getTextClasses()}>{getDisplayText()}</span>
-                <span
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}
-                >
-                    {getButtonText()}
-                </span>
-            </button>
+                        {/* SOLUCION: Separar el área de upload del botón eliminar */}
+                        <div className="space-y-2">
+                            {/* Área principal de upload */}
+                            <button
+                                type="button"
+                                className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${getInputLabelClasses()}`}
+                                onClick={() => document.getElementById("image")?.click()}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                aria-label="Seleccionar archivo de imagen. Puedes hacer clic o arrastrar archivos aquí"
+                            >
+                                <span className={getTextClasses()}>{getDisplayText()}</span>
+                                <span
+                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}
+                                >
+                                    {getButtonText()}
+                                </span>
+                            </button>
 
-            {/* Botón eliminar archivo - SEPARADO */}
-            {selectedFileName && (
-                <button
-                    type="button"
-                    onClick={handleRemoveFile}
-                    className="w-full text-red-500 hover:text-red-700 p-2 flex items-center justify-center space-x-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-                    title="Eliminar archivo seleccionado"
-                >
-                    <CloseCircleOutlined />
-                    <span>Eliminar "{selectedFileName}"</span>
-                </button>
-            )}
-        </div>
+                            {/* Botón eliminar archivo - SEPARADO */}
+                            {selectedFileName && (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveFile}
+                                    className="w-full text-red-500 hover:text-red-700 p-2 flex items-center justify-center space-x-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                                    title="Eliminar archivo seleccionado"
+                                >
+                                    <CloseCircleOutlined />
+                                    <span>Eliminar "{selectedFileName}"</span>
+                                </button>
+                            )}
+                        </div>
 
-        {isDragOver && (
-            <div className="absolute inset-0 bg-blue-500 bg-opacity-5 border-2 border-blue-500 border-dashed rounded-lg pointer-events-none"></div>
-        )}
-    </div>
+                        {isDragOver && (
+                            <div className="absolute inset-0 bg-blue-500 bg-opacity-5 border-2 border-blue-500 border-dashed rounded-lg pointer-events-none"></div>
+                        )}
+                    </div>
 
-    <p className="text-xs text-slate-500">
-        <PaperClipOutlined /> Formatos aceptados: JPEG, PNG, JPG, WEBP (máx.
-        5MB) • Puedes hacer clic o arrastrar
-    </p>
+                    <p className="text-xs text-slate-500">
+                        <PaperClipOutlined /> Formatos aceptados: JPEG, PNG, JPG, WEBP (máx.
+                        5MB) • Puedes hacer clic o arrastrar
+                    </p>
 
-    {form.errors.image && (
-        <ErrorMessage>{form.errors.image.message}</ErrorMessage>
-    )}
-</div>
+                    {form.errors.image && (
+                        <ErrorMessage>{form.errors.image.message}</ErrorMessage>
+                    )}
+                </div>
 
                 <input
                     type="submit"
