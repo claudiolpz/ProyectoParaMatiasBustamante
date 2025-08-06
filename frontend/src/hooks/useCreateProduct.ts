@@ -11,17 +11,17 @@ export const useCreateProduct = () => {
     const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
     const initialValues: CreateProductForm = {
-    name: "",
-    price: undefined, // Cambiar de 0 a undefined
-    stock: undefined, // Cambiar de 0 a undefined
-    sku: "",
-    categoryId: undefined,
-    categoryName: "",
-    image: undefined
-};
+        name: "",
+        price: undefined,
+        stock: undefined,
+        sku: "",
+        categoryId: undefined,
+        categoryName: "",
+        image: undefined
+    };
 
     const form = useForm({ defaultValues: initialValues });
-    const { register, reset, handleSubmit, watch, setValue, formState: { errors } } = form;
+    const { register, reset, handleSubmit, watch, setValue, getValues, formState: { errors } } = form;
     const watchCategoryId = watch("categoryId");
 
     // Cargar categorías
@@ -55,12 +55,14 @@ export const useCreateProduct = () => {
     const prepareProductData = (formData: CreateProductForm): FormData => {
         const productData = new FormData();
 
+        console.log('FormData recibida:', formData);
+
         productData.append('name', formData.name);
+        
         if (formData.price !== undefined) {
             productData.append('price', formData.price.toString());
         }
         
-        // Validar que stock no sea undefined
         if (formData.stock !== undefined) {
             productData.append('stock', formData.stock.toString());
         }
@@ -75,27 +77,59 @@ export const useCreateProduct = () => {
             productData.append('categoryName', formData.categoryName);
         }
 
-        if (formData.image?.[0]) {
-            productData.append('image', formData.image[0]);
+        // Obtener el archivo directamente del input
+        const fileInput = document.getElementById('image') as HTMLInputElement;
+        const file = fileInput?.files?.[0];
+        
+        console.log('Archivo del input:', file);
+        
+        if (file) {
+            productData.append('image', file);
+            console.log('Archivo agregado al FormData:', file.name);
+        } else {
+            console.log('No se encontró archivo para subir');
         }
 
         return productData;
     };
 
-    // Crear producto
-    const handleCreateProduct = async (formData: CreateProductForm) => {
+    // CORREGIDO: Función para resetear completamente el formulario
+    const resetFormCompletely = () => {
+        reset();
+        setShowNewCategoryInput(false);
+        
+        // Limpiar el input de archivo manualmente
+        const fileInput = document.getElementById('image') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    // CORREGIDO: Crear producto - ahora retorna boolean para indicar éxito
+    const handleCreateProduct = async (formData: CreateProductForm): Promise<boolean> => {
         try {
+            console.log('Iniciando creación de producto...');
             const productData = prepareProductData(formData);
 
+            console.log('Enviando datos al servidor...');
             const { data } = await api.post(`/products`, productData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 
+                    'Content-Type': 'multipart/form-data'
+                }
             });
 
+            console.log('Respuesta del servidor:', data);
             toast.success(data.message);
-            reset();
-            setShowNewCategoryInput(false);
+            
+            // Reset form completamente
+            resetFormCompletely();
+            
+            return true; // Éxito
+            
         } catch (error) {
+            console.error('Error al crear producto:', error);
             if (isAxiosError(error) && error.response) {
+                console.error('Respuesta del servidor:', error.response.data);
                 if (error.response.data.error) {
                     toast.error(error.response.data.error);
                 }
@@ -104,15 +138,19 @@ export const useCreateProduct = () => {
                         if (err.msg) toast.error(err.msg);
                     });
                 }
+            } else {
+                toast.error('Error inesperado al crear el producto');
             }
+            return false; // Error
         }
     };
 
     return {
-        form: { register, handleSubmit, errors },
+        form: { register, handleSubmit, errors, getValues, setValue, watch },
         categories,
         loadingCategories,
         showNewCategoryInput,
-        handleCreateProduct
+        handleCreateProduct,
+        resetForm: resetFormCompletely // AGREGADO: exportar función de reset
     };
 };

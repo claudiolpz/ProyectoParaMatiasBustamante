@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import CategorySelector from "../components/CategorySelector";
 import ProductFormFields from "../components/ProductForm";
@@ -7,8 +8,10 @@ import ErrorMessage from "../components/ErrorMessage";
 import {
     CameraOutlined,
     CheckCircleOutlined,
-    CloseCircleOutlined, PaperClipOutlined
+    CloseCircleOutlined,
+    PaperClipOutlined,
 } from "@ant-design/icons";
+import type { CreateProductForm } from "../types";
 
 const CreateProduct = () => {
     // Estado para drag & drop
@@ -23,18 +26,30 @@ const CreateProduct = () => {
         handleCreateProduct,
     } = useCreateProduct();
 
-    // Manejar drag & drop
-    const handleDragOver = (e: React.DragEvent) => {
+    //  Effect para resetear la imagen cuando el formulario se resetea
+    useEffect(() => {
+        const subscription = form.watch((value) => {
+            // Si todos los campos principales están vacíos, consideramos que se reseteó
+            if (!value.name && !value.price && !value.stock && !value.sku) {
+                setSelectedFileName(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [form]);
+
+    //  Manejar drag & drop
+    const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(true);
-    };
+    }, []);
 
-    const handleDragLeave = (e: React.DragEvent) => {
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
-    };
+    }, []);
 
-    const handleDrop = (e: React.DragEvent) => {
+    const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
 
@@ -56,51 +71,76 @@ const CreateProduct = () => {
                 if (fileInput) {
                     fileInput.files = dataTransfer.files;
                     setSelectedFileName(file.name);
+
+                    // Trigger change event para react-hook-form
                     const event = new Event("change", { bubbles: true });
                     fileInput.dispatchEvent(event);
                 }
             } else {
-                alert(
+                toast.error(
                     "Por favor, selecciona solo archivos de imagen (JPEG, PNG, JPG, WEBP)"
                 );
             }
         }
-    };
+    }, []);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        setSelectedFileName(file ? file.name : null);
-    };
+    //  Manejar cambio de archivo
+    const handleFileChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            setSelectedFileName(file ? file.name : null);
+        },
+        []
+    );
 
-    const handleRemoveFile = (e: React.MouseEvent) => {
-        e.preventDefault();
-        const fileInput = document.getElementById("image") as HTMLInputElement;
-        if (fileInput) {
-            fileInput.value = "";
-            setSelectedFileName(null);
-        }
-    };
+    // Manejar eliminación de archivo
+    const handleRemoveFile = useCallback(
+        (e: React.MouseEvent | React.KeyboardEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const fileInput = document.getElementById("image") as HTMLInputElement;
+            if (fileInput) {
+                fileInput.value = "";
+                setSelectedFileName(null);
+                form.setValue("image", undefined as any);
+            }
+        },
+        [form]
+    );
+
+    //Función personalizada para manejar el submit
+    const onSubmit = useCallback(
+        async (data: CreateProductForm) => {
+            const success = await handleCreateProduct(data);
+
+            // Si el producto se creó exitosamente, resetear la imagen
+            if (success) {
+                setSelectedFileName(null);
+            }
+        },
+        [handleCreateProduct]
+    );
 
     // Funciones para obtener clases CSS
-    const getInputLabelClasses = () => {
+    const getInputLabelClasses = useCallback(() => {
         if (isDragOver) return "bg-blue-50 border-blue-500 text-blue-700";
         if (selectedFileName) return "bg-green-50 border-green-300";
         return "bg-slate-100 border-slate-300 hover:bg-slate-200";
-    };
+    }, [isDragOver, selectedFileName]);
 
-    const getTextClasses = () => {
+    const getTextClasses = useCallback(() => {
         if (isDragOver) return "text-blue-700";
         if (selectedFileName) return "text-green-700 font-medium";
         return "text-slate-500";
-    };
+    }, [isDragOver, selectedFileName]);
 
-    const getButtonClasses = () => {
+    const getButtonClasses = useCallback(() => {
         if (isDragOver) return "bg-blue-200 text-blue-800";
         if (selectedFileName) return "bg-green-100 text-green-700";
         return "bg-blue-100 text-blue-700";
-    };
+    }, [isDragOver, selectedFileName]);
 
-    const getDisplayText = () => {
+    const getDisplayText = useCallback(() => {
         if (isDragOver) return "¡Suelta la imagen aquí!";
         if (selectedFileName)
             return (
@@ -110,21 +150,19 @@ const CreateProduct = () => {
                     </div>
                     <div>
                         <div className="font-medium text-green-700">{selectedFileName}</div>
-                        <div className="text-xs text-green-600">
-                            Archivo subido correctamente
-                        </div>
+                        <div className="text-xs text-green-600">Archivo seleccionado</div>
                     </div>
                 </div>
             );
         return "Seleccionar archivo o arrastra aquí...";
-    };
+    }, [isDragOver, selectedFileName]);
 
-    const getButtonText = () => {
+    const getButtonText = useCallback(() => {
         if (selectedFileName)
             return (
                 <span className="flex items-center space-x-1">
                     <CheckCircleOutlined />
-                    <span>Subido</span>
+                    <span>Seleccionado</span>
                 </span>
             );
         if (isDragOver)
@@ -140,14 +178,14 @@ const CreateProduct = () => {
                 <span>Examinar</span>
             </span>
         );
-    };
+    }, [isDragOver, selectedFileName]);
 
     return (
         <>
             <h1 className="text-4xl text-white font-bold">Crear Producto</h1>
 
             <form
-                onSubmit={form.handleSubmit(handleCreateProduct)}
+                onSubmit={form.handleSubmit(onSubmit)}
                 className="bg-white px-5 py-8 rounded-lg space-y-8 mt-6"
                 encType="multipart/form-data"
             >
@@ -208,69 +246,70 @@ const CreateProduct = () => {
                     )}
                 </div>
 
-                {/* 5. Imagen */}
-                <div className="grid grid-cols-1 space-y-3">
-                    <label htmlFor="image" className="text-2xl text-slate-500">
-                        Imagen del Producto (Opcional)
-                    </label>
+                {/* 5. Imagen -  Sin botones anidados */}
+<div className="grid grid-cols-1 space-y-3">
+    <label htmlFor="image" className="text-2xl text-slate-500">
+        Imagen del Producto (Opcional)
+    </label>
 
-                    <div className="relative">
-                        <input
-                            id="image"
-                            type="file"
-                            accept="image/jpeg,image/png,image/jpg,image/webp"
-                            className="sr-only"
-                            {...form.register("image")}
-                            onChange={handleFileChange}
-                        />
+    <div className="relative">
+        <input
+            id="image"
+            type="file"
+            accept="image/jpeg,image/png,image/jpg,image/webp"
+            className="sr-only"
+            {...form.register("image")}
+            onChange={handleFileChange}
+        />
 
-                        <button
-                            type="button"
-                            className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${getInputLabelClasses()}`}
-                            onClick={() => document.getElementById("image")?.click()}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            aria-label="Seleccionar archivo de imagen. Puedes hacer clic o arrastrar archivos aquí"
-                        >
-                            <span className={getTextClasses()}>{getDisplayText()}</span>
-                            <div className="flex items-center space-x-2">
-                                {selectedFileName && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveFile(e);
-                                        }}
-                                        className="text-red-500 hover:text-red-700 p-1 flex items-center space-x-1"
-                                        title="Eliminar archivo"
-                                    >
-                                        <CloseCircleOutlined />
-                                        <span className="text-xs">Eliminar</span>
-                                    </button>
-                                )}
-                                <span
-                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}
-                                >
-                                    {getButtonText()}
-                                </span>
-                            </div>
-                        </button>
+        {/* SOLUCION: Separar el área de upload del botón eliminar */}
+        <div className="space-y-2">
+            {/* Área principal de upload */}
+            <button
+                type="button"
+                className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${getInputLabelClasses()}`}
+                onClick={() => document.getElementById("image")?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                aria-label="Seleccionar archivo de imagen. Puedes hacer clic o arrastrar archivos aquí"
+            >
+                <span className={getTextClasses()}>{getDisplayText()}</span>
+                <span
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}
+                >
+                    {getButtonText()}
+                </span>
+            </button>
 
-                        {isDragOver && (
-                            <div className="absolute inset-0 bg-blue-500 bg-opacity-5 border-2 border-blue-500 border-dashed rounded-lg pointer-events-none"></div>
-                        )}
-                    </div>
+            {/* Botón eliminar archivo - SEPARADO */}
+            {selectedFileName && (
+                <button
+                    type="button"
+                    onClick={handleRemoveFile}
+                    className="w-full text-red-500 hover:text-red-700 p-2 flex items-center justify-center space-x-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                    title="Eliminar archivo seleccionado"
+                >
+                    <CloseCircleOutlined />
+                    <span>Eliminar "{selectedFileName}"</span>
+                </button>
+            )}
+        </div>
 
-                    <p className="text-xs text-slate-500">
-                        <PaperClipOutlined /> Formatos aceptados: JPEG, PNG, JPG, WEBP (máx.
-                        5MB) • Puedes hacer clic o arrastrar
-                    </p>
+        {isDragOver && (
+            <div className="absolute inset-0 bg-blue-500 bg-opacity-5 border-2 border-blue-500 border-dashed rounded-lg pointer-events-none"></div>
+        )}
+    </div>
 
-                    {form.errors.image && (
-                        <ErrorMessage>{form.errors.image.message}</ErrorMessage>
-                    )}
-                </div>
+    <p className="text-xs text-slate-500">
+        <PaperClipOutlined /> Formatos aceptados: JPEG, PNG, JPG, WEBP (máx.
+        5MB) • Puedes hacer clic o arrastrar
+    </p>
+
+    {form.errors.image && (
+        <ErrorMessage>{form.errors.image.message}</ErrorMessage>
+    )}
+</div>
 
                 <input
                     type="submit"
