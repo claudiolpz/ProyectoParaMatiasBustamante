@@ -10,36 +10,39 @@ import RegisterView from "./views/RegisterView";
 import InitialLayout from "./layouts/InitalLayout";
 import CreateProduct from "./views/CreateProduct";
 import TableProduct from "./views/TableProduct";
+import FrontendLayout from "./layouts/FrontendLayout";
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <InitialLayout />,
+    element: <FrontendLayout />,
     children: [
       {
-        index: true,
-        element: <HomeView />,
-      },
-      {
-        path: "/sobre-nosotros",
-        element: <SobreNosotrosView />,
-      },
-      {
-        path: "/auth/login",
-        element: <LoginView />,
-      },
-      {
-        path: "/auth/register",
-        element: <RegisterView />,
-      },
-      {
-        path: "/auth/login",
-        element: <LoginView />,
-      },
-      {
-        path: "/products/create",
-        element: <CreateProduct />,
+        path: "/",
+        element: <InitialLayout />,
+        children: [
+          {
+            index: true,
+            element: <HomeView />,
+          },
+          {
+            path: "/sobre-nosotros",
+            element: <SobreNosotrosView />,
+          },
+          {
+            path: "/auth/login",
+            element: <LoginView />,
+          },
+          {
+            path: "/auth/register",
+            element: <RegisterView />,
+          },
+          {
+            path:"/products/create",
+            element: <CreateProduct />,
+          }
+        ]
       },
       {
         path: "/list-products",
