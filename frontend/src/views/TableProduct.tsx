@@ -1,81 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, LeftOutlined, RightOutlined, CaretUpOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CaretUpOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { ProductFilters as FiltersComponent } from '../components/ProductFilters';
+import ImageModal from '../components/ImageModal';
+import PaginationComponent from '../components/PaginationComponent';
 import type { Product, ProductFilters } from '../types';
-
-// ACTUALIZADO: Componente de paginación simplificado (sin selector de pageSize)
-const PaginationComponent = ({ pagination, onPageChange }: {
-  pagination: { current: number; total: number; totalPages: number; pageSize: number };
-  onPageChange: (page: number) => void;
-}) => {
-  const startItem = (pagination.current - 1) * pagination.pageSize + 1;
-  const endItem = Math.min(pagination.current * pagination.pageSize, pagination.total);
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-    const startPage = Math.max(1, pagination.current - Math.floor(maxVisible / 2));
-    const endPage = Math.min(pagination.totalPages, startPage + maxVisible - 1);
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
-
-  return (
-    <div className="flex items-center justify-between px-6 py-4 bg-slate-700 border-t border-slate-600">
-      <div className="flex items-center space-x-4">
-        <span className="text-sm text-slate-300">
-          Mostrando {startItem} a {endItem} de {pagination.total} productos
-        </span>
-        <span className="text-xs text-slate-400">
-          (10 productos por página)
-        </span>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={() => onPageChange(pagination.current - 1)}
-          disabled={pagination.current === 1}
-          className="p-2 rounded-md border border-slate-500 bg-slate-600 text-slate-300 hover:bg-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <LeftOutlined />
-        </button>
-
-        {getPageNumbers().map(page => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${page === pagination.current
-                ? 'bg-slate-500 text-white border-slate-400'
-                : 'bg-slate-600 text-slate-300 border-slate-500 hover:bg-slate-500'
-              }`}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          onClick={() => onPageChange(pagination.current + 1)}
-          disabled={pagination.current === pagination.totalPages}
-          className="p-2 rounded-md border border-slate-500 bg-slate-600 text-slate-300 hover:bg-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <RightOutlined />
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const TableProduct = () => {
   const { products, loading, pagination, fetchProducts, getFiltersFromURL } = useProducts();
   const { categories, loading: categoriesLoading, fetchCategories } = useCategories();
   const navigate = useNavigate();
+
+  // NUEVO: Estado para modal de imagen
+  const [imageModal, setImageModal] = useState<{
+    isOpen: boolean;
+    imageSrc: string;
+    imageAlt: string;
+  }>({
+    isOpen: false,
+    imageSrc: '',
+    imageAlt: ''
+  });
 
   const [filters, setFilters] = useState<ProductFilters>({
     search: '',
@@ -83,6 +31,24 @@ const TableProduct = () => {
     orderBy: 'name',
     order: 'asc',
   });
+
+  // NUEVO: Función para abrir modal de imagen
+  const handleImageClick = useCallback((imageSrc: string, imageAlt: string) => {
+    setImageModal({
+      isOpen: true,
+      imageSrc,
+      imageAlt
+    });
+  }, []);
+
+  // NUEVO: Función para cerrar modal de imagen
+  const handleCloseImageModal = useCallback(() => {
+    setImageModal({
+      isOpen: false,
+      imageSrc: '',
+      imageAlt: ''
+    });
+  }, []);
 
   // CORREGIDO: Cargar filtros desde URL al montar con nuevo orden de parámetros
   useEffect(() => {
@@ -177,7 +143,8 @@ const TableProduct = () => {
     return (
       <thead className="bg-slate-800">
         <tr>
-          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-16">
+          {/* ACTUALIZADO: Columna de imagen más ancha */}
+          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-20">
             Imagen
           </th>
           {renderSortableHeader('name', 'Nombre', 'min-w-[150px]')}
@@ -197,20 +164,23 @@ const TableProduct = () => {
 
   const renderProductRow = (product: Product) => (
     <tr key={product.id} className="hover:bg-slate-600 transition-colors">
+      {/* ACTUALIZADO: Imagen más grande y clickeable */}
       <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
         {product.image ? (
           <img
             src={product.image}
             alt={product.name}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-slate-500"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border border-slate-500 cursor-pointer hover:border-slate-400 hover:shadow-lg transition-all duration-200"
+            onClick={() => handleImageClick(product.image!, product.name)}
+            title="Clic para ampliar imagen"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = '/placeholder-image.png';
             }}
           />
         ) : (
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500">
-            <EyeOutlined className="text-slate-400 text-sm" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500">
+            <EyeOutlined className="text-slate-400 text-lg" />
           </div>
         )}
       </td>
@@ -334,6 +304,14 @@ const TableProduct = () => {
           )}
         </div>
       </div>
+
+      {/* NUEVO: Modal para mostrar imagen ampliada */}
+      <ImageModal
+        isOpen={imageModal.isOpen}
+        onClose={handleCloseImageModal}
+        imageSrc={imageModal.imageSrc}
+        imageAlt={imageModal.imageAlt}
+      />
     </div>
   );
 };

@@ -1,11 +1,5 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
-import type { CreateProductForm } from "../types";
+import type { ProductFormFieldsProps } from "../types";
 import ErrorMessage from "./ErrorMessage";
-
-interface ProductFormFieldsProps {
-    register: UseFormRegister<CreateProductForm>;
-    errors: FieldErrors<CreateProductForm>;
-}
 
 const ProductFormFields = ({ register, errors }: ProductFormFieldsProps) => {
     return (

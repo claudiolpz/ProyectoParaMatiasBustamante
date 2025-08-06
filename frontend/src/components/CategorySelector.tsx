@@ -1,14 +1,5 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
-import type { CreateProductForm, Category } from "../types";
+import type { CategorySelectorProps } from "../types";
 import ErrorMessage from "./ErrorMessage";
-
-type CategorySelectorProps = {
-    register: UseFormRegister<CreateProductForm>;
-    errors: FieldErrors<CreateProductForm>;
-    categories: Category[];
-    loadingCategories: boolean;
-    showNewCategoryInput: boolean;
-};
 
 const CategorySelector = ({
     register,

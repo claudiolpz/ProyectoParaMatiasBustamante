@@ -1,14 +1,6 @@
 import React from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import type { Category } from '../types';
-
-interface ProductFiltersProps {
-  onSearch: (value: string) => void;
-  onCategoryFilter: (categoryId: string) => void;
-  onRefresh: () => void;
-  categories: Category[];
-  categoriesLoading: boolean;
-}
+import type { ProductFiltersProps } from '../types';
 
 export const ProductFilters: React.FC<ProductFiltersProps> = ({
   onSearch,
@@ -57,14 +49,6 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           </option>
           {renderCategoryOptions()}
         </select>
-
-        <button
-          onClick={onRefresh}
-          className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors duration-200 flex items-center justify-center space-x-2 whitespace-nowrap border border-slate-500 hover:border-slate-400"
-        >
-          <SearchOutlined />
-          <span>Actualizar</span>
-        </button>
       </div>
     </div>
   );

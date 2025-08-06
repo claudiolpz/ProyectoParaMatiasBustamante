@@ -19,16 +19,16 @@ export const useProducts = () => {
   const getFiltersFromURL = useCallback((): ProductFiltersWithPage => {
     const orderFromURL = searchParams.get('order');
     const orderByFromURL = searchParams.get('orderBy');
-    
+
     // Validar que order sea 'asc' o 'desc'
     const validOrder: 'asc' | 'desc' = orderFromURL === 'desc' ? 'desc' : 'asc';
-    
+
     // Validar que orderBy sea válido
-    const validOrderBy: 'name' | 'price' | 'stock' | 'category' = 
-      orderByFromURL === 'price' || orderByFromURL === 'stock' || orderByFromURL === 'category' 
-        ? orderByFromURL 
+    const validOrderBy: 'name' | 'price' | 'stock' | 'category' =
+      orderByFromURL === 'price' || orderByFromURL === 'stock' || orderByFromURL === 'category'
+        ? orderByFromURL
         : 'name';
-    
+
     return {
       search: searchParams.get('search') || '',
       categoryId: searchParams.get('categoryId') ? parseInt(searchParams.get('categoryId')!) : undefined,
@@ -41,7 +41,7 @@ export const useProducts = () => {
   // CORREGIDO: Actualizar URL con parámetros por defecto al final
   const updateURL = useCallback((filters: ProductFilters, page = 1) => {
     const params = new URLSearchParams();
-    
+
     if (filters.search) params.set('search', filters.search);
     if (filters.categoryId) params.set('categoryId', filters.categoryId.toString());
     if (filters.orderBy !== 'name') params.set('orderBy', filters.orderBy);
@@ -55,7 +55,7 @@ export const useProducts = () => {
   const fetchProducts = useCallback(async (filters: ProductFilters, page = 1) => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '10',
@@ -67,12 +67,12 @@ export const useProducts = () => {
       if (filters.order) params.append('order', filters.order);
 
       const { data } = await api.get(`/products?${params.toString()}`);
-      
+
       setProducts(data.products || []);
       setPagination({
-        current: page,
-        pageSize: 10,
-        total: data.pagination?.total || 0,
+        current: data.pagination?.currentPage || 1,
+        pageSize: data.pagination?.itemsPerPage || 10,
+        total: data.pagination?.totalItems || 0,
         totalPages: data.pagination?.totalPages || 0,
       });
 

@@ -1,3 +1,5 @@
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
+
 export type User = {
   email: string ,
   name: string,
@@ -73,15 +75,45 @@ export interface PaginationInfo {
   total: number;
   totalPages: number;
 }
-
-// ACTUALIZADO: Props para componente de paginación
-export interface PaginationProps {
-  pagination: PaginationInfo;
-  onPageChange: (page: number) => void;
-  onPageSizeChange?: (pageSize: number) => void; // Opcional ahora
-}
-
 // NUEVO: Tipo para filtros con página (usado internamente)
 export interface ProductFiltersWithPage extends ProductFilters {
   page: number;
+}
+
+export type PaginationProps = {
+  pagination: { current: number; total: number; totalPages: number; pageSize: number };
+  onPageChange: (page: number) => void;
+}
+
+export type ImageModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  imageSrc: string;
+  imageAlt: string;
+}
+
+
+export type ProductFiltersProps = {
+  onSearch: (value: string) => void;
+  onCategoryFilter: (categoryId: string) => void;
+  onRefresh: () => void;
+  categories: Category[];
+  categoriesLoading: boolean;
+}
+
+export type ProductFormFieldsProps = {
+    register: UseFormRegister<CreateProductForm>;
+    errors: FieldErrors<CreateProductForm>;
+}
+
+export type CategorySelectorProps = {
+    register: UseFormRegister<CreateProductForm>;
+    errors: FieldErrors<CreateProductForm>;
+    categories: Category[];
+    loadingCategories: boolean;
+    showNewCategoryInput: boolean;
+};
+
+export type ErrorMessageProps = {
+    children: React.ReactNode;
 }
