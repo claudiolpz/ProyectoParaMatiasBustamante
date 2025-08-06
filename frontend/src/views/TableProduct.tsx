@@ -1,22 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, LeftOutlined, RightOutlined, CaretUpOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { useProducts, type ProductFilters } from '../hooks/useProducts';
+import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { ProductFilters as FiltersComponent } from '../components/ProductFilters';
-import type { Product, PaginationProps } from '../types';
+import type { Product, ProductFilters } from '../types';
 
-// Componente de paginación (se puede mover a components/ después)
-const PaginationComponent = ({ pagination, onPageChange, onPageSizeChange }: PaginationProps) => {
+// ACTUALIZADO: Componente de paginación simplificado (sin selector de pageSize)
+const PaginationComponent = ({ pagination, onPageChange }: {
+  pagination: { current: number; total: number; totalPages: number; pageSize: number };
+  onPageChange: (page: number) => void;
+}) => {
   const startItem = (pagination.current - 1) * pagination.pageSize + 1;
   const endItem = Math.min(pagination.current * pagination.pageSize, pagination.total);
-  
+
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     const startPage = Math.max(1, pagination.current - Math.floor(maxVisible / 2));
     const endPage = Math.min(pagination.totalPages, startPage + maxVisible - 1);
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -29,18 +33,11 @@ const PaginationComponent = ({ pagination, onPageChange, onPageSizeChange }: Pag
         <span className="text-sm text-slate-300">
           Mostrando {startItem} a {endItem} de {pagination.total} productos
         </span>
-        <select
-          value={pagination.pageSize}
-          onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-          className="border border-slate-500 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-600 text-slate-200"
-        >
-          <option value={10}>10 por página</option>
-          <option value={20}>20 por página</option>
-          <option value={50}>50 por página</option>
-          <option value={100}>100 por página</option>
-        </select>
+        <span className="text-xs text-slate-400">
+          (10 productos por página)
+        </span>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <button
           onClick={() => onPageChange(pagination.current - 1)}
@@ -49,21 +46,20 @@ const PaginationComponent = ({ pagination, onPageChange, onPageSizeChange }: Pag
         >
           <LeftOutlined />
         </button>
-        
+
         {getPageNumbers().map(page => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-              page === pagination.current
+            className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${page === pagination.current
                 ? 'bg-slate-500 text-white border-slate-400'
                 : 'bg-slate-600 text-slate-300 border-slate-500 hover:bg-slate-500'
-            }`}
+              }`}
           >
             {page}
           </button>
         ))}
-        
+
         <button
           onClick={() => onPageChange(pagination.current + 1)}
           disabled={pagination.current === pagination.totalPages}
@@ -77,9 +73,10 @@ const PaginationComponent = ({ pagination, onPageChange, onPageSizeChange }: Pag
 };
 
 const TableProduct = () => {
-  const { products, loading, pagination, fetchProducts } = useProducts();
+  const { products, loading, pagination, fetchProducts, getFiltersFromURL } = useProducts();
   const { categories, loading: categoriesLoading, fetchCategories } = useCategories();
-  
+  const navigate = useNavigate();
+
   const [filters, setFilters] = useState<ProductFilters>({
     search: '',
     categoryId: undefined,
@@ -87,58 +84,80 @@ const TableProduct = () => {
     order: 'asc',
   });
 
-  // Cargar datos iniciales
+  // CORREGIDO: Cargar filtros desde URL al montar con nuevo orden de parámetros
+  useEffect(() => {
+    const urlFilters = getFiltersFromURL();
+
+    // Validar que order sea 'asc' o 'desc'
+    const validOrder: 'asc' | 'desc' = urlFilters.order === 'desc' ? 'desc' : 'asc';
+
+    const validFilters: ProductFilters = {
+      search: urlFilters.search,
+      categoryId: urlFilters.categoryId,
+      orderBy: urlFilters.orderBy,
+      order: validOrder,
+    };
+
+    setFilters(validFilters);
+
+    // CORREGIDO: fetchProducts(filters, page) - nuevo orden
+    fetchProducts(validFilters, urlFilters.page);
+  }, [getFiltersFromURL, fetchProducts]);
+
+  // Cargar categorías al montar
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  useEffect(() => {
-    fetchProducts(1, pagination.pageSize, filters);
-  }, [filters, fetchProducts, pagination.pageSize]);
-
-  // Handlers simplificados
+  // CORREGIDO: Handlers que actualizan URL con nuevo orden de parámetros
   const handleSearch = useCallback((value: string) => {
-    setFilters(prev => ({ ...prev, search: value }));
-  }, []);
+    const newFilters: ProductFilters = { ...filters, search: value };
+    setFilters(newFilters);
+    fetchProducts(newFilters, 1); // CORREGIDO: (filters, page)
+  }, [filters, fetchProducts]);
 
   const handleCategoryFilter = useCallback((categoryId: string) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      categoryId: categoryId ? parseInt(categoryId) : undefined 
-    }));
-  }, []);
+    const newFilters: ProductFilters = {
+      ...filters,
+      categoryId: categoryId ? parseInt(categoryId) : undefined
+    };
+    setFilters(newFilters);
+    fetchProducts(newFilters, 1); // CORREGIDO: (filters, page)
+  }, [filters, fetchProducts]);
 
   const handleSort = useCallback((field: 'name' | 'price' | 'stock' | 'category') => {
-    const newOrder = filters.orderBy === field && filters.order === 'asc' ? 'desc' : 'asc';
-    setFilters(prev => ({ ...prev, orderBy: field, order: newOrder }));
-  }, [filters.orderBy, filters.order]);
+    const newOrder: 'asc' | 'desc' = filters.orderBy === field && filters.order === 'asc' ? 'desc' : 'asc';
+    const newFilters: ProductFilters = {
+      ...filters,
+      orderBy: field,
+      order: newOrder
+    };
+    setFilters(newFilters);
+    fetchProducts(newFilters, pagination.current); // CORREGIDO: (filters, page)
+  }, [filters, pagination.current, fetchProducts]);
 
   const handlePageChange = useCallback((page: number) => {
-    fetchProducts(page, pagination.pageSize, filters);
-  }, [fetchProducts, pagination.pageSize, filters]);
-
-  const handlePageSizeChange = useCallback((pageSize: number) => {
-    fetchProducts(1, pageSize, filters);
+    fetchProducts(filters, page); // CORREGIDO: (filters, page)
   }, [fetchProducts, filters]);
 
   const handleRefresh = useCallback(() => {
-    fetchProducts(1, pagination.pageSize, filters);
+    fetchProducts(filters, pagination.current); // CORREGIDO: (filters, page)
     fetchCategories();
-  }, [fetchProducts, fetchCategories, pagination.pageSize, filters]);
+  }, [fetchProducts, fetchCategories, pagination.current, filters]);
 
   const handleEdit = useCallback((id: number) => {
-    console.log('Editar producto:', id);
-    toast.info('Función de edición en desarrollo');
-  }, []);
+    navigate(`/products/edit/${id}`);
+  }, [navigate]);
 
   const handleDelete = useCallback((id: number) => {
     console.log('Eliminar producto:', id);
     toast.info('Función de eliminación en desarrollo');
   }, []);
 
+  // Función para renderizar encabezados ordenables
   const renderTableHeader = () => {
     const renderSortableHeader = (field: 'name' | 'price' | 'stock' | 'category', label: string, className: string = '') => (
-      <th 
+      <th
         key={field}
         className={`px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors ${className}`}
         onClick={() => handleSort(field)}
@@ -218,11 +237,10 @@ const TableProduct = () => {
         </span>
       </td>
       <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-          product.stock > 0 
-            ? 'bg-green-900 text-green-300 border border-green-700' 
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.stock > 0
+            ? 'bg-green-900 text-green-300 border border-green-700'
             : 'bg-red-900 text-red-300 border border-red-700'
-        }`}>
+          }`}>
           {product.stock}
         </span>
       </td>
@@ -235,7 +253,7 @@ const TableProduct = () => {
           >
             <EyeOutlined className="text-sm" />
           </button>
-          
+
           <button
             onClick={() => handleEdit(product.id)}
             className="p-1.5 text-blue-400 hover:bg-slate-600 hover:text-blue-300 rounded-lg transition-colors duration-200 border border-slate-500 hover:border-blue-400"
@@ -243,7 +261,7 @@ const TableProduct = () => {
           >
             <EditOutlined className="text-sm" />
           </button>
-          
+
           <button
             onClick={() => handleDelete(product.id)}
             className="p-1.5 text-red-400 hover:bg-slate-600 hover:text-red-300 rounded-lg transition-colors duration-200 border border-slate-500 hover:border-red-400"
@@ -262,13 +280,13 @@ const TableProduct = () => {
       <div className="bg-slate-900 shadow-lg border-b border-slate-700 px-4 sm:px-6 lg:px-8 py-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Gestión de Productos</h1>
-          <p className="text-slate-300 mt-2">Administra tu inventario de productos</p>
+          <p className="text-slate-300 mt-2">Administra tu inventario de productos (10 por página)</p>
         </div>
       </div>
 
       {/* Contenido principal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
+
         {/* Filtros */}
         <FiltersComponent
           onSearch={handleSearch}
@@ -305,12 +323,11 @@ const TableProduct = () => {
                   </tbody>
                 </table>
               </div>
-              
+
               {products && products.length > 0 && (
-                <PaginationComponent 
+                <PaginationComponent
                   pagination={pagination}
                   onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
                 />
               )}
             </>

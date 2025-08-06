@@ -58,13 +58,30 @@ export type ProductsResponse = {
   };
 }
 
-export type PaginationProps = {
-  pagination: {
-    current: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
+// ACTUALIZADO: Tipos para filtros de productos
+export interface ProductFilters {
+  search: string;
+  categoryId?: number;
+  orderBy: 'name' | 'price' | 'stock' | 'category';
+  order: 'asc' | 'desc';
+}
+
+// ACTUALIZADO: Tipos para paginación
+export interface PaginationInfo {
+  current: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+// ACTUALIZADO: Props para componente de paginación
+export interface PaginationProps {
+  pagination: PaginationInfo;
   onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageSizeChange?: (pageSize: number) => void; // Opcional ahora
+}
+
+// NUEVO: Tipo para filtros con página (usado internamente)
+export interface ProductFiltersWithPage extends ProductFilters {
+  page: number;
 }

@@ -1,99 +1,96 @@
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useSearchParams } from 'react-router';
 import api from '../config/axios';
-import type { Product, ProductsResponse } from '../types';
-
-export interface ProductFilters {
-  search: string;
-  categoryId?: number;
-  orderBy: 'name' | 'price' | 'stock' | 'category';
-  order: 'asc' | 'desc';
-}
-
-export interface PaginationState {
-  current: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-}
+import type { Product, ProductFilters, PaginationInfo, ProductFiltersWithPage } from '../types';
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState<PaginationState>({
+  const [pagination, setPagination] = useState<PaginationInfo>({
     current: 1,
     pageSize: 10,
     total: 0,
     totalPages: 0,
   });
 
-  const buildRequestParams = useCallback((page: number, pageSize: number, filters: ProductFilters) => {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: pageSize.toString(),
-      orderBy: filters.orderBy,
-      order: filters.order,
-    });
+  const [searchParams, setSearchParams] = useSearchParams();
 
-    if (filters.search.trim()) {
-      params.append('search', filters.search.trim());
-    }
-
-    if (filters.categoryId) {
-      params.append('categoryId', filters.categoryId.toString());
-    }
-
-    return params;
-  }, []);
-
-  const updateProductsState = useCallback((data: ProductsResponse) => {
-    setProducts(Array.isArray(data.products) ? data.products : []);
-    setPagination({
-      current: data.pagination.currentPage,
-      pageSize: data.pagination.itemsPerPage,
-      total: data.pagination.totalItems,
-      totalPages: data.pagination.totalPages,
-    });
-  }, []);
-
-  const handleError = useCallback((error: any) => {
-    console.error('Error completo:', error);
-    console.error('Response:', error.response?.data);
-    console.error('Status:', error.response?.status);
+  // Obtener parámetros de la URL
+  const getFiltersFromURL = useCallback((): ProductFiltersWithPage => {
+    const orderFromURL = searchParams.get('order');
+    const orderByFromURL = searchParams.get('orderBy');
     
-    toast.error('Error al cargar los productos');
-    setProducts([]);
-  }, []);
+    // Validar que order sea 'asc' o 'desc'
+    const validOrder: 'asc' | 'desc' = orderFromURL === 'desc' ? 'desc' : 'asc';
+    
+    // Validar que orderBy sea válido
+    const validOrderBy: 'name' | 'price' | 'stock' | 'category' = 
+      orderByFromURL === 'price' || orderByFromURL === 'stock' || orderByFromURL === 'category' 
+        ? orderByFromURL 
+        : 'name';
+    
+    return {
+      search: searchParams.get('search') || '',
+      categoryId: searchParams.get('categoryId') ? parseInt(searchParams.get('categoryId')!) : undefined,
+      orderBy: validOrderBy,
+      order: validOrder,
+      page: parseInt(searchParams.get('page') || '1'),
+    };
+  }, [searchParams]);
 
-  const fetchProducts = useCallback(async (page: number, pageSize: number, filters: ProductFilters) => {
+  // CORREGIDO: Actualizar URL con parámetros por defecto al final
+  const updateURL = useCallback((filters: ProductFilters, page = 1) => {
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.set('search', filters.search);
+    if (filters.categoryId) params.set('categoryId', filters.categoryId.toString());
+    if (filters.orderBy !== 'name') params.set('orderBy', filters.orderBy);
+    if (filters.order !== 'asc') params.set('order', filters.order);
+    if (page !== 1) params.set('page', page.toString());
+
+    setSearchParams(params);
+  }, [setSearchParams]);
+
+  // CORREGIDO: fetchProducts con parámetros por defecto al final
+  const fetchProducts = useCallback(async (filters: ProductFilters, page = 1) => {
     try {
       setLoading(true);
       
-      const params = buildRequestParams(page, pageSize, filters);
-      
-      console.log('Parámetros enviados:', {
-        page,
-        limit: pageSize,
-        orderBy: filters.orderBy,
-        order: filters.order,
-        search: filters.search,
-        categoryId: filters.categoryId
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10',
       });
 
-      const { data }: { data: ProductsResponse } = await api.get(`/products?${params}`);
-      updateProductsState(data);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.categoryId) params.append('categoryId', filters.categoryId.toString());
+      if (filters.orderBy) params.append('orderBy', filters.orderBy);
+      if (filters.order) params.append('order', filters.order);
+
+      const { data } = await api.get(`/products?${params.toString()}`);
       
-    } catch (error: any) {
-      handleError(error);
+      setProducts(data.products || []);
+      setPagination({
+        current: page,
+        pageSize: 10,
+        total: data.pagination?.total || 0,
+        totalPages: data.pagination?.totalPages || 0,
+      });
+
+      updateURL(filters, page);
+
+    } catch (error) {
+      console.error('Error al cargar productos:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
-  }, [buildRequestParams, updateProductsState, handleError]);
+  }, [updateURL]);
 
   return {
     products,
     loading,
     pagination,
     fetchProducts,
+    getFiltersFromURL,
   };
 };
