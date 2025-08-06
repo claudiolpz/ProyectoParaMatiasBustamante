@@ -58,11 +58,11 @@ export const useCreateProduct = () => {
         console.log('FormData recibida:', formData);
 
         productData.append('name', formData.name);
-        
+
         if (formData.price !== undefined) {
             productData.append('price', formData.price.toString());
         }
-        
+
         if (formData.stock !== undefined) {
             productData.append('stock', formData.stock.toString());
         }
@@ -80,9 +80,9 @@ export const useCreateProduct = () => {
         // Obtener el archivo directamente del input
         const fileInput = document.getElementById('image') as HTMLInputElement;
         const file = fileInput?.files?.[0];
-        
+
         console.log('Archivo del input:', file);
-        
+
         if (file) {
             productData.append('image', file);
             console.log('Archivo agregado al FormData:', file.name);
@@ -97,7 +97,7 @@ export const useCreateProduct = () => {
     const resetFormCompletely = () => {
         reset();
         setShowNewCategoryInput(false);
-        
+
         // Limpiar el input de archivo manualmente
         const fileInput = document.getElementById('image') as HTMLInputElement;
         if (fileInput) {
@@ -113,19 +113,19 @@ export const useCreateProduct = () => {
 
             console.log('Enviando datos al servidor...');
             const { data } = await api.post(`/products`, productData, {
-                headers: { 
+                headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
 
             console.log('Respuesta del servidor:', data);
             toast.success(data.message);
-            
+
             // Reset form completamente
             resetFormCompletely();
-            
+
             return true; // Éxito
-            
+
         } catch (error) {
             console.error('Error al crear producto:', error);
             if (isAxiosError(error) && error.response) {
