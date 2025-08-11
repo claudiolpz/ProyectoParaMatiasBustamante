@@ -9,11 +9,9 @@ import HomeView from "./views/HomeView";
 import SobreNosotrosView from "./views/SobreNosotrosView";
 import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
-import InitialLayout from "./layouts/InitalLayout";
 import CreateProduct from "./views/CreateProduct";
 import TableProduct from "./views/TableProduct";
 import FrontendLayout from "./layouts/FrontendLayout";
-import AppLayout from "./layouts/AppLayout";
 import { GuestRoute, ProtectedRoute } from "./components/AuthGuard";
 
 const router = createBrowserRouter([
@@ -23,7 +21,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <InitialLayout />,
+        element: <TableProduct />,
         children: [
           {
             index: true,
@@ -67,24 +65,6 @@ const router = createBrowserRouter([
         element: (
             <TableProduct />
         ),
-      },
-      {
-        path: '/admin',
-        element: (
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          {
-            index: true,
-            element: <HomeView />,
-          },
-          {
-            path: 'profile',
-            element: <HomeView />,
-          }
-        ]
       },
     ],
   },
