@@ -5,7 +5,12 @@ export type User = {
   name: string,
   lastname: string
 }
-
+export type UserTokenVerify = {
+  email: string ,
+  name: string,
+  lastname: string,
+  role: string,
+}
 export type RegisterForm = Pick<User, 'name' | 'lastname' | 'email'> & {
     password: string;
     password_confirmation: string;
@@ -17,8 +22,8 @@ export type LoginForm = Pick<User, 'email'> & {
 
 export interface CreateProductForm {
     name: string;
-    price: number | undefined; // Permitir undefined
-    stock: number | undefined; // Permitir undefined
+    price: number | undefined; 
+    stock: number | undefined; 
     sku?: string;
     categoryId?: string;
     categoryName?: string;
@@ -60,7 +65,6 @@ export type ProductsResponse = {
   };
 }
 
-// ACTUALIZADO: Tipos para filtros de productos
 export interface ProductFilters {
   search: string;
   categoryId?: number;
@@ -68,14 +72,13 @@ export interface ProductFilters {
   order: 'asc' | 'desc';
 }
 
-// ACTUALIZADO: Tipos para paginación
 export interface PaginationInfo {
   current: number;
   pageSize: number;
   total: number;
   totalPages: number;
 }
-// NUEVO: Tipo para filtros con página (usado internamente)
+
 export interface ProductFiltersWithPage extends ProductFilters {
   page: number;
 }
@@ -116,4 +119,31 @@ export type CategorySelectorProps = {
 
 export type ErrorMessageProps = {
     children: React.ReactNode;
+}
+
+export type UserToken = {
+    id: number;
+    role: string;
+}
+
+export type AuthContextType = {
+  auth: boolean;
+  user: UserTokenVerify | null;
+  token: string | null;
+  loading: boolean;
+  handleIniciarSesion: (token: string, userData?: UserTokenVerify) => Promise<void>;
+  handleCerrarSesion: () => void;
+  handleEstaLogeado: () => boolean;
+}
+export type AuthProviderProps = {
+  children: React.ReactNode;
+}
+
+// Tipos adicionales para componentes de autorización
+export type AuthGuardProps = {
+  children: React.ReactNode;
+  requiredRole?: string;
+  requiredRoles?: string[];
+  requireAuth?: boolean;
+  fallback?: React.ReactNode;
 }

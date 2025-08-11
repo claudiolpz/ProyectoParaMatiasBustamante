@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { body, query } from 'express-validator'
-import { createAccount, login } from './handlers/auth';
+import { createAccount, getUser, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProducts } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
 import { getCategories } from './handlers/category';
+import { authenticate } from './middleware/auth';
 
 const router = Router();
 
@@ -102,7 +103,9 @@ router.get('/products',
     handleInputErrors,
     getProducts);
 
-    // OBTENER CATEGORÍAS
-    router.get('/categories', getCategories);
+// OBTENER CATEGORÍAS
+router.get('/categories', getCategories);
+
+router.get('/user', authenticate ,getUser);
 
 export default router;
