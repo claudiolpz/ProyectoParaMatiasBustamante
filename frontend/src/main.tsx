@@ -5,14 +5,15 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-import HomeView from "./views/HomeView";
 import SobreNosotrosView from "./views/SobreNosotrosView";
 import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
 import CreateProduct from "./views/CreateProduct";
 import TableProduct from "./views/TableProduct";
+import EditProduct from "./views/EditProduct";
 import FrontendLayout from "./layouts/FrontendLayout";
 import { GuestRoute, ProtectedRoute } from "./components/AuthGuard";
+import InitialLayout from "./layouts/InitalLayout";
 
 const router = createBrowserRouter([
   {
@@ -20,18 +21,18 @@ const router = createBrowserRouter([
     element: <FrontendLayout />,
     children: [
       {
-        path: "/",
+        index: true,
         element: <TableProduct />,
+      },
+      {
+        path: "/list-products",
+        element: (
+          <TableProduct />
+        ),
+      },
+      {
+        element: <InitialLayout />,
         children: [
-          {
-            index: true,
-            element: <HomeView />,
-          },
-          {
-            path: "/sobre-nosotros",
-            element: <SobreNosotrosView />,
-          },
-          // Rutas de invitados - redirige si ya está logueado
           {
             path: "/auth/login",
             element: (
@@ -56,18 +57,27 @@ const router = createBrowserRouter([
                 <CreateProduct />
               </ProtectedRoute>
             ),
-          }
+          },
+          {
+            path: "/products/edit/:id",
+            element: (
+              <ProtectedRoute>
+                <EditProduct />
+              </ProtectedRoute>
+            ),
+          },
         ]
       },
-      // Otras rutas protegidas
+
       {
-        path: "/list-products",
-        element: (
-            <TableProduct />
-        ),
+        path: "/sobre-nosotros",
+        element: <SobreNosotrosView />,
       },
-    ],
+      // Rutas de invitados - redirige si ya está logueado
+
+    ]
   },
+
 ]);
 
 // En tu main.tsx
