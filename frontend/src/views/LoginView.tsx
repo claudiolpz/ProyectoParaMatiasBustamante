@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { toast } from 'sonner'
 import { isAxiosError } from "axios";
@@ -132,9 +132,6 @@ const LoginView = () => {
                     value="Iniciar Sesión"
                 />
             </form>
-            <nav>
-                <Link to="/auth/register">Crear Cuenta</Link>
-            </nav>
         </>
     );
 };

@@ -147,3 +147,22 @@ export type AuthGuardProps = {
   requireAuth?: boolean;
   fallback?: React.ReactNode;
 }
+
+export type SellProductData = {
+  productId: number;
+  quantity: number;
+}
+
+export type SellProductResponse = {
+  message: string;
+  product: {
+    id: number;
+    name: string;
+    stock: number;
+  };
+  sale: {
+    quantity: number;
+    previousStock: number;
+    newStock: number;
+  };
+}

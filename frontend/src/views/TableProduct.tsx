@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
+import { useSalesFlow } from '../hooks/useSalesFlow';
 import { useAuth, useAuthRoles } from '../context/AuthProvider';
 import { ProductFilters as FiltersComponent } from '../components/ProductFilters';
 import ImageModal from '../components/ImageModal';
@@ -120,6 +121,12 @@ const TableProduct = () => {
     toast.info('Función de eliminación en desarrollo');
   }, []);
 
+// 🆕 FUNCIÓN DE VENTA CON SWEETALERT2
+  const { handleSell, loading: sellLoading } = useSalesFlow({
+    products,
+    onRefresh: handleRefresh
+  });
+
   // Función para renderizar encabezados ordenables
   const renderTableHeader = () => {
     const renderSortableHeader = (field: 'name' | 'price' | 'stock' | 'category', label: string, className: string = '') => (
@@ -154,7 +161,7 @@ const TableProduct = () => {
           {renderSortableHeader('category', 'Categoría', 'min-w-[120px]')}
           {renderSortableHeader('price', 'Precio', 'min-w-[100px]')}
           {renderSortableHeader('stock', 'Stock', 'min-w-[100px]')}
-          
+
           {/* Columna de acciones solo para admin */}
           {(handleEstaLogeado() && isAdmin()) && (
             <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-24">
@@ -167,48 +174,48 @@ const TableProduct = () => {
   };
 
   const renderProductRow = (product: Product) => {
-  const isUserAdmin = handleEstaLogeado() && isAdmin();
-  
-  return (
-    <tr key={product.id} className="hover:bg-slate-600 transition-colors">
-      {/* Imagen */}
-      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-        {product.image ? (
-          <button
-            type="button"
-            onClick={() => handleImageClick(product.image!, product.name)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleImageClick(product.image!, product.name);
-              }
-            }}
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border border-slate-500 hover:border-slate-400 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-700 p-0"
-            title="Clic para ampliar imagen"
-            aria-label={`Ver imagen ampliada de ${product.name}`}
-          >
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-full rounded-lg object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = '/placeholder-image.png';
+    const isUserAdmin = handleEstaLogeado() && isAdmin();
+
+    return (
+      <tr key={product.id} className="hover:bg-slate-600 transition-colors">
+        {/* Imagen */}
+        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+          {product.image ? (
+            <button
+              type="button"
+              onClick={() => handleImageClick(product.image!, product.name)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleImageClick(product.image!, product.name);
+                }
               }}
-            />
-          </button>
-        ) : (
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500">
-            <EyeOutlined className="text-slate-400 text-lg" />
-          </div>
-        )}
-      </td>
-        
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border border-slate-500 hover:border-slate-400 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-700 p-0"
+              title="Clic para ampliar imagen"
+              aria-label={`Ver imagen ampliada de ${product.name}`}
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-full rounded-lg object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-image.png';
+                }}
+              />
+            </button>
+          ) : (
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500">
+              <EyeOutlined className="text-slate-400 text-lg" />
+            </div>
+          )}
+        </td>
+
         {/* Nombre */}
         <td className="px-3 sm:px-6 py-4">
           <div className="text-sm font-medium text-white break-words">{product.name}</div>
         </td>
-        
+
         {/* SKU */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           {product.sku ? (
@@ -219,41 +226,45 @@ const TableProduct = () => {
             <span className="text-slate-400 text-sm">Sin SKU</span>
           )}
         </td>
-        
+
         {/* Categoría */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-600 text-slate-200 border border-slate-500">
             {product.category?.name || 'Sin categoría'}
           </span>
         </td>
-        
+
         {/* Precio */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           <span className="text-sm font-semibold text-green-400">
             ${product.price.toLocaleString('es-CL')}
           </span>
         </td>
-        
+
         {/* Stock */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.stock > 0
-              ? 'bg-green-900 text-green-300 border border-green-700'
-              : 'bg-red-900 text-red-300 border border-red-700'
+            ? 'bg-green-900 text-green-300 border border-green-700'
+            : 'bg-red-900 text-red-300 border border-red-700'
             }`}>
             {product.stock}
           </span>
         </td>
-        
+
         {/* Acciones - Solo para admin */}
         {isUserAdmin && (
           <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
             <div className="flex items-center space-x-1">
               <button
-                onClick={() => console.log('Ver producto:', product.id)}
-                className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-colors duration-200 border border-slate-500 hover:border-slate-400"
-                title="Ver producto"
+                onClick={() => handleSell(product.id)}
+                disabled={sellLoading || product.stock === 0}
+                className={`p-1.5 rounded-lg transition-colors duration-200 border ${product.stock === 0
+                    ? 'text-gray-400 bg-gray-600 border-gray-500 cursor-not-allowed'
+                    : 'text-orange-400 hover:bg-slate-600 hover:text-orange-300 border-slate-500 hover:border-orange-400'
+                  }`}
+                title={product.stock === 0 ? "Sin stock disponible" : "Vender producto"}
               >
-                <EyeOutlined className="text-sm" />
+                <MinusCircleOutlined className="text-sm" />
               </button>
 
               <button
@@ -289,7 +300,7 @@ const TableProduct = () => {
                 {handleEstaLogeado() && isAdmin() ? 'Gestión de Productos' : 'Catálogo de Productos'}
               </h1>
               <p className="text-slate-300 mt-2">
-                {handleEstaLogeado() && isAdmin() 
+                {handleEstaLogeado() && isAdmin()
                   ? 'Administra tu inventario de productos'
                   : 'Explora nuestro catálogo de productos'
                 } (10 por página)
@@ -298,7 +309,7 @@ const TableProduct = () => {
 
             {/* Botón Crear Producto solo para admin */}
             {handleEstaLogeado() && isAdmin() && (
-              <Link 
+              <Link
                 to="/products/create"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-lg"
               >
@@ -315,14 +326,14 @@ const TableProduct = () => {
                   <span className="font-semibold">¿Quieres administrar productos?</span> Inicia sesión para acceder a todas las funcionalidades.
                 </p>
                 <div className="flex items-center space-x-2 ml-4">
-                  <Link 
+                  <Link
                     to="/auth/login"
                     className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200"
                   >
                     <LoginOutlined className="mr-1.5" />
                     Iniciar Sesión
                   </Link>
-                  <Link 
+                  <Link
                     to="/auth/register"
                     className="inline-flex items-center px-3 py-1.5 bg-slate-600 text-white text-sm font-medium rounded-md hover:bg-slate-700 transition-colors duration-200"
                   >
@@ -334,12 +345,22 @@ const TableProduct = () => {
             </div>
           )}
 
+          {/* Mensaje para usuarios logueados y administradores */}
+          {handleEstaLogeado() && isAdmin() && (
+            <div className="mt-4 bg-blue-900/30 border border-blue-700/50 rounded-lg p-4">
+              <p className="text-white">
+                <span className="font-semibold">¡Bienvenido {user?.name}!</span> Como Admin tienes acceso completo
+                para gestionar productos, categorías y realizar todas las operaciones del sistema.
+              </p>
+            </div>
+          )}
+
           {/* Mensaje para usuarios logueados pero no admin */}
           {handleEstaLogeado() && !isAdmin() && (
-            <div className="mt-4 bg-amber-900/30 border border-amber-700/50 rounded-lg p-4">
-              <p className="text-amber-200">
-                <span className="font-semibold">Hola {user?.name}!</span> Estás viendo el catálogo como {user?.role}. 
-                Solo los administradores pueden editar productos.
+            <div className="mt-4 bg-blue-900/30 border border-blue-700/50 rounded-lg p-4">
+              <p className="text-white">
+                <span className="font-semibold">Hola {user?.name}!</span> Estás viendo el catálogo como usuario.
+                Solo los administradores pueden gestionar los productos.
               </p>
             </div>
           )}
