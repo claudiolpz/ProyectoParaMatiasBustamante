@@ -25,12 +25,6 @@ const router = createBrowserRouter([
         element: <TableProduct />,
       },
       {
-        path: "/list-products",
-        element: (
-          <TableProduct />
-        ),
-      },
-      {
         element: <InitialLayout />,
         children: [
           {

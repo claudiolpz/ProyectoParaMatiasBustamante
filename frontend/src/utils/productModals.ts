@@ -79,8 +79,8 @@ export const showErrorModal = async (errorMessage: string): Promise<void> => {
 const createQuantitySelectionHTML = (product: Product, quantity: number): string => `
   <div class="space-y-4">
     <div class="bg-gray-50 p-4 rounded-lg">
-      <p class="text-gray-700"><strong>Stock disponible:</strong> ${product.stock} unidades</p>
-      <p class="text-gray-700"><strong>Precio unitario:</strong> $${product.price.toLocaleString('es-CL')}</p>
+      <p class="text-gray-700"><strong>Stock Disponible:</strong> ${product.stock} Unidades</p>
+      <p class="text-gray-700"><strong>Precio Unidad:</strong> $${product.price.toLocaleString('es-CL')} CLP</p>
     </div>
     
     <div class="flex items-center justify-center space-x-4">
@@ -128,13 +128,14 @@ const createConfirmationHTML = (product: Product, quantity: number, total: numbe
       <div class="text-left space-y-1">
         <p><strong>Producto:</strong> ${product.name}</p>
         <p><strong>Cantidad:</strong> ${quantity} unidad${quantity > 1 ? 'es' : ''}</p>
-        <p><strong>Precio unitario:</strong> $${product.price.toLocaleString('es-CL')}</p>
-        <p class="text-lg"><strong>Total:</strong> $${total.toLocaleString('es-CL')}</p>
+        <p><strong>Precio unitario:</strong> $${product.price.toLocaleString('es-CL')} CLP</p>
+        <p class="text-lg"><strong>Total:</strong> $${total.toLocaleString('es-CL')} CLP</p>
       </div>
     </div>
     <p class="text-gray-600">Esta acción reducirá el stock del producto.</p>
   </div>
 `;
+
 
 const createSuccessHTML = (result: any): string => `
   <div class="space-y-3">
@@ -196,7 +197,7 @@ const setupQuantityControls = (product: Product): void => {
     }`;
     
     // Actualizar precio total
-    totalPrice.innerHTML = `Total: $${(product.price * currentQuantity).toLocaleString('es-CL')}`;
+    totalPrice.innerHTML = `Total: $${(product.price * currentQuantity).toLocaleString('es-CL')} CLP`;
   };
 
   // Event listeners
@@ -221,3 +222,65 @@ const setupQuantityControls = (product: Product): void => {
   // Inicializar UI
   updateUI();
 };
+
+// Modal de confirmación para eliminar producto
+export const showDeleteConfirmationModal = async (product: Product): Promise<boolean> => {
+  const { isConfirmed } = await Swal.fire({
+    title: '¿Eliminar producto?',
+    html: createDeleteConfirmationHTML(product),
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: MODAL_STYLES.colors.error,
+    cancelButtonColor: MODAL_STYLES.colors.gray,
+    focusCancel: true, // Enfoca el botón cancelar por seguridad
+  });
+
+  return isConfirmed;
+};
+
+// Modal de eliminación exitosa
+export const showDeleteSuccessModal = async (result: any): Promise<void> => {
+  await Swal.fire({
+    title: '¡Producto eliminado!',
+    html: createDeleteSuccessHTML(result),
+    icon: 'success',
+    confirmButtonText: 'Continuar',
+    confirmButtonColor: MODAL_STYLES.colors.success,
+  });
+};
+
+// Función para crear HTML de confirmación de eliminación
+const createDeleteConfirmationHTML = (product: Product): string => `
+  <div class="space-y-4">
+    <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+      <h3 class="font-semibold text-red-800 mb-2">⚠️ Esta acción no se puede deshacer</h3>
+      <div class="text-left space-y-2">
+        <p><strong>Producto a eliminar:</strong> ${product.name}</p>
+        ${product.sku ? `<p><strong>SKU:</strong> ${product.sku}</p>` : ''}
+        <p><strong>Categoría:</strong> ${product.category?.name || 'Sin categoría'}</p>
+        <p><strong>Stock actual:</strong> ${product.stock} unidades</p>
+        <p><strong>Precio:</strong> $${product.price.toLocaleString('es-CL')} CLP</p>
+      </div>
+    </div>
+    <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+      <p class="text-yellow-700 text-sm">
+        <strong>Advertencia:</strong> Se perderán todos los datos asociados a este producto.
+      </p>
+    </div>
+  </div>
+`;
+
+// Función para crear HTML de eliminación exitosa
+const createDeleteSuccessHTML = (result: any): string => `
+  <div class="space-y-3">
+    <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+      <h3 class="font-semibold text-green-800 mb-2">${result.message}</h3>
+      <div class="text-left text-sm">
+        <p><strong>Producto eliminado:</strong> ${result.product.name}</p>
+        <p class="text-green-600 mt-2">El producto ha sido removido permanentemente del sistema.</p>
+      </div>
+    </div>
+  </div>
+`;

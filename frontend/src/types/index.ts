@@ -166,3 +166,16 @@ export type SellProductResponse = {
     newStock: number;
   };
 }
+
+// Agregar estos tipos si no están:
+export interface DeleteProductData {
+  productId: number;
+}
+
+export interface DeleteProductResponse {
+  message: string;
+  product: {
+    id: number;
+    name: string;
+  };
+}

@@ -200,12 +200,8 @@ export default function Header() {
 
         {/* Desktop Navigation - Productos siempre visible */}
         <div className="hidden lg:flex lg:gap-x-12">
-          <Link to="/" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
-            Inicio
-          </Link>
-          
           {/* Productos - Siempre visible para todos los usuarios */}
-          <Link to="/list-products" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
+          <Link to="/" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
             Productos
           </Link>
           

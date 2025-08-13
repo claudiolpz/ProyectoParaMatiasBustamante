@@ -6,7 +6,7 @@ import {
   showConfirmationModal,
   showSuccessModal,
   showErrorModal
-} from '../utils/salesModal';
+} from '../utils/productModals';
 import type { Product } from '../types';
 
 interface UseSalesFlowProps {

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
-import { toast } from 'sonner';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useSalesFlow } from '../hooks/useSalesFlow';
+import { useDeleteFlow } from '../hooks/useDeleteFlow';
 import { useAuth, useAuthRoles } from '../context/AuthProvider';
 import { ProductFilters as FiltersComponent } from '../components/ProductFilters';
 import ImageModal from '../components/ImageModal';
@@ -17,6 +17,7 @@ const TableProduct = () => {
   const { handleEstaLogeado, user } = useAuth();
   const { isAdmin } = useAuthRoles();
   const navigate = useNavigate();
+  
 
   // Estado para modal de imagen
   const [imageModal, setImageModal] = useState<{
@@ -116,13 +117,13 @@ const TableProduct = () => {
     navigate(`/products/edit/${id}`);
   }, [navigate]);
 
-  const handleDelete = useCallback((id: number) => {
-    console.log('Eliminar producto:', id);
-    toast.info('Función de eliminación en desarrollo');
-  }, []);
-
-// 🆕 FUNCIÓN DE VENTA CON SWEETALERT2
+// FUNCIÓN DE VENTA 
   const { handleSell, loading: sellLoading } = useSalesFlow({
+    products,
+    onRefresh: handleRefresh
+  });
+//Funcion de Borrar
+  const { handleDelete: handleDeleteProduct, loading: deleteLoading } = useDeleteFlow({
     products,
     onRefresh: handleRefresh
   });
@@ -276,9 +277,14 @@ const TableProduct = () => {
               </button>
 
               <button
-                onClick={() => handleDelete(product.id)}
-                className="p-1.5 text-red-400 hover:bg-slate-600 hover:text-red-300 rounded-lg transition-colors duration-200 border border-slate-500 hover:border-red-400"
-                title="Eliminar producto"
+                onClick={() => handleDeleteProduct(product.id)} // ← USAR NUEVA FUNCIÓN
+                disabled={deleteLoading} // ← AGREGAR LOADING STATE
+                className={`p-1.5 rounded-lg transition-colors duration-200 border ${
+                  deleteLoading
+                    ? 'text-gray-400 bg-gray-600 border-gray-500 cursor-not-allowed'
+                    : 'text-red-400 hover:bg-slate-600 hover:text-red-300 border-slate-500 hover:border-red-400'
+                }`}
+                title={deleteLoading ? "Eliminando..." : "Eliminar producto"}
               >
                 <DeleteOutlined className="text-sm" />
               </button>
