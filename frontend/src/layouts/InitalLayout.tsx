@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router';
-import { Toaster } from 'sonner';
 
 export default function InitialLayout() {
   
@@ -18,7 +17,6 @@ export default function InitialLayout() {
           </div>
         </div>
       </div>
-      <Toaster position='top-right'/>
     </>
   )
 }

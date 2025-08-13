@@ -58,10 +58,14 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ error: error.message });
             return;
         }
-        const token = generateJWT({id: user.id, role: user.role});
+        const token = generateJWT({id: user.id});
         return res.status(200).json({ message: "Inicio de Sesión Exitoso", token:token});
     } catch (error) {
         console.error("Error al registrar usuario:", error);
         return res.status(500).json({ error: "Error al Registrar Usuario" });
     }
+}; 
+
+export const getUser = async (req: Request, res: Response) => {
+    res.json(req.user);
 };

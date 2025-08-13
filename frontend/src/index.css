@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+/* Animaciones personalizadas para Tailwind v4.1 */
+@keyframes fade-in {
+  0% { 
+    opacity: 0; 
+    transform: translateY(-4px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slide-in-right {
+  0% { 
+    transform: translateX(100%); 
+  }
+  100% { 
+    transform: translateX(0); 
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
