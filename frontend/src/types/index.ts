@@ -135,6 +135,7 @@ export type UserToken = {
     role: string;
 }
 
+// En types/index.ts, asegúrate de tener:
 export type AuthContextType = {
   auth: boolean;
   user: UserTokenVerify | null;
@@ -143,8 +144,8 @@ export type AuthContextType = {
   handleIniciarSesion: (token: string, userData?: UserTokenVerify) => Promise<void>;
   handleCerrarSesion: () => void;
   handleEstaLogeado: () => boolean;
+  refreshUser?: () => Promise<void>; 
 }
-
 export type AuthProviderProps = {
   children: React.ReactNode;
 }

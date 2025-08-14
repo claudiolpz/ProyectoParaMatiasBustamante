@@ -5,7 +5,6 @@ import type { UserTokenVerify, AuthContextType, AuthProviderProps } from "../typ
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Hook personalizado para usar el contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -15,27 +14,37 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [auth, setAuth] = useState<boolean>(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [auth, setAuth] = useState<boolean>(() => {
+    const savedToken = localStorage.getItem("AUTH_TOKEN");
+    return !!savedToken;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("AUTH_TOKEN");
+  });
+
+  const [user, setUser] = useState<UserTokenVerify | null>(null);
+  const [initializing, setInitializing] = useState(() => {
+    // Solo inicializar si hay token
+    const savedToken = localStorage.getItem("AUTH_TOKEN");
+    return !!savedToken;
+  });
+
   const queryClient = useQueryClient();
 
-  // Verificar si hay token en localStorage
-  const hasToken = !!localStorage.getItem("AUTH_TOKEN");
-
-  // React Query para obtener datos del usuario
   const { 
-    data: user, 
-    isLoading: loading,
+    data: serverUserData, 
+    isLoading: queryLoading,
     isError,
     error,
     refetch: refetchUser
   } = useQuery({
     queryKey: ['user'],
     queryFn: getUser,
-    enabled: hasToken && !!token, // Solo ejecutar si hay token
-    staleTime: 5 * 60 * 1000, // 5 minutos en cache
+    enabled: auth && !!token,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
     retry: (failureCount, error: any) => {
-      // No reintentar si es error 401 (no autorizado)
       if (error?.response?.status === 401) {
         return false;
       }
@@ -44,70 +53,62 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     retryDelay: 1000,
   });
 
-  // Effect para manejar la autenticación inicial
+  // Actualizar usuario cuando llegan datos del servidor
   useEffect(() => {
-    const savedToken = localStorage.getItem("AUTH_TOKEN");
-    if (savedToken) {
-      setToken(savedToken);
+    if (serverUserData) {
+      setUser(serverUserData);
+      setInitializing(false);
     }
-  }, []);
+  }, [serverUserData]);
 
-  // Effect para manejar el estado de autenticación basado en los datos del usuario
+  // Si no hay token, no necesita inicializar
   useEffect(() => {
-    if (user && token && !isError) {
-      setAuth(true);
-    } else if (isError || !token) {
-      setAuth(false);
-      // Si hay error 401, limpiar token
-      if ((error)?.response?.status === 401) {
-        clearAuth();
+    if (!auth || !token) {
+      setInitializing(false);
+    }
+  }, [auth, token]);
+
+  // Manejar errores
+  useEffect(() => {
+    if (isError) {
+      console.log('Error en verificación de usuario:', error);
+      if (error?.response?.status === 401) {
+        console.log('Token inválido, cerrando sesión');
       }
+      clearAuth();
     }
-  }, [user, token, isError, error]);
+  }, [isError, error]);
 
-  // Envolver clearAuth en useCallback
   const clearAuth = useCallback(() => {
     localStorage.removeItem("AUTH_TOKEN");
     setAuth(false);
     setToken(null);
-    // Limpiar cache de React Query
+    setUser(null);
+    setInitializing(false);
     queryClient.removeQueries({ queryKey: ['user'] });
     queryClient.clear();
   }, [queryClient]);
 
-  // Envolver handleIniciarSesion en useCallback
-  const handleIniciarSesion = useCallback(async (newToken: string, userData?: UserTokenVerify) => {
+  const handleIniciarSesion = useCallback(async (newToken: string) => {
     try {
-      // Guardar token
       localStorage.setItem("AUTH_TOKEN", newToken);
       setToken(newToken);
-      
-      if (userData) {
-        // Si tenemos datos del usuario, ponerlos en cache
-        queryClient.setQueryData(['user'], userData);
-        setAuth(true);
-      } else {
-        // Si no, React Query automáticamente hará la petición
-        await refetchUser();
-      }
-      
+      setAuth(true);
+      setInitializing(true);
     } catch (error) {
       clearAuth();
       throw error;
     }
-  }, [queryClient, refetchUser, clearAuth]);
+  }, [clearAuth]);
 
-  // Envolver handleCerrarSesion en useCallback
   const handleCerrarSesion = useCallback(() => {
     clearAuth();
   }, [clearAuth]);
 
-  // Envolver handleEstaLogeado en useCallback
   const handleEstaLogeado = useCallback((): boolean => {
-    return auth && user !== null && token !== null && !isError;
-  }, [auth, user, token, isError]);
+    return auth && !!token && !!user;
+  }, [auth, token, user]);
 
-  // Función para refrescar datos del usuario manualmente
   const refreshUser = useCallback(async () => {
     try {
       await refetchUser();
@@ -116,16 +117,18 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [refetchUser]);
 
-  // Envolver contextValue en useMemo
+  // Loading cuando está inicializando O cuando está haciendo query
+  const loading = initializing || (queryLoading && auth);
+
   const contextValue: AuthContextType = useMemo(() => ({
     auth,
-    user: user || null,
+    user,
     token,
     loading,
     handleIniciarSesion,
     handleCerrarSesion,
     handleEstaLogeado,
-    refreshUser, // Agregado si lo necesitas en el contexto
+    refreshUser,
   }), [
     auth,
     user,
@@ -144,11 +147,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// Hook adicional para roles (independiente de React Query)
 export const useAuthRoles = () => {
   const { user } = useAuth();
   
-  // También puedes envolver estas funciones en useCallback si se usan frecuentemente
   const hasRole = useCallback((role: string): boolean => {
     return user?.role === role;
   }, [user?.role]);

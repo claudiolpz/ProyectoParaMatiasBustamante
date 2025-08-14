@@ -47,7 +47,7 @@ const router = createBrowserRouter([
           {
             path: "/products/create",
             element: (
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <CreateProduct />
               </ProtectedRoute>
             ),
@@ -55,7 +55,7 @@ const router = createBrowserRouter([
           {
             path: "/products/edit/:id",
             element: (
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <EditProduct />
               </ProtectedRoute>
             ),
@@ -67,7 +67,6 @@ const router = createBrowserRouter([
         path: "/sobre-nosotros",
         element: <SobreNosotrosView />,
       },
-      // Rutas de invitados - redirige si ya está logueado
 
     ]
   },

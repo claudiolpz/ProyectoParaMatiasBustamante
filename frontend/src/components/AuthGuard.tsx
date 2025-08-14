@@ -1,64 +1,73 @@
-import { useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router';
-import { useAuth } from '../context/AuthProvider';
+import { Navigate } from "react-router";
+import { useAuth, useAuthRoles } from "../context/AuthProvider";
+import type { AuthGuardProps } from "../types";
 
-interface AuthRedirectProps {
-  children: ReactNode;
-  redirectTo?: string;
-  redirectWhen?: 'authenticated' | 'unauthenticated';
-  showLoading?: boolean;
-}
-
-export const AuthRedirect = ({ 
+export const ProtectedRoute = ({ 
   children, 
-  redirectTo = '/',
-  redirectWhen = 'authenticated',
-  showLoading = true 
-}: AuthRedirectProps) => {
-  const { handleEstaLogeado, loading } = useAuth();
-  const navigate = useNavigate();
+  requiredRole, 
+  requiredRoles = [],
+  fallback 
+}: AuthGuardProps) => {
+  const { auth, user, loading } = useAuth();
+  const { hasRole, hasAnyRole } = useAuthRoles();
 
-  useEffect(() => {
-    if (!loading) {
-      const isAuthenticated = handleEstaLogeado();
-      
-      // Simplificar la lógica - solo una condición que determina si debe redirigir
-      const shouldRedirect = 
-        (redirectWhen === 'authenticated' && isAuthenticated) ||
-        (redirectWhen === 'unauthenticated' && !isAuthenticated);
-      
-      if (shouldRedirect) {
-        navigate(redirectTo, { replace: true });
-      }
-    }
-  }, [loading, handleEstaLogeado, navigate, redirectTo, redirectWhen]);
-
-  // Loading centralizado y consistente con el Header
-  if (loading && showLoading) {
+  // Mostrar loading mientras verifica el token
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen bg-slate-800">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-white">Verificando acceso...</p>
+          </div>
+        </div>
+      )
+    );
+  }
+
+  // Si no está autenticado después del loading
+  if (!auth || !user) {
+    console.log('Acceso denegado: Usuario no autenticado');
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  // Verificar rol específico requerido
+  if (requiredRole && !hasRole(requiredRole)) {
+    console.log(`Acceso denegado: Rol requerido '${requiredRole}', rol actual '${user.role}'`);
+    return <Navigate to="/" replace />;
+  }
+
+  // Verificar si tiene alguno de los roles requeridos
+  if (requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
+    console.log(`Acceso denegado: Roles requeridos [${requiredRoles.join(', ')}], rol actual '${user.role}'`);
+    return <Navigate to="/" replace />;
+  }
+
+  // Si pasa todas las verificaciones
+  console.log(`Acceso permitido: Usuario '${user.name}' con rol '${user.role}'`);
+  return <>{children}</>;
+};
+
+export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
+  const { auth, user, loading } = useAuth();
+
+  // Mostrar loading mientras verifica
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-800">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-500 mx-auto mb-4"></div>
-          <p className="text-white text-lg">Verificando autenticación...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-white">Verificando estado...</p>
         </div>
       </div>
     );
   }
 
+  // Si está autenticado, redirigir al inicio
+  if (auth && user) {
+    console.log('Usuario ya autenticado, redirigiendo al inicio');
+    return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 };
-
-// Componente específico para rutas de invitados (login/register)
-export const GuestRoute = ({ children }: { children: ReactNode }) => (
-  <AuthRedirect redirectWhen="authenticated" redirectTo="/">
-    {children}
-  </AuthRedirect>
-);
-
-// Componente específico para rutas protegidas
-export const ProtectedRoute = ({ children }: { children: ReactNode }) => (
-  <AuthRedirect redirectWhen="unauthenticated" redirectTo="/auth/login">
-    {children}
-  </AuthRedirect>
-);
