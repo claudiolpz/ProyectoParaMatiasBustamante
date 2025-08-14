@@ -1,42 +1,8 @@
 import prisma from "../config/prisma";
-import fs from 'fs';
-import path from 'path';
-
-// Función para validar los datos del producto
-export const validateProductData = (name: string, price: string, stock: string, categoryId?: string, categoryName?: string) => {
-    if (!name || price == null || stock == null || (!categoryId && !categoryName)) {
-        return { isValid: false, error: "Faltan campos obligatorios" };
-    }
-
-    const priceNum = Number(price);
-    const stockNum = Number(stock);
-
-    if (isNaN(priceNum) || priceNum <= 0) {
-        return { isValid: false, error: "El precio debe ser un número mayor a 0" };
-    }
-
-    if (isNaN(stockNum) || stockNum < 0) {
-        return { isValid: false, error: "El stock debe ser un número mayor o igual a 0" };
-    }
-
-    return { isValid: true, priceNum, stockNum };
-};
-
-// Función para validar SKU único
-export const validateSKU = async (sku: string) => {
-    const skuExists = await prisma.product.findUnique({
-        where: { sku: sku.trim() }
-    });
-
-    if (skuExists) {
-        return { isValid: false, error: "El SKU ya está asociado a otro producto" };
-    }
-
-    return { isValid: true };
-};
+import { validateSkuUniqueness } from "../validators";
 
 // Función para manejar categoría por ID
-export const handleCategoryById = async (categoryId: string) => {
+export const handleCategoryById = async (categoryId: number) => {
     const categoryIdNum = Number(categoryId);
     
     if (isNaN(categoryIdNum) || categoryIdNum <= 0) {
@@ -84,12 +50,5 @@ export const handleCategoryByName = async (categoryName: string) => {
     return { isValid: true, categoryData };
 };
 
-// Función para limpiar archivo en caso de error
-export const cleanupFile = (filename: string) => {
-    try {
-        fs.unlinkSync(path.join('public/uploads/products', filename));
-        console.log("Archivo eliminado por error:", filename);
-    } catch (unlinkError) {
-        console.error("Error al eliminar archivo:", unlinkError);
-    }
-};
+// Re-exportar validador de SKU para compatibilidad
+export const validateSKU = validateSkuUniqueness;

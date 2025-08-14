@@ -1,91 +1,47 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
-import { cleanupFile, handleCategoryById, handleCategoryByName, validateProductData, validateSKU } from "../services/productService";
+import { ProductUpdateService } from "../services/ProductUpdateService";
+import { cleanupFile } from "../utils/fileUtils";
+
+// Importar helpers desde la carpeta correcta
+import {
+    validateProductInput,
+    processProductCategory,
+    createProductInDatabase,
+    buildProductImageUrl,
+    validateQueryParams,
+    validateOrderByField,
+    buildProductSearchWhere,
+    buildOrderByClause,
+    buildPaginationResponse,
+    validateStockForSale,
+    buildSaleResponse
+} from "../helpers/productHelpers"; // ← CORREGIDO: desde ../helpers en lugar de ../productHelpers
 
 const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
 
+/* OBTENER PRODUCTOS - REFACTORIZADO CON HELPERS */
 export const getProducts = async (req: Request, res: Response) => {
     try {
-        const page = Math.max(1, parseInt(req.query.page as string) || 1);
-        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
-        const offset = (page - 1) * limit;
-
-        const orderBy = (req.query.orderBy as string) || 'name';
-        const order = (req.query.order as string) === 'desc' ? 'desc' : 'asc';
-        const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
-        const search = req.query.search as string;
+        // Validar y extraer parámetros de query
+        const { page, limit, offset, orderBy, order, categoryId, search } = validateQueryParams(req.query);
 
         // Validar categoryId si se proporciona
         if (req.query.categoryId && categoryId !== undefined && (isNaN(categoryId) || categoryId <= 0)) {
             return res.status(400).json({ error: "categoryId debe ser un número válido mayor a 0" });
         }
 
-        // MODIFICADO: Agregar 'category' a los campos permitidos
-        const allowedFields = ['name', 'price', 'stock', 'category'];
-
-        if (!allowedFields.includes(orderBy)) {
+        // Validar campo de ordenamiento
+        if (!validateOrderByField(orderBy)) {
             return res.status(400).json({
                 error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category'
             });
         }
 
-        const where: {
-            categoryId?: number;
-            OR?: Array<{
-                name?: { contains: string; mode: 'insensitive' };
-                sku?: { contains: string; mode: 'insensitive' };
-                category?: {
-                    name: { contains: string; mode: 'insensitive' };
-                };
-            }>;
-        } = {};
-
-        if (categoryId !== undefined && !isNaN(categoryId)) {
-            where.categoryId = categoryId;
-        }
-
-        if (search?.trim()) {
-            where.OR = [
-                {
-                    name: {
-                        contains: search.trim(),
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    sku: {
-                        contains: search.trim(),
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    category: {
-                        name: {
-                            contains: search.trim(),
-                            mode: 'insensitive'
-                        }
-                    }
-                }
-            ];
-        }
-
-        // MODIFICADO: Construir orderBy dinámicamente para manejar 'category'
-        let orderByClause: any;
-        
-        if (orderBy === 'category') {
-            // Ordenar por el nombre de la categoría
-            orderByClause = {
-                category: {
-                    name: order
-                }
-            };
-        } else {
-            // Ordenamiento normal para otros campos
-            orderByClause = {
-                [orderBy]: order
-            };
-        }
-
+        // Construir cláusulas de búsqueda y ordenamiento
+        const where = buildProductSearchWhere(categoryId, search);
+        const orderByClause = buildOrderByClause(orderBy, order as 'asc' | 'desc');
+        // Ejecutar consultas
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where,
@@ -99,34 +55,23 @@ export const getProducts = async (req: Request, res: Response) => {
                         }
                     }
                 },
-                orderBy: orderByClause, // ← USAR orderByClause dinámico
+                orderBy: orderByClause,
             }),
             prisma.product.count({ where }),
         ]);
 
-        // Construir URL completa de la imagen
+        // Construir URLs de imágenes
         const productsWithImages = products.map(product => ({
             ...product,
-            image: product.image ? `${SERVER_URL}/uploads/products/${product.image}` : null
+            image: buildProductImageUrl(product.image, SERVER_URL)
         }));
 
-        const totalPages = Math.ceil(total / limit);
+        // Construir respuesta con paginación
+        const paginationInfo = buildPaginationResponse(page, limit, total, categoryId, orderBy, order, search);
+
         return res.status(200).json({
             products: productsWithImages,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalItems: total,
-                itemsPerPage: limit,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1
-            },
-            filters: {
-                categoryId: categoryId || null,
-                orderBy,
-                order,
-                search: search || null
-            }
+            ...paginationInfo
         });
 
     } catch (error: unknown) {
@@ -136,48 +81,135 @@ export const getProducts = async (req: Request, res: Response) => {
         });
     }
 };
+
+/* CREAR PRODUCTO - VERSIÓN FINAL CON HELPERS */
 export const createProduct = async (req: Request, res: Response) => {
+    const { name, price, stock, sku, categoryId, categoryName } = req.body;
+    const imageFile = req.file;
+
     try {
-        const { name, price, stock, sku, categoryId, categoryName } = req.body;
-        const imageFile = req.file;
-
-        // Validar datos del producto
-        const validation = validateProductData(name, price, stock, categoryId, categoryName);
-        if (!validation.isValid) {
-            return res.status(400).json({ error: validation.error });
-        }
-
-        const { priceNum, stockNum } = validation;
-
-        // Validar SKU único si se proporciona
-        if (sku) {
-            const skuValidation = await validateSKU(sku);
-            if (!skuValidation.isValid) {
-                return res.status(409).json({ error: skuValidation.error });
+        // 1. Validar entrada usando helper
+        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, sku);
+        if (!inputValidation.success) {
+            if (imageFile?.filename) {
+                cleanupFile(imageFile.filename);
             }
+            return res.status(inputValidation.statusCode).json({ error: inputValidation.error });
         }
 
-        // Manejar categoría
-        let categoryResult;
-        if (categoryId) {
-            categoryResult = await handleCategoryById(categoryId);
-        } else {
-            categoryResult = await handleCategoryByName(categoryName);
+        // 2. Procesar categoría usando helper
+        const categoryResult = await processProductCategory(categoryId, categoryName);
+        if (!categoryResult.success) {
+            if (imageFile?.filename) {
+                cleanupFile(imageFile.filename);
+            }
+            return res.status(categoryResult.statusCode).json({ error: categoryResult.error });
         }
 
-        if (!categoryResult.isValid) {
-            return res.status(categoryId ? 404 : 400).json({ error: categoryResult.error });
+        // 3. Crear producto en base de datos usando helper
+        const newProduct = await createProductInDatabase(
+            name,
+            inputValidation.priceNum,
+            inputValidation.stockNum,
+            sku,
+            imageFile,
+            categoryResult.categoryData
+        );
+
+        // 4. Respuesta exitosa con URL de imagen construida por helper
+        return res.status(201).json({
+            message: "Producto creado correctamente",
+            product: {
+                ...newProduct,
+                image: buildProductImageUrl(newProduct.image, SERVER_URL)
+            }
+        });
+
+    } catch (error) {
+        // Limpiar archivo si hay error
+        if (imageFile?.filename) {
+            cleanupFile(imageFile.filename);
         }
 
-        // Crear producto
-        const newProduct = await prisma.product.create({
+        console.error("Error al crear producto:", error);
+        return res.status(500).json({
+            error: "Error al crear producto"
+        });
+    }
+};
+
+/* OBTENER PRODUCTO POR ID */
+export const getProductById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const productId = parseInt(id);
+
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        if (!product) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+
+        return res.status(200).json({ 
+            product: {
+                ...product,
+                image: buildProductImageUrl(product.image, SERVER_URL)
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al obtener producto:", error);
+        return res.status(500).json({ error: "Error al obtener producto" });
+    }
+};
+
+/* VENDER PRODUCTO - REFACTORIZADO */
+export const sellProduct = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { quantity } = req.body;
+        const productId = parseInt(id);
+        const sellQuantity = parseInt(quantity);
+
+        // Verificar si el producto existe
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        if (!product) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+
+        // Verificar stock suficiente usando helper
+        if (!validateStockForSale(product.stock, sellQuantity)) {
+            return res.status(400).json({ 
+                error: `Stock insuficiente. Stock actual: ${product.stock}, cantidad solicitada: ${sellQuantity}` 
+            });
+        }
+
+        // Actualizar stock
+        const updatedProduct = await prisma.product.update({
+            where: { id: productId },
             data: {
-                name: name.trim(),
-                price: priceNum,
-                stock: stockNum,
-                sku: sku?.trim() || null,
-                image: imageFile?.filename || null,
-                category: categoryResult.categoryData
+                stock: product.stock - sellQuantity
             },
             include: {
                 category: {
@@ -189,22 +221,112 @@ export const createProduct = async (req: Request, res: Response) => {
             }
         });
 
-        return res.status(201).json({
-            message: "Producto creado correctamente",
-            product: {
-                ...newProduct,
-                image: newProduct.image ? `${SERVER_URL}/uploads/products/${newProduct.image}` : null
-            }
+        // Construir respuesta usando helper
+        const saleResponse = buildSaleResponse(sellQuantity, updatedProduct, product.stock, SERVER_URL);
+        return res.status(200).json(saleResponse);
+
+    } catch (error) {
+        console.error("Error al vender producto:", error);
+        return res.status(500).json({ error: "Error al procesar la venta" });
+    }
+};
+
+/* ACTUALIZAR PRODUCTO COMPLETO */
+export const updateProduct = async (req: Request, res: Response) => {
+    const productUpdateService = new ProductUpdateService();
+    try {
+        const { id } = req.params;
+        const { name, price, stock, sku, categoryId, categoryName } = req.body;
+        const imageFile = req.file;
+        const productId = parseInt(id);
+
+        // Construir request dinámicamente
+        const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName };
+        
+        // Filtrar solo campos que tienen valor (no undefined)
+        const updateRequest: any = {
+            id: productId,
+            ...Object.fromEntries(
+                Object.entries(fieldsToUpdate).filter(([_, value]) => value !== undefined)
+            )
+        };
+
+        // Agregar imagen si existe
+        if (imageFile) {
+            updateRequest.imageFile = imageFile;
+        }
+
+        const result = await productUpdateService.updateProduct(updateRequest);
+
+        if (!result.success) {
+            return res.status(result.statusCode || 500).json({ 
+                error: result.error 
+            });
+        }
+
+        return res.status(200).json({
+            message: "Producto actualizado correctamente",
+            product: result.product
         });
 
     } catch (error) {
+        // Limpiar archivo si hay error
         if (req.file?.filename) {
             cleanupFile(req.file.filename);
         }
 
-        console.error("Error al crear producto:", error);
-        return res.status(500).json({
-            error: "Error al crear producto"
+        console.error("Error al actualizar producto:", error);
+        return res.status(500).json({ error: "Error al actualizar producto" });
+    }
+};
+
+/* ELIMINAR PRODUCTO */
+export const deleteProduct = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const productId = parseInt(id);
+
+        // 1. Verificar que el producto existe
+        const existingProduct = await prisma.product.findUnique({
+            where: { id: productId }
+        });
+
+        if (!existingProduct) {
+            return res.status(404).json({ 
+                error: "Producto no encontrado" 
+            });
+        }
+
+        // 2. Eliminar imagen si existe
+        if (existingProduct.image) {
+            cleanupFile(existingProduct.image);
+        }
+
+        // 3. Eliminar producto de la base de datos
+        await prisma.product.delete({
+            where: { id: productId }
+        });
+
+        return res.status(200).json({
+            message: "Producto eliminado correctamente",
+            product: {
+                id: existingProduct.id,
+                name: existingProduct.name
+            }
+        });
+
+    } catch (error: any) {
+        console.error("Error al eliminar producto:", error);
+        
+        // Manejar error de restricción de clave foránea
+        if (error.code === 'P2003') {
+            return res.status(400).json({ 
+                error: "No se puede eliminar el producto porque está relacionado con otros registros" 
+            });
+        }
+
+        return res.status(500).json({ 
+            error: "Error interno al eliminar producto" 
         });
     }
 };

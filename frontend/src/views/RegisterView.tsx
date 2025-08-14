@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { isAxiosError } from "axios";
 import { toast } from 'sonner';
@@ -192,15 +192,6 @@ const RegisterView = () => {
                     value="Crear Cuenta"
                 />
             </form>
-
-            <nav className="mt-4">
-                <Link 
-                    to="/auth/login"
-                    className="text-white hover:text-slate-300 transition-colors"
-                >
-                    ¿Ya tienes cuenta? Iniciar Sesión
-                </Link>
-            </nav>
         </div>
     );
 };

@@ -49,6 +49,24 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
             next();
         }
     }catch(error){
-        res.status(500).json({ error: "Token no válido" });
+        error.message = "Token no válido";
+        res.status(500).json({ error: error.message });
     }
 }
+
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+        return res.status(401).json({ 
+            error: "No autorizado. Debe iniciar sesión primero." 
+        });
+    }
+
+    // SOLO verifica si es admin
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ 
+            error: "Acceso denegado. Se requieren permisos de administrador." 
+        });
+    }
+
+    next();
+};
