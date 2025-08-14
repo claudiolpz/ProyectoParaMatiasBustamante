@@ -5,7 +5,6 @@ import type { UserTokenVerify, AuthContextType, AuthProviderProps } from "../typ
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Hook personalizado para usar el contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -15,27 +14,38 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [auth, setAuth] = useState<boolean>(false);
-  const [token, setToken] = useState<string | null>(null);
+  // 🚀 ESTADO INMEDIATO desde localStorage (evita parpadeo)
+  const [auth, setAuth] = useState<boolean>(() => {
+    const savedToken = localStorage.getItem("AUTH_TOKEN");
+    return !!savedToken; // true/false inmediatamente
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("AUTH_TOKEN"); // Valor inmediato
+  });
+
+  // 🚀 DATOS DE USUARIO INMEDIATOS desde localStorage
+  const [user, setUser] = useState<UserTokenVerify | null>(() => {
+    const savedUserData = localStorage.getItem("USER_DATA");
+    return savedUserData ? JSON.parse(savedUserData) : null;
+  });
+
   const queryClient = useQueryClient();
 
-  // Verificar si hay token en localStorage
-  const hasToken = !!localStorage.getItem("AUTH_TOKEN");
-
-  // React Query para obtener datos del usuario
+  // 🔄 React Query para SINCRONIZACIÓN con servidor (no para estado inicial)
   const { 
-    data: user, 
-    isLoading: loading,
+    data: serverUserData, 
+    isLoading: queryLoading,
     isError,
     error,
     refetch: refetchUser
   } = useQuery({
     queryKey: ['user'],
     queryFn: getUser,
-    enabled: hasToken && !!token, // Solo ejecutar si hay token
+    enabled: auth && !!token, // Solo ejecutar si ya tenemos auth local
     staleTime: 5 * 60 * 1000, // 5 minutos en cache
+    refetchOnWindowFocus: false, // Evitar requests innecesarios
     retry: (failureCount, error: any) => {
-      // No reintentar si es error 401 (no autorizado)
       if (error?.response?.status === 401) {
         return false;
       }
@@ -44,70 +54,65 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     retryDelay: 1000,
   });
 
-  // Effect para manejar la autenticación inicial
+  // 🔄 SINCRONIZAR datos del servidor con estado local
   useEffect(() => {
-    const savedToken = localStorage.getItem("AUTH_TOKEN");
-    if (savedToken) {
-      setToken(savedToken);
+    if (serverUserData) {
+      setUser(serverUserData);
+      localStorage.setItem("USER_DATA", JSON.stringify(serverUserData));
     }
-  }, []);
+  }, [serverUserData]);
 
-  // Effect para manejar el estado de autenticación basado en los datos del usuario
+  // 🛡️ MANEJAR ERRORES (token inválido)
   useEffect(() => {
-    if (user && token && !isError) {
-      setAuth(true);
-    } else if (isError || !token) {
-      setAuth(false);
-      // Si hay error 401, limpiar token
-      if ((error)?.response?.status === 401) {
-        clearAuth();
-      }
+    if (isError && error?.response?.status === 401) {
+      console.log('Token inválido, cerrando sesión automáticamente');
+      clearAuth();
     }
-  }, [user, token, isError, error]);
+  }, [isError, error]);
 
-  // Envolver clearAuth en useCallback
+  // Limpiar autenticación
   const clearAuth = useCallback(() => {
     localStorage.removeItem("AUTH_TOKEN");
+    localStorage.removeItem("USER_DATA");
     setAuth(false);
     setToken(null);
-    // Limpiar cache de React Query
+    setUser(null);
     queryClient.removeQueries({ queryKey: ['user'] });
     queryClient.clear();
   }, [queryClient]);
 
-  // Envolver handleIniciarSesion en useCallback
+  // Iniciar sesión
   const handleIniciarSesion = useCallback(async (newToken: string, userData?: UserTokenVerify) => {
     try {
-      // Guardar token
+      // 🚀 ACTUALIZAR ESTADO INMEDIATO
       localStorage.setItem("AUTH_TOKEN", newToken);
       setToken(newToken);
+      setAuth(true);
       
       if (userData) {
-        // Si tenemos datos del usuario, ponerlos en cache
+        setUser(userData);
+        localStorage.setItem("USER_DATA", JSON.stringify(userData));
         queryClient.setQueryData(['user'], userData);
-        setAuth(true);
-      } else {
-        // Si no, React Query automáticamente hará la petición
-        await refetchUser();
       }
+      // React Query se activará automáticamente para verificar/actualizar
       
     } catch (error) {
       clearAuth();
       throw error;
     }
-  }, [queryClient, refetchUser, clearAuth]);
+  }, [queryClient, clearAuth]);
 
-  // Envolver handleCerrarSesion en useCallback
+  // Cerrar sesión
   const handleCerrarSesion = useCallback(() => {
     clearAuth();
   }, [clearAuth]);
 
-  // Envolver handleEstaLogeado en useCallback
+  // Verificar si está logueado
   const handleEstaLogeado = useCallback((): boolean => {
-    return auth && user !== null && token !== null && !isError;
-  }, [auth, user, token, isError]);
+    return auth && !!token && !!user;
+  }, [auth, token, user]);
 
-  // Función para refrescar datos del usuario manualmente
+  // Refrescar usuario
   const refreshUser = useCallback(async () => {
     try {
       await refetchUser();
@@ -116,16 +121,18 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [refetchUser]);
 
-  // Envolver contextValue en useMemo
+  // 🎯 Loading solo para requests activos, NO para verificación inicial
+  const loading = queryLoading && auth; // Solo loading si estamos haciendo sync
+
   const contextValue: AuthContextType = useMemo(() => ({
     auth,
-    user: user || null,
+    user,
     token,
-    loading,
+    loading, // Solo para sync, no para verificación inicial
     handleIniciarSesion,
     handleCerrarSesion,
     handleEstaLogeado,
-    refreshUser, // Agregado si lo necesitas en el contexto
+    refreshUser,
   }), [
     auth,
     user,
@@ -144,11 +151,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// Hook adicional para roles (independiente de React Query)
+// Hook para roles (sin cambios)
 export const useAuthRoles = () => {
   const { user } = useAuth();
   
-  // También puedes envolver estas funciones en useCallback si se usan frecuentemente
   const hasRole = useCallback((role: string): boolean => {
     return user?.role === role;
   }, [user?.role]);

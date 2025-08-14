@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { toast } from 'sonner'
 import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthProvider";
 import api from "../config/axios";
+import { useAuth } from "../context/AuthProvider";
 import ErrorMessage from "../components/ErrorMessage";
 import type { LoginForm } from "../types";
 
