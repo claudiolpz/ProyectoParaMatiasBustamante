@@ -14,25 +14,24 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  // 🚀 ESTADO INMEDIATO desde localStorage (evita parpadeo)
   const [auth, setAuth] = useState<boolean>(() => {
     const savedToken = localStorage.getItem("AUTH_TOKEN");
-    return !!savedToken; // true/false inmediatamente
+    return !!savedToken;
   });
 
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem("AUTH_TOKEN"); // Valor inmediato
+    return localStorage.getItem("AUTH_TOKEN");
   });
 
-  // 🚀 DATOS DE USUARIO INMEDIATOS desde localStorage
-  const [user, setUser] = useState<UserTokenVerify | null>(() => {
-    const savedUserData = localStorage.getItem("USER_DATA");
-    return savedUserData ? JSON.parse(savedUserData) : null;
+  const [user, setUser] = useState<UserTokenVerify | null>(null);
+  const [initializing, setInitializing] = useState(() => {
+    // Solo inicializar si hay token
+    const savedToken = localStorage.getItem("AUTH_TOKEN");
+    return !!savedToken;
   });
 
   const queryClient = useQueryClient();
 
-  // 🔄 React Query para SINCRONIZACIÓN con servidor (no para estado inicial)
   const { 
     data: serverUserData, 
     isLoading: queryLoading,
@@ -42,9 +41,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   } = useQuery({
     queryKey: ['user'],
     queryFn: getUser,
-    enabled: auth && !!token, // Solo ejecutar si ya tenemos auth local
-    staleTime: 5 * 60 * 1000, // 5 minutos en cache
-    refetchOnWindowFocus: false, // Evitar requests innecesarios
+    enabled: auth && !!token,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
     retry: (failureCount, error: any) => {
       if (error?.response?.status === 401) {
         return false;
@@ -54,65 +53,62 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     retryDelay: 1000,
   });
 
-  // 🔄 SINCRONIZAR datos del servidor con estado local
+  // Actualizar usuario cuando llegan datos del servidor
   useEffect(() => {
     if (serverUserData) {
       setUser(serverUserData);
-      localStorage.setItem("USER_DATA", JSON.stringify(serverUserData));
+      setInitializing(false);
     }
   }, [serverUserData]);
 
-  // 🛡️ MANEJAR ERRORES (token inválido)
+  // Si no hay token, no necesita inicializar
   useEffect(() => {
-    if (isError && error?.response?.status === 401) {
-      console.log('Token inválido, cerrando sesión automáticamente');
+    if (!auth || !token) {
+      setInitializing(false);
+    }
+  }, [auth, token]);
+
+  // Manejar errores
+  useEffect(() => {
+    if (isError) {
+      console.log('Error en verificación de usuario:', error);
+      if (error?.response?.status === 401) {
+        console.log('Token inválido, cerrando sesión');
+      }
       clearAuth();
     }
   }, [isError, error]);
 
-  // Limpiar autenticación
   const clearAuth = useCallback(() => {
     localStorage.removeItem("AUTH_TOKEN");
-    localStorage.removeItem("USER_DATA");
     setAuth(false);
     setToken(null);
     setUser(null);
+    setInitializing(false);
     queryClient.removeQueries({ queryKey: ['user'] });
     queryClient.clear();
   }, [queryClient]);
 
-  // Iniciar sesión
-  const handleIniciarSesion = useCallback(async (newToken: string, userData?: UserTokenVerify) => {
+  const handleIniciarSesion = useCallback(async (newToken: string) => {
     try {
-      // 🚀 ACTUALIZAR ESTADO INMEDIATO
       localStorage.setItem("AUTH_TOKEN", newToken);
       setToken(newToken);
       setAuth(true);
-      
-      if (userData) {
-        setUser(userData);
-        localStorage.setItem("USER_DATA", JSON.stringify(userData));
-        queryClient.setQueryData(['user'], userData);
-      }
-      // React Query se activará automáticamente para verificar/actualizar
-      
+      setInitializing(true);
     } catch (error) {
       clearAuth();
       throw error;
     }
-  }, [queryClient, clearAuth]);
+  }, [clearAuth]);
 
-  // Cerrar sesión
   const handleCerrarSesion = useCallback(() => {
     clearAuth();
   }, [clearAuth]);
 
-  // Verificar si está logueado
   const handleEstaLogeado = useCallback((): boolean => {
     return auth && !!token && !!user;
   }, [auth, token, user]);
 
-  // Refrescar usuario
   const refreshUser = useCallback(async () => {
     try {
       await refetchUser();
@@ -121,14 +117,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [refetchUser]);
 
-  // 🎯 Loading solo para requests activos, NO para verificación inicial
-  const loading = queryLoading && auth; // Solo loading si estamos haciendo sync
+  // Loading cuando está inicializando O cuando está haciendo query
+  const loading = initializing || (queryLoading && auth);
 
   const contextValue: AuthContextType = useMemo(() => ({
     auth,
     user,
     token,
-    loading, // Solo para sync, no para verificación inicial
+    loading,
     handleIniciarSesion,
     handleCerrarSesion,
     handleEstaLogeado,
@@ -151,7 +147,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// Hook para roles (sin cambios)
 export const useAuthRoles = () => {
   const { user } = useAuth();
   
