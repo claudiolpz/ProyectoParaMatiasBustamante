@@ -10,6 +10,18 @@ import ImageModal from '../components/ImageModal';
 import PaginationComponent from '../components/PaginationComponent';
 import type { Product, ProductFilters } from '../types';
 import { useToggleFlow } from '../hooks/useToggleFlow';
+import {
+  getProductRowStyle,
+  getSellButtonStyle,
+  getSellButtonTitle,
+  getToggleButtonStyle,
+  getToggleButtonTitle,
+  isSellButtonDisabled,
+  getImageButtonStyle,
+  getImagePlaceholderStyle,
+  getProductElementStyle,
+  getStockBadgeStyleDetailed
+} from '../helpers/tableProductHelpers';
 
 const TableProduct = () => {
   const { products, loading, pagination, fetchProducts, getFiltersFromURL } = useProducts();
@@ -180,24 +192,16 @@ const TableProduct = () => {
     return (
       <tr
         key={product.id}
-        className={`transition-colors ${
-          // Diferentes colores según estado activo
-          product.isActive
-            ? 'hover:bg-slate-600'
-            : 'bg-slate-600/50 hover:bg-slate-600/70 opacity-75'
-          }`}
+        className={getProductRowStyle(product)}
       >
-        {/* Imagen con indicador de estado */}
+        {/* Imagen con indicador de estado - USANDO HELPER */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           {product.image ? (
             <div className="relative">
               <button
                 type="button"
                 onClick={() => handleImageClick(product.image!, product.name)}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-700 p-0 ${product.isActive
-                    ? 'border-slate-500 hover:border-slate-400 hover:shadow-lg'
-                    : 'border-slate-600 hover:border-slate-500 opacity-75'
-                  }`}
+                className={getImageButtonStyle(product)}
                 title="Clic para ampliar imagen"
               >
                 <img
@@ -210,25 +214,18 @@ const TableProduct = () => {
                   }}
                 />
               </button>
-              {/* Indicador de inactivo */}
-              {!product.isActive && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">INACTIVO</span>
-                </div>
-              )}
             </div>
           ) : (
-            <div className={`w-16 h-16 sm:w-20 sm:h-20 bg-slate-600 rounded-lg flex items-center justify-center border ${product.isActive ? 'border-slate-500' : 'border-slate-600 opacity-75'
-              }`}>
+            <div className={getImagePlaceholderStyle(product)}>
               <EyeOutlined className="text-slate-400 text-lg" />
             </div>
           )}
         </td>
 
-        {/* Nombre con indicador de estado */}
+        {/* Nombre con indicador de estado - USANDO HELPER */}
         <td className="px-3 sm:px-6 py-4">
           <div className="flex items-center space-x-2">
-            <div className={`text-sm font-medium break-words ${product.isActive ? 'text-white' : 'text-slate-400'
+            <div className={`text-sm font-medium break-words ${getProductElementStyle(product, 'text-white', 'text-slate-400')
               }`}>
               {product.name}
             </div>
@@ -240,12 +237,14 @@ const TableProduct = () => {
           </div>
         </td>
 
-        {/* SKU con estilo según estado */}
+        {/* SKU con estilo según estado - USANDO HELPER */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           {product.sku ? (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${product.isActive
-                ? 'bg-slate-600 text-slate-200 border-slate-500'
-                : 'bg-slate-700 text-slate-400 border-slate-600'
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getProductElementStyle(
+              product,
+              'bg-slate-600 text-slate-200 border-slate-500',
+              'bg-slate-700 text-slate-400 border-slate-600'
+            )
               }`}>
               {product.sku}
             </span>
@@ -254,34 +253,29 @@ const TableProduct = () => {
           )}
         </td>
 
-        {/* Categoría con estilo según estado */}
+        {/* Categoría con estilo según estado - USANDO HELPER */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${product.isActive
-              ? 'bg-slate-600 text-slate-200 border-slate-500'
-              : 'bg-slate-700 text-slate-400 border-slate-600'
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getProductElementStyle(
+            product,
+            'bg-slate-600 text-slate-200 border-slate-500',
+            'bg-slate-700 text-slate-400 border-slate-600'
+          )
             }`}>
             {product.category?.name || 'Sin categoría'}
           </span>
         </td>
 
-        {/* Precio con estilo según estado */}
+        {/* Precio con estilo según estado - USANDO HELPER */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-          <span className={`text-sm font-semibold ${product.isActive ? 'text-green-400' : 'text-green-500/60'
+          <span className={`text-sm font-semibold ${getProductElementStyle(product, 'text-green-400', 'text-green-500/60')
             }`}>
             ${product.price.toLocaleString('es-CL')}
           </span>
         </td>
 
-        {/* Stock con estilo según estado */}
+        {/* ✅ STOCK CON HELPER - Sin ternarios anidados */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.stock > 0
-              ? product.isActive
-                ? 'bg-green-900 text-green-300 border border-green-700'
-                : 'bg-green-900/50 text-green-400/70 border border-green-700/50'
-              : product.isActive
-                ? 'bg-red-900 text-red-300 border border-red-700'
-                : 'bg-red-900/50 text-red-400/70 border border-red-700/50'
-            }`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStockBadgeStyleDetailed(product)}`}>
             {product.stock}
           </span>
         </td>
@@ -290,21 +284,12 @@ const TableProduct = () => {
         {isUserAdmin && (
           <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
             <div className="flex items-center space-x-1">
-              {/* Botón de venta - deshabilitado si inactivo */}
+              {/* Botón de venta */}
               <button
                 onClick={() => handleSell(product.id)}
-                disabled={sellLoading || product.stock === 0 || !product.isActive}
-                className={`p-1.5 rounded-lg transition-colors duration-200 border ${product.stock === 0 || !product.isActive
-                    ? 'text-gray-400 bg-gray-600 border-gray-500 cursor-not-allowed'
-                    : 'text-orange-400 hover:bg-slate-600 hover:text-orange-300 border-slate-500 hover:border-orange-400'
-                  }`}
-                title={
-                  !product.isActive
-                    ? "Producto inactivo"
-                    : product.stock === 0
-                      ? "Sin stock disponible"
-                      : "Vender producto"
-                }
+                disabled={isSellButtonDisabled(product, sellLoading)}
+                className={`p-1.5 rounded-lg transition-colors duration-200 border ${getSellButtonStyle(product, sellLoading)}`}
+                title={getSellButtonTitle(product, sellLoading)}
               >
                 <MinusCircleOutlined className="text-sm" />
               </button>
@@ -318,23 +303,12 @@ const TableProduct = () => {
                 <EditOutlined className="text-sm" />
               </button>
 
-              {/* BOTÓN DE TOGGLE EN VEZ DE ELIMINAR */}
+              {/* Botón de toggle */}
               <button
                 onClick={() => handleToggleProduct(product.id)}
                 disabled={toggleLoading}
-                className={`p-1.5 rounded-lg transition-colors duration-200 border ${toggleLoading
-                    ? 'text-gray-400 bg-gray-600 border-gray-500 cursor-not-allowed'
-                    : product.isActive
-                      ? 'text-orange-400 hover:bg-slate-600 hover:text-orange-300 border-slate-500 hover:border-orange-400'
-                      : 'text-green-400 hover:bg-slate-600 hover:text-green-300 border-slate-500 hover:border-green-400'
-                  }`}
-                title={
-                  toggleLoading
-                    ? "Cambiando estado..."
-                    : product.isActive
-                      ? "Desactivar producto"
-                      : "Activar producto"
-                }
+                className={`p-1.5 rounded-lg transition-colors duration-200 border ${getToggleButtonStyle(product, toggleLoading)}`}
+                title={getToggleButtonTitle(product, toggleLoading)}
               >
                 <PoweroffOutlined className="text-sm" />
               </button>
