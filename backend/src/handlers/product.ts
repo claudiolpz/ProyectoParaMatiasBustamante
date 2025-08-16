@@ -11,11 +11,11 @@ import {
     buildProductImageUrl,
     validateQueryParams,
     validateOrderByField,
-    buildProductSearchWhere,
     buildOrderByClause,
     buildPaginationResponse,
     validateStockForSale,
-    buildSaleResponse
+    buildSaleResponse,
+    buildProductSearchWhereByRole
 } from "../helpers/productHelpers"; // ← CORREGIDO: desde ../helpers en lugar de ../productHelpers
 
 const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
@@ -25,6 +25,9 @@ export const getProducts = async (req: Request, res: Response) => {
     try {
         // Validar y extraer parámetros de query
         const { page, limit, offset, orderBy, order, categoryId, search } = validateQueryParams(req.query);
+
+        // Verificar si el usuario es admin
+        const userRole = req.user?.role;
 
         // Validar categoryId si se proporciona
         if (req.query.categoryId && categoryId !== undefined && (isNaN(categoryId) || categoryId <= 0)) {
@@ -37,9 +40,10 @@ export const getProducts = async (req: Request, res: Response) => {
                 error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category'
             });
         }
-
+        
         // Construir cláusulas de búsqueda y ordenamiento
-        const where = buildProductSearchWhere(categoryId, search);
+        const where = buildProductSearchWhereByRole(categoryId, search, userRole);
+
         const orderByClause = buildOrderByClause(orderBy, order as 'asc' | 'desc');
         // Ejecutar consultas
         const [products, total] = await Promise.all([
@@ -291,15 +295,20 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
 };
 
-/* Activar PRODUCTO */
-export const activateProduct = async (req: Request, res: Response) => {
+/* TOGGLE ESTADO DEL PRODUCTO */
+export const toggleProductStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const productId = parseInt(id);
 
-        // 1. Verificar que el producto existe
+        // Verificar que el producto existe
         const existingProduct = await prisma.product.findUnique({
-            where: { id: productId }
+            where: { id: productId },
+            select: { 
+                id: true, 
+                name: true, 
+                isActive: true 
+            }
         });
 
         if (!existingProduct) {
@@ -307,92 +316,35 @@ export const activateProduct = async (req: Request, res: Response) => {
                 error: "Producto no encontrado" 
             });
         }
-        if(existingProduct.isActive) {
-            return res.status(400).json({
-                error: "El Producto ya está activado"
-            });
-        }
 
-        // 3. Activar producto de la base de datos
-        const ActivateProduct = await prisma.product.update({
+        // Alternar el estado
+        const newStatus = !existingProduct.isActive;
+        
+        const updatedProduct = await prisma.product.update({
             where: { id: productId },
-            data: { isActive: true }
-        });
-
-         return res.status(200).json({
-            message: "Producto activado correctamente",
-            product: {
-                id: ActivateProduct.id,
-                name: ActivateProduct.name,
-                isActive: ActivateProduct.isActive
+            data: { isActive: newStatus },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
             }
         });
 
-    } catch (error: any) {
-        console.error("Error al activar producto:", error);
-        
-        // Manejar error de restricción de clave foránea
-        if (error.code === 'P2003') {
-            return res.status(400).json({ 
-                error: "Error al activar el producto" 
-            });
-        }
-
-        return res.status(500).json({ 
-            error: "Error interno al activar producto" 
-        });
-    }
-};
-
-/* Desactivar PRODUCTO */
-export const deactivateProduct = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const productId = parseInt(id);
-
-        // 1. Verificar que el producto existe
-        const existingProduct = await prisma.product.findUnique({
-            where: { id: productId }
-        });
-
-        if (!existingProduct) {
-            return res.status(404).json({ 
-                error: "Producto no encontrado" 
-            });
-        }
-        if(!existingProduct.isActive) {
-            return res.status(400).json({
-                error: "El Producto ya está activado"
-            });
-        }
-
-        // 3. Desactivar producto de la base de datos
-        const DeactivateProduct = await prisma.product.update({
-            where: { id: productId },
-            data: { isActive: false }
-        });
-
-         return res.status(200).json({
-            message: "Producto desactivado correctamente",
+        return res.status(200).json({
+            message: `Producto ${newStatus ? 'activado' : 'desactivado'} correctamente`,
             product: {
-                id: DeactivateProduct.id,
-                name: DeactivateProduct.name,
-                isActive: DeactivateProduct.isActive
+                ...updatedProduct,
+                image: buildProductImageUrl(updatedProduct.image, SERVER_URL)
             }
         });
 
-    } catch (error: any) {
-        console.error("Error al desactivar producto:", error);
-        
-        // Manejar error de restricción de clave foránea
-        if (error.code === 'P2003') {
-            return res.status(400).json({ 
-                error: "Error al desactivar el producto" 
-            });
-        }
-
+    } catch (error) {
+        console.error("Error al cambiar estado del producto:", error);
         return res.status(500).json({ 
-            error: "Error interno al desactivar producto" 
+            error: "Error interno del servidor" 
         });
     }
 };

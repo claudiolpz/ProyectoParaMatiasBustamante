@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, MinusCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useSalesFlow } from '../hooks/useSalesFlow';
-import { useDeleteFlow } from '../hooks/useDeleteFlow';
 import { useAuth, useAuthRoles } from '../context/AuthProvider';
 import { ProductFilters as FiltersComponent } from '../components/ProductFilters';
 import ImageModal from '../components/ImageModal';
 import PaginationComponent from '../components/PaginationComponent';
 import type { Product, ProductFilters } from '../types';
+import { useToggleFlow } from '../hooks/useToggleFlow';
 
 const TableProduct = () => {
   const { products, loading, pagination, fetchProducts, getFiltersFromURL } = useProducts();
@@ -17,7 +17,7 @@ const TableProduct = () => {
   const { handleEstaLogeado, user } = useAuth();
   const { isAdmin } = useAuthRoles();
   const navigate = useNavigate();
-  
+
 
   // Estado para modal de imagen
   const [imageModal, setImageModal] = useState<{
@@ -117,13 +117,13 @@ const TableProduct = () => {
     navigate(`/products/edit/${id}`);
   }, [navigate]);
 
-// FUNCIÓN DE VENTA 
+  // FUNCIÓN DE VENTA 
   const { handleSell, loading: sellLoading } = useSalesFlow({
     products,
     onRefresh: handleRefresh
   });
-//Funcion de Borrar
-  const { handleDelete: handleDeleteProduct, loading: deleteLoading } = useDeleteFlow({
+  //Funcion de Borrar
+  const { handleToggle: handleToggleProduct, loading: toggleLoading } = useToggleFlow({
     products,
     onRefresh: handleRefresh
   });
@@ -178,49 +178,75 @@ const TableProduct = () => {
     const isUserAdmin = handleEstaLogeado() && isAdmin();
 
     return (
-      <tr key={product.id} className="hover:bg-slate-600 transition-colors">
-        {/* Imagen */}
+      <tr
+        key={product.id}
+        className={`transition-colors ${
+          // Diferentes colores según estado activo
+          product.isActive
+            ? 'hover:bg-slate-600'
+            : 'bg-slate-600/50 hover:bg-slate-600/70 opacity-75'
+          }`}
+      >
+        {/* Imagen con indicador de estado */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           {product.image ? (
-            <button
-              type="button"
-              onClick={() => handleImageClick(product.image!, product.name)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleImageClick(product.image!, product.name);
-                }
-              }}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border border-slate-500 hover:border-slate-400 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-700 p-0"
-              title="Clic para ampliar imagen"
-              aria-label={`Ver imagen ampliada de ${product.name}`}
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full rounded-lg object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/placeholder-image.png';
-                }}
-              />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => handleImageClick(product.image!, product.name)}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-700 p-0 ${product.isActive
+                    ? 'border-slate-500 hover:border-slate-400 hover:shadow-lg'
+                    : 'border-slate-600 hover:border-slate-500 opacity-75'
+                  }`}
+                title="Clic para ampliar imagen"
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full rounded-lg object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-image.png';
+                  }}
+                />
+              </button>
+              {/* Indicador de inactivo */}
+              {!product.isActive && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">INACTIVO</span>
+                </div>
+              )}
+            </div>
           ) : (
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500">
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 bg-slate-600 rounded-lg flex items-center justify-center border ${product.isActive ? 'border-slate-500' : 'border-slate-600 opacity-75'
+              }`}>
               <EyeOutlined className="text-slate-400 text-lg" />
             </div>
           )}
         </td>
 
-        {/* Nombre */}
+        {/* Nombre con indicador de estado */}
         <td className="px-3 sm:px-6 py-4">
-          <div className="text-sm font-medium text-white break-words">{product.name}</div>
+          <div className="flex items-center space-x-2">
+            <div className={`text-sm font-medium break-words ${product.isActive ? 'text-white' : 'text-slate-400'
+              }`}>
+              {product.name}
+            </div>
+            {!product.isActive && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-900 text-orange-300 border border-orange-700">
+                Inactivo
+              </span>
+            )}
+          </div>
         </td>
 
-        {/* SKU */}
+        {/* SKU con estilo según estado */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           {product.sku ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-600 text-slate-200 border border-slate-500">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${product.isActive
+                ? 'bg-slate-600 text-slate-200 border-slate-500'
+                : 'bg-slate-700 text-slate-400 border-slate-600'
+              }`}>
               {product.sku}
             </span>
           ) : (
@@ -228,46 +254,62 @@ const TableProduct = () => {
           )}
         </td>
 
-        {/* Categoría */}
+        {/* Categoría con estilo según estado */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-600 text-slate-200 border border-slate-500">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${product.isActive
+              ? 'bg-slate-600 text-slate-200 border-slate-500'
+              : 'bg-slate-700 text-slate-400 border-slate-600'
+            }`}>
             {product.category?.name || 'Sin categoría'}
           </span>
         </td>
 
-        {/* Precio */}
+        {/* Precio con estilo según estado */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-          <span className="text-sm font-semibold text-green-400">
+          <span className={`text-sm font-semibold ${product.isActive ? 'text-green-400' : 'text-green-500/60'
+            }`}>
             ${product.price.toLocaleString('es-CL')}
           </span>
         </td>
 
-        {/* Stock */}
+        {/* Stock con estilo según estado */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.stock > 0
-            ? 'bg-green-900 text-green-300 border border-green-700'
-            : 'bg-red-900 text-red-300 border border-red-700'
+              ? product.isActive
+                ? 'bg-green-900 text-green-300 border border-green-700'
+                : 'bg-green-900/50 text-green-400/70 border border-green-700/50'
+              : product.isActive
+                ? 'bg-red-900 text-red-300 border border-red-700'
+                : 'bg-red-900/50 text-red-400/70 border border-red-700/50'
             }`}>
             {product.stock}
           </span>
         </td>
 
-        {/* Acciones - Solo para admin */}
+        {/* Acciones con botón toggle en vez de eliminar */}
         {isUserAdmin && (
           <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
             <div className="flex items-center space-x-1">
+              {/* Botón de venta - deshabilitado si inactivo */}
               <button
                 onClick={() => handleSell(product.id)}
-                disabled={sellLoading || product.stock === 0}
-                className={`p-1.5 rounded-lg transition-colors duration-200 border ${product.stock === 0
+                disabled={sellLoading || product.stock === 0 || !product.isActive}
+                className={`p-1.5 rounded-lg transition-colors duration-200 border ${product.stock === 0 || !product.isActive
                     ? 'text-gray-400 bg-gray-600 border-gray-500 cursor-not-allowed'
                     : 'text-orange-400 hover:bg-slate-600 hover:text-orange-300 border-slate-500 hover:border-orange-400'
                   }`}
-                title={product.stock === 0 ? "Sin stock disponible" : "Vender producto"}
+                title={
+                  !product.isActive
+                    ? "Producto inactivo"
+                    : product.stock === 0
+                      ? "Sin stock disponible"
+                      : "Vender producto"
+                }
               >
                 <MinusCircleOutlined className="text-sm" />
               </button>
 
+              {/* Botón de editar */}
               <button
                 onClick={() => handleEdit(product.id)}
                 className="p-1.5 text-blue-400 hover:bg-slate-600 hover:text-blue-300 rounded-lg transition-colors duration-200 border border-slate-500 hover:border-blue-400"
@@ -276,17 +318,25 @@ const TableProduct = () => {
                 <EditOutlined className="text-sm" />
               </button>
 
+              {/* BOTÓN DE TOGGLE EN VEZ DE ELIMINAR */}
               <button
-                onClick={() => handleDeleteProduct(product.id)} // ← USAR NUEVA FUNCIÓN
-                disabled={deleteLoading} // ← AGREGAR LOADING STATE
-                className={`p-1.5 rounded-lg transition-colors duration-200 border ${
-                  deleteLoading
+                onClick={() => handleToggleProduct(product.id)}
+                disabled={toggleLoading}
+                className={`p-1.5 rounded-lg transition-colors duration-200 border ${toggleLoading
                     ? 'text-gray-400 bg-gray-600 border-gray-500 cursor-not-allowed'
-                    : 'text-red-400 hover:bg-slate-600 hover:text-red-300 border-slate-500 hover:border-red-400'
-                }`}
-                title={deleteLoading ? "Eliminando..." : "Eliminar producto"}
+                    : product.isActive
+                      ? 'text-orange-400 hover:bg-slate-600 hover:text-orange-300 border-slate-500 hover:border-orange-400'
+                      : 'text-green-400 hover:bg-slate-600 hover:text-green-300 border-slate-500 hover:border-green-400'
+                  }`}
+                title={
+                  toggleLoading
+                    ? "Cambiando estado..."
+                    : product.isActive
+                      ? "Desactivar producto"
+                      : "Activar producto"
+                }
               >
-                <DeleteOutlined className="text-sm" />
+                <PoweroffOutlined className="text-sm" />
               </button>
             </div>
           </td>

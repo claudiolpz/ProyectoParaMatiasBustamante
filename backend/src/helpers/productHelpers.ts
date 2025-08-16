@@ -6,10 +6,10 @@ import type { ProductValidationResult, CategoryProcessResult } from "../types";
 
 // Validar entrada completa del producto
 export const validateProductInput = async (
-    name: string, 
-    price: number, 
-    stock: number, 
-    categoryId?: number, 
+    name: string,
+    price: number,
+    stock: number,
+    categoryId?: number,
     categoryName?: string,
     sku?: string,
     isActive?: boolean
@@ -28,21 +28,21 @@ export const validateProductInput = async (
         }
     }
 
-    return { 
+    return {
         success: true,
         isValid: true,
-        priceNum: validation.priceNum, 
-        stockNum: validation.stockNum 
+        priceNum: validation.priceNum,
+        stockNum: validation.stockNum
     };
 };
 
 // Procesar categoría (por ID o nombre)
 export const processProductCategory = async (
-    categoryId?: number, 
+    categoryId?: number,
     categoryName?: string
 ): Promise<CategoryProcessResult> => {
     let categoryResult;
-    
+
     if (categoryId) {
         categoryResult = await handleCategoryById(categoryId);
     } else {
@@ -50,10 +50,10 @@ export const processProductCategory = async (
     }
 
     if (!categoryResult.isValid) {
-        return { 
-            success: false, 
-            error: categoryResult.error, 
-            statusCode: categoryId ? 404 : 400 
+        return {
+            success: false,
+            error: categoryResult.error,
+            statusCode: categoryId ? 404 : 400
         };
     }
 
@@ -68,7 +68,7 @@ export const createProductInDatabase = async (
     sku: string | undefined,
     imageFile: Express.Multer.File | undefined,
     categoryData: any,
-    isActive: boolean= true
+    isActive: boolean = true
 ) => {
     return await prisma.product.create({
         data: {
@@ -116,9 +116,10 @@ export const validateOrderByField = (orderBy: string): boolean => {
 };
 
 // Construir cláusula WHERE para búsqueda de productos
-export const buildProductSearchWhere = (categoryId?: number, search?: string) => {
+export const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?: boolean) => {
     const where: {
         categoryId?: number;
+        isActive?: boolean;
         OR?: Array<{
             name?: { contains: string; mode: 'insensitive' };
             sku?: { contains: string; mode: 'insensitive' };
@@ -130,6 +131,10 @@ export const buildProductSearchWhere = (categoryId?: number, search?: string) =>
 
     if (categoryId !== undefined && !isNaN(categoryId)) {
         where.categoryId = categoryId;
+    }
+
+    if (isActive !== undefined) {
+        where.isActive = isActive;
     }
 
     if (search?.trim()) {
@@ -159,7 +164,22 @@ export const buildProductSearchWhere = (categoryId?: number, search?: string) =>
 
     return where;
 };
+//Helper específico para construir WHERE según rol de usuario
+export const buildProductSearchWhereByRole = (
+    categoryId?: number,
+    search?: string,
+    userRole?: string
+) => {
+    const isAdmin = userRole === 'admin';
+    const where = buildProductSearchWhere(categoryId, search);
 
+    // Si no es admin, solo mostrar productos activos
+    if (!isAdmin) {
+        where.isActive = true;
+    }
+
+    return where;
+};
 // CORREGIDO: Construir cláusula ORDER BY con tipos correctos de Prisma
 export const buildOrderByClause = (orderBy: string, order: 'asc' | 'desc') => {
     if (orderBy === 'category') {
@@ -169,7 +189,7 @@ export const buildOrderByClause = (orderBy: string, order: 'asc' | 'desc') => {
             }
         };
     }
-    
+
     return {
         [orderBy]: order
     };
@@ -186,7 +206,7 @@ export const buildPaginationResponse = (
     search?: string
 ) => {
     const totalPages = Math.ceil(total / limit);
-    
+
     return {
         pagination: {
             currentPage: page,
@@ -229,4 +249,21 @@ export const buildSaleResponse = (
             newStock: updatedProduct.stock
         }
     };
+};
+// Helper para parsear valores boolean de form-data
+export const parseBoolean = (value: unknown, defaultValue: boolean = false): boolean => {
+    if (value === undefined || value === null) {
+        return defaultValue;
+    }
+    
+    if (typeof value === 'string') {
+        return value.toLowerCase() === 'true';
+    }
+    
+    return Boolean(value);
+};
+
+// Helper específico para isActive con default true
+export const parseIsActive = (isActive: unknown): boolean => {
+    return parseBoolean(isActive, true);
 };

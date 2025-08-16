@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator'
 import { createAccount, getUser, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
-import { createProduct, activateProduct, getProductById, getProducts, sellProduct, updateProduct, deactivateProduct } from './handlers/product';
+import { createProduct, getProductById, getProducts, sellProduct, updateProduct, toggleProductStatus } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
 import { getCategories } from './handlers/category';
 import { authenticate, requireAdmin } from './middleware/auth';
+import { optionalAuth } from './middleware/optionalAuth';
 
 const router = Router();
 
@@ -81,6 +82,7 @@ router.post('/products',
 
 /* OBTENER PRODUCTOS */
 router.get('/products',
+    optionalAuth,
     query('page')
         .optional()
         .isInt({ min: 1 })
@@ -186,26 +188,15 @@ router.patch('/products/:id/sell',
     handleInputErrors,
     sellProduct);
 
-/* Activar PRODUCTO */
-router.patch('/products/:id/activate',
+// TOGGLE STATUS PRODUCTO
+router.patch('/products/:id/toggle-status',
     authenticate,
-    requireAdmin,  // ← Solo admin puede eliminar
+    requireAdmin,
     param('id')
         .isInt({ min: 1 })
         .withMessage('El ID debe ser un número entero válido'),
     handleInputErrors,
-    activateProduct);
-
-/* Desactivar PRODUCTO */
-router.patch('/products/:id/deactivate',
-    authenticate,
-    requireAdmin,  // ← Solo admin puede eliminar
-    param('id')
-        .isInt({ min: 1 })
-        .withMessage('El ID debe ser un número entero válido'),
-    handleInputErrors,
-    deactivateProduct);
-
+    toggleProductStatus);
 
 // OBTENER CATEGORÍAS
 router.get('/categories', getCategories);

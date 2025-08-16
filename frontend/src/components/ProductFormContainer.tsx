@@ -206,17 +206,17 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         <>
             <div className="flex items-center space-x-3 mb-6">
                 {isEditing ? (
-                    
-                        <h1 className="text-4xl text-white font-bold">
-                            Editar Producto
-                        </h1>
-                    
+
+                    <h1 className="text-4xl text-white font-bold">
+                        Editar Producto
+                    </h1>
+
                 ) : (
-                
-                        <h1 className="text-4xl text-white font-bold">
-                            Crear Producto
-                        </h1>
-                    
+
+                    <h1 className="text-4xl text-white font-bold">
+                        Crear Producto
+                    </h1>
+
                 )}
             </div>
 
@@ -227,8 +227,8 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                         Imagen actual
                     </h3>
                     <div className="flex items-center space-x-4">
-                        <img 
-                            src={initialProduct.image} 
+                        <img
+                            src={initialProduct.image}
                             alt={initialProduct.name}
                             className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                         />
@@ -362,6 +362,30 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     {form.errors.image && (
                         <ErrorMessage>{form.errors.image.message}</ErrorMessage>
                     )}
+                </div>
+
+                {/* 6. Estado Activo */}
+                <div className="space-y-3">
+                    <label htmlFor="isActive" className="text-2xl text-slate-500">
+                        Estado del Producto
+                    </label>
+
+                    <div className="flex items-center space-x-3 bg-slate-100 p-3 rounded-lg">
+                        <input
+                            id="isActive"
+                            type="checkbox"
+                            {...form.register('isActive')}
+                            defaultChecked={initialProduct?.isActive ?? true}
+                            className="w-5 h-5 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        />
+                        <label htmlFor="isActive" className="text-slate-700 font-medium cursor-pointer select-none">
+                            Producto activo y visible para usuarios
+                        </label>
+                    </div>
+
+                    <p className="text-sm text-slate-500">
+                        Los productos inactivos solo son visibles para administradores y aparecen marcados en la lista
+                    </p>
                 </div>
 
                 <input
