@@ -11,10 +11,11 @@ export const validateProductInput = async (
     stock: number, 
     categoryId?: number, 
     categoryName?: string,
-    sku?: string
+    sku?: string,
+    isActive?: boolean
 ): Promise<ProductValidationResult & { success: boolean; statusCode?: number }> => {
     // Validar datos del producto
-    const validation = validateProductData(name, price, stock, categoryId, categoryName);
+    const validation = validateProductData(name, price, stock, categoryId, categoryName, isActive);
     if (!validation.isValid) {
         return { success: false, error: validation.error, statusCode: 400, isValid: false };
     }
@@ -66,7 +67,8 @@ export const createProductInDatabase = async (
     stockNum: number,
     sku: string | undefined,
     imageFile: Express.Multer.File | undefined,
-    categoryData: any
+    categoryData: any,
+    isActive: boolean= true
 ) => {
     return await prisma.product.create({
         data: {
@@ -75,6 +77,7 @@ export const createProductInDatabase = async (
             stock: stockNum,
             sku: sku?.trim() || null,
             image: imageFile?.filename || null,
+            isActive,
             category: categoryData
         },
         include: {

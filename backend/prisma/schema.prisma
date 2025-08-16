@@ -15,83 +15,63 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
   password String
   name     String
   lastname String
   role     UserRole @default(user)
 
-  changes Change[]
+  sales Sale[]
 }
 
 enum UserRole {
   admin
   user
-  supervisor
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  price       Int
-  stock       Int
-  image       String?
+  id         Int      @id @default(autoincrement())
+  name       String
+  price      Int
+  stock      Int
+  image      String?
   categoryId Int
-  sku         String?  @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  sku        String?  @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  productChanges Change[]
-  category   Category @relation(fields: [categoryId], references: [id])
+  sales    Sale[]
+  category Category @relation(fields: [categoryId], references: [id])
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  products  Product[]
-}
-model Change {
   id        Int      @id @default(autoincrement())
-  userId    Int
-  productId Int
-  quantity  Int
-  type      ChangeType
-  note      String?
-  createdAt DateTime @default(now())
+  name      String   @unique
+
+  products Product[]
+}
+
+model Sale {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  productId  Int
+  quantity   Int
+  unitPrice  Int // Precio al momento de la venta
+  totalPrice Int // quantity * unitPrice
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+
+  @@map("sales")
 }
-
-enum ChangeType {
-  entrada
-  salida
-  ajuste
-  activado
-  desactivado
-  eliminado
-}
-
-
 
 // USO EN TYPESCRIPT
-// npx prisma migrate dev
+// npx prisma migrate dev -n nombreMigracion
 // npx prisma migrate reset
 // npx prisma generate
-// npx prisma studio (Para verificar el estado de la db)
-// import { PrismaClient } from "./generated/prisma"
-
-// const db = new PrismaClient()
-
-// async function main() {
-//   const newUser = await db.user.create({
-//     data: {
-//       name: "Claudio",
-//       email: "claudio1@gmail.com",
-//       password: "12345678",
-//     }
-//   })
-//   console.log('New User:', newUser);
-// }
-// main()
+// npx prisma studio (Para ver pagina de la db)

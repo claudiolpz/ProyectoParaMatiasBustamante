@@ -67,7 +67,6 @@ const router = createBrowserRouter([
         path: "/sobre-nosotros",
         element: <SobreNosotrosView />,
       },
-      // Rutas de invitados - redirige si ya está logueado
 
     ]
   },

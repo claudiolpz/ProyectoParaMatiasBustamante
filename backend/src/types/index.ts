@@ -7,6 +7,7 @@ export interface UpdateProductRequest {
     categoryId?: number;
     categoryName?: string;
     imageFile?: Express.Multer.File;
+    isActive?: boolean;
 }
 
 export interface UpdateProductResult {
@@ -14,6 +15,17 @@ export interface UpdateProductResult {
     product?: any;
     error?: string;
     statusCode?: number;
+}
+
+export interface CreateProductRequest {
+    name: string;
+    price: number;
+    stock: number;
+    sku?: string;
+    categoryId?: number;
+    categoryName?: string;
+    imageFile?: Express.Multer.File;
+    isActive?: boolean; // ← Por defecto será true
 }
 
 export interface ValidationSuccessResult extends UpdateProductResult {
@@ -54,6 +66,7 @@ export interface PartialProductData {
     stock?: number | string;
     categoryId?: string | number;
     categoryName?: string;
+    isActive?: boolean;
 }
 
 export interface CategoryValidationResult {

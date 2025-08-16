@@ -7,7 +7,6 @@ export const validateProductName = (name?: string): ProductValidationResult => {
     return { isValid: true };
 };
 
-// Validar precio en pesos chilenos (enteros)
 export const validateProductPrice = (price?: number | string): ProductValidationResult => {
     if (price === undefined) {
         return { isValid: true, priceNum: undefined };
@@ -24,7 +23,6 @@ export const validateProductPrice = (price?: number | string): ProductValidation
     return { isValid: true, priceNum };
 };
 
-// Validar stock del producto
 export const validateProductStock = (stock?: number | string): ProductValidationResult => {
     if (stock === undefined) {
         return { isValid: true, stockNum: undefined };
@@ -41,12 +39,38 @@ export const validateProductStock = (stock?: number | string): ProductValidation
     return { isValid: true, stockNum };
 };
 
-// Validar que al menos un campo esté presente para actualización
+// NUEVO: Validar isActive
+export const validateProductIsActive = (isActive?: boolean | string): ProductValidationResult => {
+    if (isActive === undefined) {
+        return { isValid: true };
+    }
+    
+    // Convertir string a boolean si es necesario
+    if (typeof isActive === 'string') {
+        if (isActive === 'true' || isActive === 'false') {
+            return { isValid: true };
+        }
+        return { 
+            isValid: false, 
+            error: "isActive debe ser true o false" 
+        };
+    }
+    
+    if (typeof isActive !== 'boolean') {
+        return { 
+            isValid: false, 
+            error: "isActive debe ser un valor booleano" 
+        };
+    }
+    
+    return { isValid: true };
+};
+
 export const validateAtLeastOneField = (data: PartialProductData): ProductValidationResult => {
-    const { name, price, stock, categoryId, categoryName } = data;
+    const { name, price, stock, categoryId, categoryName, isActive } = data;
     
     if (name === undefined && price === undefined && stock === undefined && 
-        categoryId === undefined && categoryName === undefined) {
+        categoryId === undefined && categoryName === undefined && isActive === undefined) {
         return { 
             isValid: false, 
             error: "Debe proporcionar al menos un campo para actualizar" 
@@ -62,7 +86,8 @@ export const validateProductData = (
     price: number, 
     stock: number, 
     categoryId?: number, 
-    categoryName?: string
+    categoryName?: string,
+    isActive?: boolean
 ): ProductValidationResult => {
     if (!name || price == null || stock == null || (!categoryId && !categoryName)) {
         return { isValid: false, error: "Faltan campos obligatorios" };
@@ -78,6 +103,12 @@ export const validateProductData = (
         return stockValidation;
     }
 
+    // Validar isActive si se proporciona
+    const isActiveValidation = validateProductIsActive(isActive);
+    if (!isActiveValidation.isValid) {
+        return isActiveValidation;
+    }
+
     return { 
         isValid: true, 
         priceNum: priceValidation.priceNum, 
@@ -87,28 +118,30 @@ export const validateProductData = (
 
 // Validación parcial para actualización de producto
 export const validatePartialProductData = (data: PartialProductData): ProductValidationResult => {
-    // Verificar que al menos un campo esté presente
     const atLeastOneFieldValidation = validateAtLeastOneField(data);
     if (!atLeastOneFieldValidation.isValid) {
         return atLeastOneFieldValidation;
     }
 
-    // Validar name
     const nameValidation = validateProductName(data.name);
     if (!nameValidation.isValid) {
         return nameValidation;
     }
 
-    // Validar price
     const priceValidation = validateProductPrice(data.price);
     if (!priceValidation.isValid) {
         return priceValidation;
     }
 
-    // Validar stock
     const stockValidation = validateProductStock(data.stock);
     if (!stockValidation.isValid) {
         return stockValidation;
+    }
+
+    // NUEVO: Validar isActive
+    const isActiveValidation = validateProductIsActive(data.isActive);
+    if (!isActiveValidation.isValid) {
+        return isActiveValidation;
     }
 
     return { 

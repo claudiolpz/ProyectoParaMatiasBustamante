@@ -84,12 +84,22 @@ export const getProducts = async (req: Request, res: Response) => {
 
 /* CREAR PRODUCTO - VERSIÓN FINAL CON HELPERS */
 export const createProduct = async (req: Request, res: Response) => {
-    const { name, price, stock, sku, categoryId, categoryName } = req.body;
+    const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
     const imageFile = req.file;
 
     try {
+        let isActiveValue: boolean;
+
+        if (isActive === undefined) {
+            isActiveValue = true; // Valor por defecto
+        } else if (typeof isActive === 'string') {
+            isActiveValue = isActive === 'true';
+        } else {
+            isActiveValue = Boolean(isActive);
+        }
+
         // 1. Validar entrada usando helper
-        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, sku);
+        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, sku, isActiveValue);
         if (!inputValidation.success) {
             if (imageFile?.filename) {
                 cleanupFile(imageFile.filename);
@@ -113,7 +123,8 @@ export const createProduct = async (req: Request, res: Response) => {
             inputValidation.stockNum,
             sku,
             imageFile,
-            categoryResult.categoryData
+            categoryResult.categoryData,
+            isActiveValue
         );
 
         // 4. Respuesta exitosa con URL de imagen construida por helper
@@ -236,12 +247,12 @@ export const updateProduct = async (req: Request, res: Response) => {
     const productUpdateService = new ProductUpdateService();
     try {
         const { id } = req.params;
-        const { name, price, stock, sku, categoryId, categoryName } = req.body;
+        const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
         const imageFile = req.file;
         const productId = parseInt(id);
 
         // Construir request dinámicamente
-        const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName };
+        const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName, isActive };
         
         // Filtrar solo campos que tienen valor (no undefined)
         const updateRequest: any = {
@@ -280,8 +291,8 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
 };
 
-/* ELIMINAR PRODUCTO */
-export const deleteProduct = async (req: Request, res: Response) => {
+/* Activar PRODUCTO */
+export const activateProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const productId = parseInt(id);
@@ -296,37 +307,92 @@ export const deleteProduct = async (req: Request, res: Response) => {
                 error: "Producto no encontrado" 
             });
         }
-
-        // 2. Eliminar imagen si existe
-        if (existingProduct.image) {
-            cleanupFile(existingProduct.image);
+        if(existingProduct.isActive) {
+            return res.status(400).json({
+                error: "El Producto ya está activado"
+            });
         }
 
-        // 3. Eliminar producto de la base de datos
-        await prisma.product.delete({
-            where: { id: productId }
+        // 3. Activar producto de la base de datos
+        const ActivateProduct = await prisma.product.update({
+            where: { id: productId },
+            data: { isActive: true }
         });
 
-        return res.status(200).json({
-            message: "Producto eliminado correctamente",
+         return res.status(200).json({
+            message: "Producto activado correctamente",
             product: {
-                id: existingProduct.id,
-                name: existingProduct.name
+                id: ActivateProduct.id,
+                name: ActivateProduct.name,
+                isActive: ActivateProduct.isActive
             }
         });
 
     } catch (error: any) {
-        console.error("Error al eliminar producto:", error);
+        console.error("Error al activar producto:", error);
         
         // Manejar error de restricción de clave foránea
         if (error.code === 'P2003') {
             return res.status(400).json({ 
-                error: "No se puede eliminar el producto porque está relacionado con otros registros" 
+                error: "Error al activar el producto" 
             });
         }
 
         return res.status(500).json({ 
-            error: "Error interno al eliminar producto" 
+            error: "Error interno al activar producto" 
+        });
+    }
+};
+
+/* Desactivar PRODUCTO */
+export const deactivateProduct = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const productId = parseInt(id);
+
+        // 1. Verificar que el producto existe
+        const existingProduct = await prisma.product.findUnique({
+            where: { id: productId }
+        });
+
+        if (!existingProduct) {
+            return res.status(404).json({ 
+                error: "Producto no encontrado" 
+            });
+        }
+        if(!existingProduct.isActive) {
+            return res.status(400).json({
+                error: "El Producto ya está activado"
+            });
+        }
+
+        // 3. Desactivar producto de la base de datos
+        const DeactivateProduct = await prisma.product.update({
+            where: { id: productId },
+            data: { isActive: false }
+        });
+
+         return res.status(200).json({
+            message: "Producto desactivado correctamente",
+            product: {
+                id: DeactivateProduct.id,
+                name: DeactivateProduct.name,
+                isActive: DeactivateProduct.isActive
+            }
+        });
+
+    } catch (error: any) {
+        console.error("Error al desactivar producto:", error);
+        
+        // Manejar error de restricción de clave foránea
+        if (error.code === 'P2003') {
+            return res.status(400).json({ 
+                error: "Error al desactivar el producto" 
+            });
+        }
+
+        return res.status(500).json({ 
+            error: "Error interno al desactivar producto" 
         });
     }
 };

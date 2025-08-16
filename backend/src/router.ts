@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator'
 import { createAccount, getUser, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
-import { createProduct, deleteProduct, getProductById, getProducts, sellProduct, updateProduct } from './handlers/product';
+import { createProduct, activateProduct, getProductById, getProducts, sellProduct, updateProduct, deactivateProduct } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
 import { getCategories } from './handlers/category';
 import { authenticate, requireAdmin } from './middleware/auth';
@@ -10,7 +10,7 @@ import { authenticate, requireAdmin } from './middleware/auth';
 const router = Router();
 
 /* REGISTRO */
-router.post('/auth/register', 
+router.post('/auth/register',
     body('email')
         .notEmpty()
         .withMessage('El Email es obligatorio')
@@ -24,7 +24,7 @@ router.post('/auth/register',
     body('name')
         .notEmpty()
         .withMessage('El Nombre es obligatorio'),
-    body('lastname')     
+    body('lastname')
         .notEmpty()
         .withMessage('El Apellido es obligatorio'),
     handleInputErrors,
@@ -47,7 +47,7 @@ router.post('/auth/login',
 router.post('/products',
     authenticate,
     requireAdmin,
-    uploadProductImage, 
+    uploadProductImage,
     body('name')
         .notEmpty()
         .withMessage('El nombre del producto es obligatorio')
@@ -72,9 +72,13 @@ router.post('/products',
         .isLength({ min: 2, max: 50 })
         .withMessage('El nombre de la categoría debe tener entre 2 y 50 caracteres')
         .trim(),
+    body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive debe ser un valor booleano'),
     handleInputErrors,
     createProduct);
-    
+
 /* OBTENER PRODUCTOS */
 router.get('/products',
     query('page')
@@ -115,59 +119,63 @@ router.get('/products/:id',
 
 /* ACTUALIZAR PRODUCTO COMPLETO */
 router.put('/products/:id',
-    authenticate, 
+    authenticate,
     requireAdmin,
     uploadProductImage,
     param('id')
         .isInt({ min: 1 })
         .withMessage('El ID debe ser un número entero válido'),
-    
-    // CORREGIDO: Validaciones condicionales
+
+    // Validaciones condicionales
     body('name')
         .optional()
         .if(body('name').exists())
         .notEmpty()
         .withMessage('El nombre del producto no puede estar vacío')
         .trim(),
-    
+
     body('price')
         .optional()
         .if(body('price').exists())
         .isInt({ min: 1 })
         .withMessage('El precio debe ser un número entero mayor a 0 (pesos chilenos)'),
-    
+
     body('stock')
         .optional()
         .if(body('stock').exists())
         .isInt({ min: 0 })
         .withMessage('El stock debe ser un número entero mayor o igual a 0'),
-    
+
     body('sku')
         .optional()
         .if(body('sku').exists())
         .isLength({ min: 1, max: 50 })
         .withMessage('El SKU debe tener entre 1 y 50 caracteres')
         .trim(),
-    
+
     body('categoryId')
         .optional()
         .if(body('categoryId').exists())
         .isInt({ min: 1 })
         .withMessage('categoryId debe ser un número entero válido'),
-    
+
     body('categoryName')
         .optional()
         .if(body('categoryName').exists())
         .isLength({ min: 2, max: 50 })
         .withMessage('El nombre de la categoría debe tener entre 2 y 50 caracteres')
         .trim(),
-    
+    body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive debe ser un valor booleano'),
+
     handleInputErrors,
     updateProduct);
 
 /* VENDER PRODUCTO (DECREMENTAR STOCK) */
 router.patch('/products/:id/sell',
-    authenticate, 
+    authenticate,
     requireAdmin,
     param('id')
         .isInt({ min: 1 })
@@ -178,19 +186,31 @@ router.patch('/products/:id/sell',
     handleInputErrors,
     sellProduct);
 
-    /* ELIMINAR PRODUCTO - NUEVO ENDPOINT */
-router.delete('/products/:id',
+/* Activar PRODUCTO */
+router.patch('/products/:id/activate',
     authenticate,
     requireAdmin,  // ← Solo admin puede eliminar
     param('id')
         .isInt({ min: 1 })
         .withMessage('El ID debe ser un número entero válido'),
     handleInputErrors,
-    deleteProduct);
+    activateProduct);
+
+/* Desactivar PRODUCTO */
+router.patch('/products/:id/deactivate',
+    authenticate,
+    requireAdmin,  // ← Solo admin puede eliminar
+    param('id')
+        .isInt({ min: 1 })
+        .withMessage('El ID debe ser un número entero válido'),
+    handleInputErrors,
+    deactivateProduct);
+
+
 // OBTENER CATEGORÍAS
 router.get('/categories', getCategories);
 
 // OBTENER USUARIO
-router.get('/user', authenticate ,getUser);
+router.get('/user', authenticate, getUser);
 
 export default router;
