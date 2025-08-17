@@ -47,7 +47,6 @@ export const getProducts = async (req: Request, res: Response) => {
         console.log('🔍 explicitIsActive:', explicitIsActive);
         // Construir cláusulas de búsqueda y ordenamiento
         const where = buildProductSearchWhereByRole(categoryId, search, userRole, explicitIsActive);
-        console.log('🔍 WHERE generado:', JSON.stringify(where, null, 2));
 
         const orderByClause = buildOrderByClause(orderBy, order as 'asc' | 'desc');
         // Ejecutar consultas
