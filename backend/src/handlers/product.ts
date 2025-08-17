@@ -28,6 +28,9 @@ export const getProducts = async (req: Request, res: Response) => {
 
         // Verificar si el usuario es admin
         const userRole = req.user?.role;
+        
+        //Obtener filtro isActive de query
+        const explicitIsActive = req.query.isActive as string;
 
         // Validar categoryId si se proporciona
         if (req.query.categoryId && categoryId !== undefined && (isNaN(categoryId) || categoryId <= 0)) {
@@ -41,8 +44,10 @@ export const getProducts = async (req: Request, res: Response) => {
             });
         }
         
+        console.log('🔍 explicitIsActive:', explicitIsActive);
         // Construir cláusulas de búsqueda y ordenamiento
-        const where = buildProductSearchWhereByRole(categoryId, search, userRole);
+        const where = buildProductSearchWhereByRole(categoryId, search, userRole, explicitIsActive);
+        console.log('🔍 WHERE generado:', JSON.stringify(where, null, 2));
 
         const orderByClause = buildOrderByClause(orderBy, order as 'asc' | 'desc');
         // Ejecutar consultas

@@ -47,6 +47,7 @@ const TableProduct = () => {
     categoryId: undefined,
     orderBy: 'name',
     order: 'asc',
+    isActive: 'all'
   });
 
   // Función para abrir modal de imagen
@@ -78,6 +79,7 @@ const TableProduct = () => {
       categoryId: urlFilters.categoryId,
       orderBy: urlFilters.orderBy,
       order: validOrder,
+      isActive: urlFilters.isActive
     };
 
     setFilters(validFilters);
@@ -139,6 +141,25 @@ const TableProduct = () => {
     products,
     onRefresh: handleRefresh
   });
+
+  const handleActiveStatusFilter = useCallback((status: string) => {
+    let isActiveValue: boolean | 'all';
+    
+    if (status === 'true') {
+      isActiveValue = true;
+    } else if (status === 'false') {
+      isActiveValue = false;
+    } else {
+      isActiveValue = 'all';
+    }
+    
+    const newFilters: ProductFilters = {
+      ...filters,
+      isActive: isActiveValue
+    };
+    setFilters(newFilters);
+    fetchProducts(newFilters, 1);
+  }, [filters, fetchProducts]);
 
   // Función para renderizar encabezados ordenables
   const renderTableHeader = () => {
@@ -273,7 +294,7 @@ const TableProduct = () => {
           </span>
         </td>
 
-        {/* ✅ STOCK CON HELPER - Sin ternarios anidados */}
+        {/* STOCK CON HELPER - Sin ternarios anidados */}
         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStockBadgeStyleDetailed(product)}`}>
             {product.stock}
@@ -403,9 +424,12 @@ const TableProduct = () => {
         <FiltersComponent
           onSearch={handleSearch}
           onCategoryFilter={handleCategoryFilter}
+          onActiveStatusFilter={handleActiveStatusFilter}
           onRefresh={handleRefresh}
           categories={categories}
           categoriesLoading={categoriesLoading}
+          showActiveFilter={handleEstaLogeado() && isAdmin()}
+          currentFilters={filters}
         />
 
         {/* Tabla */}

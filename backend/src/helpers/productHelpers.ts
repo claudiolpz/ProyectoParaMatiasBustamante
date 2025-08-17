@@ -168,13 +168,22 @@ export const buildProductSearchWhere = (categoryId?: number, search?: string, is
 export const buildProductSearchWhereByRole = (
     categoryId?: number,
     search?: string,
-    userRole?: string
+    userRole?: string,
+    explicitIsActive?: string
 ) => {
     const isAdmin = userRole === 'admin';
     const where = buildProductSearchWhere(categoryId, search);
 
     // Si no es admin, solo mostrar productos activos
-    if (!isAdmin) {
+    if (isAdmin && explicitIsActive !== undefined) {
+        if (explicitIsActive === 'true') {
+            where.isActive = true;
+        } else if (explicitIsActive === 'false') {
+            where.isActive = false;
+        }
+        // Si es 'all' o undefined, no agregar filtro isActive
+    } else if (!isAdmin) {
+        // Si no es admin, solo mostrar productos activos
         where.isActive = true;
     }
 

@@ -108,6 +108,10 @@ router.get('/products',
         .isLength({ min: 1, max: 100 })
         .withMessage('La búsqueda debe tener entre 1 y 100 caracteres')
         .trim(),
+    query('isActive')
+        .optional()
+        .isIn(['true', 'false'])
+        .withMessage('isActive debe ser: true o false'),
     handleInputErrors,
     getProducts);
 

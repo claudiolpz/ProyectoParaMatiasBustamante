@@ -74,6 +74,7 @@ export interface ProductFilters {
   categoryId?: number;
   orderBy: 'name' | 'price' | 'stock' | 'category';
   order: 'asc' | 'desc';
+  isActive?: boolean | 'all';
 }
 
 export interface PaginationInfo {
@@ -106,9 +107,12 @@ export type ImageModalProps = {
 export type ProductFiltersProps = {
   onSearch: (value: string) => void;
   onCategoryFilter: (categoryId: string) => void;
+  onActiveStatusFilter: (status: string) => void;
   onRefresh: () => void;
   categories: Category[];
   categoriesLoading: boolean;
+  showActiveFilter?: boolean;
+  currentFilters?: ProductFilters;
 }
 
 export type ProductFormFieldsProps = {
