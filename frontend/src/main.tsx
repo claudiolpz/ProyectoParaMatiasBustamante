@@ -14,6 +14,7 @@ import EditProduct from "./views/EditProduct";
 import FrontendLayout from "./layouts/FrontendLayout";
 import { GuestRoute, ProtectedRoute } from "./components/AuthGuard";
 import InitialLayout from "./layouts/InitalLayout";
+import Error404 from "./views/Error404";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <TableProduct />,
+      },
+      {
+        path: '/*',
+        element: <Error404 />,
       },
       {
         element: <InitialLayout />,
