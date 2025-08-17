@@ -17,8 +17,17 @@ export const useProducts = () => {
 
   // Obtener parámetros de la URL
   const getFiltersFromURL = useCallback((): ProductFiltersWithPage => {
+
     const orderFromURL = searchParams.get('order');
     const orderByFromURL = searchParams.get('orderBy');
+    const isActiveParam = searchParams.get('isActive');
+
+    let isActive: boolean | 'all' = 'all'; 
+    if (isActiveParam === 'true') {
+      isActive = true;
+    } else if (isActiveParam === 'false') {
+      isActive = false;
+    }
 
     // Validar que order sea 'asc' o 'desc'
     const validOrder: 'asc' | 'desc' = orderFromURL === 'desc' ? 'desc' : 'asc';
@@ -34,6 +43,7 @@ export const useProducts = () => {
       categoryId: searchParams.get('categoryId') ? parseInt(searchParams.get('categoryId')!) : undefined,
       orderBy: validOrderBy,
       order: validOrder,
+      isActive,
       page: parseInt(searchParams.get('page') || '1'),
     };
   }, [searchParams]);
@@ -47,6 +57,10 @@ export const useProducts = () => {
     if (filters.orderBy !== 'name') params.set('orderBy', filters.orderBy);
     if (filters.order !== 'asc') params.set('order', filters.order);
     if (page !== 1) params.set('page', page.toString());
+
+    if (filters.isActive !== undefined && filters.isActive !== 'all') {
+      params.set('isActive', filters.isActive.toString());
+    }
 
     setSearchParams(params);
   }, [setSearchParams]);
@@ -65,6 +79,9 @@ export const useProducts = () => {
       if (filters.categoryId) params.append('categoryId', filters.categoryId.toString());
       if (filters.orderBy) params.append('orderBy', filters.orderBy);
       if (filters.order) params.append('order', filters.order);
+      if (filters.isActive !== undefined && filters.isActive !== 'all') {
+        params.append('isActive', filters.isActive.toString());
+      }
 
       const { data } = await api.get(`/products?${params.toString()}`);
 

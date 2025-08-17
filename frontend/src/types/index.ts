@@ -30,6 +30,7 @@ export interface CreateProductForm {
     categoryId?: string;
     categoryName?: string;
     image?: FileList;
+    isActive?: boolean;
 }
 
 export type Category = {
@@ -47,6 +48,7 @@ export type Product = {
   category: Category;
   createdAt: string;
   updatedAt: string;
+  isActive: boolean;
 }
 
 export type ProductsResponse = {
@@ -72,6 +74,7 @@ export interface ProductFilters {
   categoryId?: number;
   orderBy: 'name' | 'price' | 'stock' | 'category';
   order: 'asc' | 'desc';
+  isActive?: boolean | 'all';
 }
 
 export interface PaginationInfo {
@@ -104,9 +107,12 @@ export type ImageModalProps = {
 export type ProductFiltersProps = {
   onSearch: (value: string) => void;
   onCategoryFilter: (categoryId: string) => void;
+  onActiveStatusFilter: (status: string) => void;
   onRefresh: () => void;
   categories: Category[];
   categoriesLoading: boolean;
+  showActiveFilter?: boolean;
+  currentFilters?: ProductFilters;
 }
 
 export type ProductFormFieldsProps = {
@@ -254,6 +260,20 @@ export interface UseProductFormReturn {
     resetForm: () => void;
     isEditing: boolean;
     initialProduct: Product | null;
+}
+
+export interface ToggleProductStatusData {
+  productId: number;
+}
+
+export interface ToggleProductStatusResponse {
+  message: string;
+  product: Product;
+}
+
+export interface UseToggleFlowProps {
+  products: Product[] | undefined;
+  onRefresh: () => void;
 }
 
 // ========================================

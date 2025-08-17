@@ -11,11 +11,11 @@ import {
     buildProductImageUrl,
     validateQueryParams,
     validateOrderByField,
-    buildProductSearchWhere,
     buildOrderByClause,
     buildPaginationResponse,
     validateStockForSale,
-    buildSaleResponse
+    buildSaleResponse,
+    buildProductSearchWhereByRole
 } from "../helpers/productHelpers"; // ← CORREGIDO: desde ../helpers en lugar de ../productHelpers
 
 const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
@@ -25,6 +25,12 @@ export const getProducts = async (req: Request, res: Response) => {
     try {
         // Validar y extraer parámetros de query
         const { page, limit, offset, orderBy, order, categoryId, search } = validateQueryParams(req.query);
+
+        // Verificar si el usuario es admin
+        const userRole = req.user?.role;
+        
+        //Obtener filtro isActive de query
+        const explicitIsActive = req.query.isActive as string;
 
         // Validar categoryId si se proporciona
         if (req.query.categoryId && categoryId !== undefined && (isNaN(categoryId) || categoryId <= 0)) {
@@ -37,9 +43,12 @@ export const getProducts = async (req: Request, res: Response) => {
                 error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category'
             });
         }
-
+        
+        console.log('🔍 explicitIsActive:', explicitIsActive);
         // Construir cláusulas de búsqueda y ordenamiento
-        const where = buildProductSearchWhere(categoryId, search);
+        const where = buildProductSearchWhereByRole(categoryId, search, userRole, explicitIsActive);
+        console.log('🔍 WHERE generado:', JSON.stringify(where, null, 2));
+
         const orderByClause = buildOrderByClause(orderBy, order as 'asc' | 'desc');
         // Ejecutar consultas
         const [products, total] = await Promise.all([
@@ -84,12 +93,22 @@ export const getProducts = async (req: Request, res: Response) => {
 
 /* CREAR PRODUCTO - VERSIÓN FINAL CON HELPERS */
 export const createProduct = async (req: Request, res: Response) => {
-    const { name, price, stock, sku, categoryId, categoryName } = req.body;
+    const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
     const imageFile = req.file;
 
     try {
+        let isActiveValue: boolean;
+
+        if (isActive === undefined) {
+            isActiveValue = true; // Valor por defecto
+        } else if (typeof isActive === 'string') {
+            isActiveValue = isActive === 'true';
+        } else {
+            isActiveValue = Boolean(isActive);
+        }
+
         // 1. Validar entrada usando helper
-        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, sku);
+        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, sku, isActiveValue);
         if (!inputValidation.success) {
             if (imageFile?.filename) {
                 cleanupFile(imageFile.filename);
@@ -113,7 +132,8 @@ export const createProduct = async (req: Request, res: Response) => {
             inputValidation.stockNum,
             sku,
             imageFile,
-            categoryResult.categoryData
+            categoryResult.categoryData,
+            isActiveValue
         );
 
         // 4. Respuesta exitosa con URL de imagen construida por helper
@@ -236,12 +256,12 @@ export const updateProduct = async (req: Request, res: Response) => {
     const productUpdateService = new ProductUpdateService();
     try {
         const { id } = req.params;
-        const { name, price, stock, sku, categoryId, categoryName } = req.body;
+        const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
         const imageFile = req.file;
         const productId = parseInt(id);
 
         // Construir request dinámicamente
-        const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName };
+        const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName, isActive };
         
         // Filtrar solo campos que tienen valor (no undefined)
         const updateRequest: any = {
@@ -280,15 +300,20 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
 };
 
-/* ELIMINAR PRODUCTO */
-export const deleteProduct = async (req: Request, res: Response) => {
+/* TOGGLE ESTADO DEL PRODUCTO */
+export const toggleProductStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const productId = parseInt(id);
 
-        // 1. Verificar que el producto existe
+        // Verificar que el producto existe
         const existingProduct = await prisma.product.findUnique({
-            where: { id: productId }
+            where: { id: productId },
+            select: { 
+                id: true, 
+                name: true, 
+                isActive: true 
+            }
         });
 
         if (!existingProduct) {
@@ -297,36 +322,34 @@ export const deleteProduct = async (req: Request, res: Response) => {
             });
         }
 
-        // 2. Eliminar imagen si existe
-        if (existingProduct.image) {
-            cleanupFile(existingProduct.image);
-        }
-
-        // 3. Eliminar producto de la base de datos
-        await prisma.product.delete({
-            where: { id: productId }
-        });
-
-        return res.status(200).json({
-            message: "Producto eliminado correctamente",
-            product: {
-                id: existingProduct.id,
-                name: existingProduct.name
+        // Alternar el estado
+        const newStatus = !existingProduct.isActive;
+        
+        const updatedProduct = await prisma.product.update({
+            where: { id: productId },
+            data: { isActive: newStatus },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
             }
         });
 
-    } catch (error: any) {
-        console.error("Error al eliminar producto:", error);
-        
-        // Manejar error de restricción de clave foránea
-        if (error.code === 'P2003') {
-            return res.status(400).json({ 
-                error: "No se puede eliminar el producto porque está relacionado con otros registros" 
-            });
-        }
+        return res.status(200).json({
+            message: `Producto ${newStatus ? 'activado' : 'desactivado'} correctamente`,
+            product: {
+                ...updatedProduct,
+                image: buildProductImageUrl(updatedProduct.image, SERVER_URL)
+            }
+        });
 
+    } catch (error) {
+        console.error("Error al cambiar estado del producto:", error);
         return res.status(500).json({ 
-            error: "Error interno al eliminar producto" 
+            error: "Error interno del servidor" 
         });
     }
 };
