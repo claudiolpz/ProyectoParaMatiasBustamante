@@ -323,7 +323,7 @@ const createToggleConfirmationHTML = (product: Product): string => {
     <div class="space-y-4">
       <div class="bg-${isActivating ? 'green' : 'orange'}-50 p-4 rounded-lg border-l-4 border-${isActivating ? 'green' : 'orange'}-400">
         <h3 class="font-semibold text-${isActivating ? 'green' : 'orange'}-800 mb-2">
-          ${isActivating ? '✅' : '⚠️'} ¿Confirmar ${action}?
+          ¿Confirmar ${action}?
         </h3>
         <div class="text-left space-y-2">
           <p><strong>Producto:</strong> ${product.name}</p>
@@ -355,7 +355,7 @@ const createToggleSuccessHTML = (result: any): string => {
         <div class="text-left text-sm space-y-1">
           <p><strong>Producto:</strong> ${result.product.name}</p>
           <p class="text-${isNowActive ? 'green' : 'orange'}-600">
-            <strong>Estado:</strong> ${isNowActive ? '✅ Activo (visible para todos)' : '⚠️ Inactivo (solo admins)'}
+            <strong>Estado:</strong> ${isNowActive ? 'Activo (visible para todos)' : 'Inactivo (solo admins)'}
           </p>
         </div>
       </div>

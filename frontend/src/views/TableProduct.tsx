@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { SearchOutlined, EditOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, MinusCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, PoweroffOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useSalesFlow } from '../hooks/useSalesFlow';
@@ -312,7 +312,7 @@ const TableProduct = () => {
                 className={`p-1.5 rounded-lg transition-colors duration-200 border ${getSellButtonStyle(product, sellLoading)}`}
                 title={getSellButtonTitle(product, sellLoading)}
               >
-                <MinusCircleOutlined className="text-sm" />
+                <ShoppingCartOutlined className="text-sm" />
               </button>
 
               {/* Botón de editar */}
