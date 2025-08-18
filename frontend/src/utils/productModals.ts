@@ -34,7 +34,7 @@ export const showQuantitySelectionModal = async (product: Product): Promise<numb
 
 // Modal de confirmación final
 export const showConfirmationModal = async (
-  product: Product, 
+  product: Product,
   quantity: number
 ): Promise<boolean> => {
   const total = product.price * quantity;
@@ -144,8 +144,10 @@ const createSuccessHTML = (result: any): string => `
       <div class="text-left space-y-1 text-sm">
         <p><strong>Producto:</strong> ${result.product.name}</p>
         <p><strong>Cantidad vendida:</strong> ${result.sale.quantity}</p>
-        <p><strong>Stock anterior:</strong> ${result.sale.previousStock}</p>
-        <p><strong>Stock actual:</strong> ${result.sale.newStock}</p>
+        <p><strong>Stock anterior:</strong> ${result.product.previousStock}</p>
+        <p><strong>Stock actual:</strong> ${result.product.newStock}</p>
+        <p><strong>Precio unidad:</strong> $${result.sale.unitPrice}</p>
+        <p><strong>Precio total:</strong> $${result.sale.totalPrice}</p>
       </div>
     </div>
   </div>
@@ -155,17 +157,17 @@ const createSuccessHTML = (result: any): string => `
 const validateQuantityInput = (product: Product): number | false => {
   const input = document.getElementById('quantity-input') as HTMLInputElement;
   const value = parseInt(input.value);
-  
+
   if (isNaN(value) || value < 1) {
     Swal.showValidationMessage('La cantidad debe ser mayor a 0');
     return false;
   }
-  
+
   if (value > product.stock) {
     Swal.showValidationMessage(`La cantidad no puede ser mayor al stock disponible (${product.stock})`);
     return false;
   }
-  
+
   return value;
 };
 
@@ -178,24 +180,22 @@ const setupQuantityControls = (product: Product): void => {
 
   const updateUI = () => {
     const currentQuantity = parseInt(quantityInput.value) || 1;
-    
+
     // Actualizar estado de botones
     decreaseBtn.disabled = currentQuantity <= 1;
     increaseBtn.disabled = currentQuantity >= product.stock;
-    
+
     // Actualizar clases CSS
-    decreaseBtn.className = `w-10 h-10 rounded-lg transition-colors flex items-center justify-center ${
-      currentQuantity <= 1 
-        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+    decreaseBtn.className = `w-10 h-10 rounded-lg transition-colors flex items-center justify-center ${currentQuantity <= 1
+        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
         : 'bg-red-500 text-white hover:bg-red-600'
-    }`;
-    
-    increaseBtn.className = `w-10 h-10 rounded-lg transition-colors flex items-center justify-center ${
-      currentQuantity >= product.stock 
-        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+      }`;
+
+    increaseBtn.className = `w-10 h-10 rounded-lg transition-colors flex items-center justify-center ${currentQuantity >= product.stock
+        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
         : 'bg-green-500 text-white hover:bg-green-600'
-    }`;
-    
+      }`;
+
     // Actualizar precio total
     totalPrice.innerHTML = `Total: $${(product.price * currentQuantity).toLocaleString('es-CL')} CLP`;
   };
@@ -218,7 +218,7 @@ const setupQuantityControls = (product: Product): void => {
   });
 
   quantityInput.addEventListener('input', updateUI);
-  
+
   // Inicializar UI
   updateUI();
 };
@@ -289,7 +289,7 @@ const createDeleteSuccessHTML = (result: any): string => `
 // Modal de confirmación para toggle de estado
 export const showToggleConfirmationModal = (product: Product): Promise<boolean> => {
   const actionUpper = product.isActive ? 'Desactivar' : 'Activar';
-  
+
   return Swal.fire({
     title: `${actionUpper} Producto`,
     html: createToggleConfirmationHTML(product),
@@ -311,14 +311,14 @@ export const showToggleSuccessModal = (result: any): Promise<void> => {
     icon: 'success',
     confirmButtonText: 'Entendido',
     confirmButtonColor: MODAL_STYLES.colors.success,
-  }).then(() => {});
+  }).then(() => { });
 };
 
 // Función para crear HTML de confirmación de toggle
 const createToggleConfirmationHTML = (product: Product): string => {
   const action = product.isActive ? 'desactivar' : 'activar';
   const isActivating = !product.isActive;
-  
+
   return `
     <div class="space-y-4">
       <div class="bg-${isActivating ? 'green' : 'orange'}-50 p-4 rounded-lg border-l-4 border-${isActivating ? 'green' : 'orange'}-400">
@@ -334,10 +334,10 @@ const createToggleConfirmationHTML = (product: Product): string => {
       </div>
       <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
         <p class="text-blue-700 text-sm">
-          ${isActivating 
-            ? '<strong>Al activar:</strong> El producto será visible para todos los usuarios'
-            : '<strong>Al desactivar:</strong> El producto solo será visible para administradores'
-          }
+          ${isActivating
+      ? '<strong>Al activar:</strong> El producto será visible para todos los usuarios'
+      : '<strong>Al desactivar:</strong> El producto solo será visible para administradores'
+    }
         </p>
       </div>
     </div>
@@ -347,7 +347,7 @@ const createToggleConfirmationHTML = (product: Product): string => {
 // Función para crear HTML de éxito del toggle
 const createToggleSuccessHTML = (result: any): string => {
   const isNowActive = result.product.isActive;
-  
+
   return `
     <div class="space-y-3">
       <div class="bg-${isNowActive ? 'green' : 'orange'}-50 p-4 rounded-lg border-l-4 border-${isNowActive ? 'green' : 'orange'}-400">
