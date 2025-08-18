@@ -209,9 +209,7 @@ export const sellProduct = async (req: Request, res: Response) => {
 
         const result = await sellAndRegisterSale(productId, sellQuantity, userId);
 
-        if (!result.success) {
-            //determinar codigo error
-
+       if (!result.success) {
             let statusCode = 400;
             if (result.error === "Producto no encontrado") {
                 statusCode = 404;
@@ -221,68 +219,24 @@ export const sellProduct = async (req: Request, res: Response) => {
 
             return res.status(statusCode).json({ error: result.error });
         }
-        
+
+        if (!result.data) {
+            return res.status(500).json({ error: "Error en los datos de la venta" });
+        }
+
         return res.status(200).json({
             message: "Venta registrada correctamente",
-            sale: result.data!.sale,
+            sale: result.data.sale,
             product: {
-                ...result.data!.product,
-                previousStock: result.data!.product.previousStock, 
-                newStock: result.data!.product.newStock
+                ...result.data.product,
+                previousStock: result.data.product.previousStock, 
+                newStock: result.data.product.newStock
             }
         });
     } catch (error) {
-        return res.status(500).json({ error: "Error al procesar la venta" });
+        error.message = "Error al procesar la venta";
+        return res.status(500).json({ error: error.message });
     }
-
-    //     // Verificar si el producto existe
-    //     const product = await prisma.product.findUnique({
-    //         where: { id: productId },
-    //         include: {
-    //             category: {
-    //                 select: {
-    //                     id: true,
-    //                     name: true
-    //                 }
-    //             }
-    //         }
-    //     });
-
-    //     if (!product) {
-    //         return res.status(404).json({ error: "Producto no encontrado" });
-    //     }
-
-    //     // Verificar stock suficiente usando helper
-    //     if (!validateStockForSale(product.stock, sellQuantity)) {
-    //         return res.status(400).json({ 
-    //             error: `Stock insuficiente. Stock actual: ${product.stock}, cantidad solicitada: ${sellQuantity}` 
-    //         });
-    //     }
-
-    //     // Actualizar stock
-    //     const updatedProduct = await prisma.product.update({
-    //         where: { id: productId },
-    //         data: {
-    //             stock: product.stock - sellQuantity
-    //         },
-    //         include: {
-    //             category: {
-    //                 select: {
-    //                     id: true,
-    //                     name: true
-    //                 }
-    //             }
-    //         }
-    //     });
-
-    //     // Construir respuesta usando helper
-    //     const saleResponse = buildSaleResponse(sellQuantity, updatedProduct, product.stock, SERVER_URL);
-    //     return res.status(200).json(saleResponse);
-
-    // } catch (error) {
-    //     console.error("Error al vender producto:", error);
-    //     return res.status(500).json({ error: "Error al procesar la venta" });
-    // }
 };
 
 /* ACTUALIZAR PRODUCTO COMPLETO */

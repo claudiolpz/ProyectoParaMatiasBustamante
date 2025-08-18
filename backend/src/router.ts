@@ -237,6 +237,15 @@ router.get('/sales',
         .optional()
         .isInt({ min: 1 })
         .withMessage('productId debe ser un número entero válido'),
+    query('categoryId') 
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('categoryId debe ser un número entero válido'),
+    query('search') 
+        .optional()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('La búsqueda debe tener entre 1 y 100 caracteres')
+        .trim(),
     query('startDate')
         .optional()
         .isISO8601()

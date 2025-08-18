@@ -1,5 +1,5 @@
 import { buildProductImageUrl } from "./productHelpers";
-
+import type {SalePaginationParams} from "../types";
 // Validar parámetros de query para ventas
 export const validateSaleQueryParams = (query: any) => {
     const page = parseInt(query.page as string) || 1;
@@ -8,7 +8,11 @@ export const validateSaleQueryParams = (query: any) => {
 
     const userId = query.userId ? parseInt(query.userId as string) : undefined;
     const productId = query.productId ? parseInt(query.productId as string) : undefined;
-    
+    const categoryId = query.categoryId ? parseInt(query.categoryId as string) : undefined; 
+
+    //Busqueda por texto
+    const search = query.search ? query.search.toString().trim() : undefined;
+
     // Fechas de filtro
     const startDate = query.startDate ? new Date(query.startDate as string) : undefined;
     const endDate = query.endDate ? new Date(query.endDate as string) : undefined;
@@ -23,6 +27,8 @@ export const validateSaleQueryParams = (query: any) => {
         offset,
         userId,
         productId,
+        categoryId,
+        search,
         startDate,
         endDate,
         orderBy,
@@ -40,6 +46,8 @@ export const validateSaleOrderByField = (orderBy: string): boolean => {
 export const buildSaleSearchWhere = (
     userId?: number,
     productId?: number,
+    categoryId?: number,
+    search?: string,
     startDate?: Date,
     endDate?: Date
 ) => {
@@ -51,6 +59,49 @@ export const buildSaleSearchWhere = (
 
     if (productId) {
         where.productId = productId;
+    }
+
+    if (categoryId) {
+        where.product = {
+            categoryId: categoryId
+        };
+    }
+
+    if (search && search.length > 0) {
+        where.OR = [
+            {
+                product: {
+                    name: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            },
+            {
+                product: {
+                    sku: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            },
+            {
+                user: {
+                    name: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            },
+            {
+                user: {
+                    lastname: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            }
+        ];
     }
 
     if (startDate || endDate) {
@@ -79,33 +130,25 @@ export const buildSaleOrderByClause = (orderBy: string, order: 'asc' | 'desc') =
 };
 
 // Construir respuesta de paginación para ventas
-export const buildSalePaginationResponse = (
-    page: number,
-    limit: number,
-    total: number,
-    userId?: number,
-    productId?: number,
-    orderBy?: string,
-    order?: string,
-    startDate?: Date,
-    endDate?: Date
-) => {
+export const buildSalePaginationResponse = (params: SalePaginationParams) => {
     return {
         pagination: {
-            currentPage: page,
-            itemsPerPage: limit,
-            totalItems: total,
-            totalPages: Math.ceil(total / limit),
-            hasNextPage: page < Math.ceil(total / limit),
-            hasPrevPage: page > 1
+            currentPage: params.page,
+            itemsPerPage: params.limit,
+            totalItems: params.total,
+            totalPages: Math.ceil(params.total / params.limit),
+            hasNextPage: params.page < Math.ceil(params.total / params.limit),
+            hasPrevPage: params.page > 1
         },
         filters: {
-            userId,
-            productId,
-            startDate,
-            endDate,
-            orderBy,
-            order
+            userId: params.userId,
+            productId: params.productId,
+            categoryId: params.categoryId,
+            search: params.search,
+            startDate: params.startDate,
+            endDate: params.endDate,
+            orderBy: params.orderBy,
+            order: params.order
         }
     };
 };

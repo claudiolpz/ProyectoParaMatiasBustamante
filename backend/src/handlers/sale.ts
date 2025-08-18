@@ -21,6 +21,8 @@ export const getSales = async (req: Request, res: Response) => {
             offset,
             userId,
             productId,
+            categoryId,
+            search,
             startDate,
             endDate,
             orderBy,
@@ -34,6 +36,16 @@ export const getSales = async (req: Request, res: Response) => {
 
         if (req.query.productId && productId !== undefined && (isNaN(productId) || productId <= 0)) {
             return res.status(400).json({ error: "productId debe ser un número válido mayor a 0" });
+        }
+
+        // Validación de categoryId
+        if (req.query.categoryId && categoryId !== undefined && (isNaN(categoryId) || categoryId <= 0)) {
+            return res.status(400).json({ error: "categoryId debe ser un número válido mayor a 0" });
+        }
+
+        // Validación de search
+        if (req.query.search && search !== undefined && search.length < 1) {
+            return res.status(400).json({ error: "La búsqueda debe tener al menos 1 carácter" });
         }
 
         // Validar fechas
@@ -53,8 +65,9 @@ export const getSales = async (req: Request, res: Response) => {
         }
 
         // Construir cláusulas de búsqueda y ordenamiento
-        const where = buildSaleSearchWhere(userId, productId, startDate, endDate);
+        const where = buildSaleSearchWhere(userId, productId, categoryId, search, startDate, endDate);
         const orderByClause = buildSaleOrderByClause(orderBy, order as 'asc' | 'desc');
+
 
         // Ejecutar consultas
         const [sales, total] = await Promise.all([
@@ -96,9 +109,19 @@ export const getSales = async (req: Request, res: Response) => {
         const salesWithImages = addImageUrlsToSales(sales, SERVER_URL);
 
         // Construir respuesta con paginación
-        const paginationInfo = buildSalePaginationResponse(
-            page, limit, total, userId, productId, orderBy, order, startDate, endDate
-        );
+        const paginationInfo = buildSalePaginationResponse({
+            page,
+            limit,
+            total,
+            userId,
+            productId,
+            categoryId,
+            search,
+            orderBy,
+            order,
+            startDate,
+            endDate
+        });
 
         return res.status(200).json({
             sales: salesWithImages,
