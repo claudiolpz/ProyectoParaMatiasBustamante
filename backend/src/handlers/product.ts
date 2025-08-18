@@ -13,10 +13,9 @@ import {
     validateOrderByField,
     buildOrderByClause,
     buildPaginationResponse,
-    validateStockForSale,
-    buildSaleResponse,
     buildProductSearchWhereByRole
 } from "../helpers/productHelpers"; // ← CORREGIDO: desde ../helpers en lugar de ../productHelpers
+import { sellAndRegisterSale } from "../services/productService";
 
 const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
 
@@ -28,7 +27,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
         // Verificar si el usuario es admin
         const userRole = req.user?.role;
-        
+
         //Obtener filtro isActive de query
         const explicitIsActive = req.query.isActive as string;
 
@@ -43,7 +42,7 @@ export const getProducts = async (req: Request, res: Response) => {
                 error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category'
             });
         }
-        
+
         // Construir cláusulas de búsqueda y ordenamiento
         const where = buildProductSearchWhereByRole(categoryId, search, userRole, explicitIsActive);
 
@@ -178,7 +177,7 @@ export const getProductById = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "Producto no encontrado" });
         }
 
-        return res.status(200).json({ 
+        return res.status(200).json({
             product: {
                 ...product,
                 image: buildProductImageUrl(product.image, SERVER_URL)
@@ -191,62 +190,99 @@ export const getProductById = async (req: Request, res: Response) => {
     }
 };
 
-/* VENDER PRODUCTO - REFACTORIZADO */
+/* VENDER PRODUCTO  */
 export const sellProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { quantity } = req.body;
         const productId = parseInt(id);
         const sellQuantity = parseInt(quantity);
+        const userId = req.user?.id;
 
-        // Verificar si el producto existe
-        const product = await prisma.product.findUnique({
-            where: { id: productId },
-            include: {
-                category: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                }
-            }
-        });
-
-        if (!product) {
-            return res.status(404).json({ error: "Producto no encontrado" });
+        if (isNaN(productId) || productId <= 0) {
+            return res.status(400).json({ error: "ID de producto inválido" });
         }
 
-        // Verificar stock suficiente usando helper
-        if (!validateStockForSale(product.stock, sellQuantity)) {
-            return res.status(400).json({ 
-                error: `Stock insuficiente. Stock actual: ${product.stock}, cantidad solicitada: ${sellQuantity}` 
-            });
+        if (isNaN(sellQuantity) || sellQuantity <= 0) {
+            return res.status(400).json({ error: "Cantidad de venta inválida" });
         }
 
-        // Actualizar stock
-        const updatedProduct = await prisma.product.update({
-            where: { id: productId },
-            data: {
-                stock: product.stock - sellQuantity
-            },
-            include: {
-                category: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                }
+        const result = await sellAndRegisterSale(productId, sellQuantity, userId);
+
+        if (!result.success) {
+            //determinar codigo error
+
+            let statusCode = 400;
+            if (result.error === "Producto no encontrado") {
+                statusCode = 404;
+            } else if (result.error === "Error interno al procesar la venta") {
+                statusCode = 500;
+            }
+
+            return res.status(statusCode).json({ error: result.error });
+        }
+        
+        return res.status(200).json({
+            message: "Venta registrada correctamente",
+            sale: result.data!.sale,
+            product: {
+                ...result.data!.product,
+                previousStock: result.data!.product.previousStock, 
+                newStock: result.data!.product.newStock
             }
         });
-
-        // Construir respuesta usando helper
-        const saleResponse = buildSaleResponse(sellQuantity, updatedProduct, product.stock, SERVER_URL);
-        return res.status(200).json(saleResponse);
-
     } catch (error) {
-        console.error("Error al vender producto:", error);
         return res.status(500).json({ error: "Error al procesar la venta" });
     }
+
+    //     // Verificar si el producto existe
+    //     const product = await prisma.product.findUnique({
+    //         where: { id: productId },
+    //         include: {
+    //             category: {
+    //                 select: {
+    //                     id: true,
+    //                     name: true
+    //                 }
+    //             }
+    //         }
+    //     });
+
+    //     if (!product) {
+    //         return res.status(404).json({ error: "Producto no encontrado" });
+    //     }
+
+    //     // Verificar stock suficiente usando helper
+    //     if (!validateStockForSale(product.stock, sellQuantity)) {
+    //         return res.status(400).json({ 
+    //             error: `Stock insuficiente. Stock actual: ${product.stock}, cantidad solicitada: ${sellQuantity}` 
+    //         });
+    //     }
+
+    //     // Actualizar stock
+    //     const updatedProduct = await prisma.product.update({
+    //         where: { id: productId },
+    //         data: {
+    //             stock: product.stock - sellQuantity
+    //         },
+    //         include: {
+    //             category: {
+    //                 select: {
+    //                     id: true,
+    //                     name: true
+    //                 }
+    //             }
+    //         }
+    //     });
+
+    //     // Construir respuesta usando helper
+    //     const saleResponse = buildSaleResponse(sellQuantity, updatedProduct, product.stock, SERVER_URL);
+    //     return res.status(200).json(saleResponse);
+
+    // } catch (error) {
+    //     console.error("Error al vender producto:", error);
+    //     return res.status(500).json({ error: "Error al procesar la venta" });
+    // }
 };
 
 /* ACTUALIZAR PRODUCTO COMPLETO */
@@ -260,7 +296,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
         // Construir request dinámicamente
         const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName, isActive };
-        
+
         // Filtrar solo campos que tienen valor (no undefined)
         const updateRequest: any = {
             id: productId,
@@ -277,8 +313,8 @@ export const updateProduct = async (req: Request, res: Response) => {
         const result = await productUpdateService.updateProduct(updateRequest);
 
         if (!result.success) {
-            return res.status(result.statusCode || 500).json({ 
-                error: result.error 
+            return res.status(result.statusCode || 500).json({
+                error: result.error
             });
         }
 
@@ -307,22 +343,22 @@ export const toggleProductStatus = async (req: Request, res: Response) => {
         // Verificar que el producto existe
         const existingProduct = await prisma.product.findUnique({
             where: { id: productId },
-            select: { 
-                id: true, 
-                name: true, 
-                isActive: true 
+            select: {
+                id: true,
+                name: true,
+                isActive: true
             }
         });
 
         if (!existingProduct) {
-            return res.status(404).json({ 
-                error: "Producto no encontrado" 
+            return res.status(404).json({
+                error: "Producto no encontrado"
             });
         }
 
         // Alternar el estado
         const newStatus = !existingProduct.isActive;
-        
+
         const updatedProduct = await prisma.product.update({
             where: { id: productId },
             data: { isActive: newStatus },
@@ -346,8 +382,8 @@ export const toggleProductStatus = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error("Error al cambiar estado del producto:", error);
-        return res.status(500).json({ 
-            error: "Error interno del servidor" 
+        return res.status(500).json({
+            error: "Error interno del servidor"
         });
     }
 };

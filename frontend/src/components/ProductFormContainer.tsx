@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useProductForm } from "../hooks/useProductForm";
@@ -118,6 +118,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         [form]
     );
 
+    const navigate = useNavigate();
     // Función personalizada para manejar el submit
     const onSubmit = useCallback(
         async (data: CreateProductForm) => {
@@ -127,8 +128,9 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
             if (success && !isEditing) {
                 setSelectedFileName(null);
             }
+            navigate(0);
         },
-        [handleSubmitProduct, isEditing]
+        [handleSubmitProduct, isEditing, navigate]
     );
 
     // Funciones para obtener clases CSS

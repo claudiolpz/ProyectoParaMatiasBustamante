@@ -234,31 +234,27 @@ export const buildPaginationResponse = (
     };
 };
 
-// Verificar stock suficiente para venta
-export const validateStockForSale = (currentStock: number, requestedQuantity: number): boolean => {
-    return currentStock >= requestedQuantity;
-};
 
 // Construir respuesta de venta exitosa
-export const buildSaleResponse = (
-    sellQuantity: number,
-    updatedProduct: any,
-    previousStock: number,
-    serverUrl: string
-) => {
-    return {
-        message: `Venta realizada. ${sellQuantity} unidad(es) vendida(s)`,
-        product: {
-            ...updatedProduct,
-            image: buildProductImageUrl(updatedProduct.image, serverUrl)
-        },
-        sale: {
-            quantity: sellQuantity,
-            previousStock: previousStock,
-            newStock: updatedProduct.stock
-        }
-    };
-};
+// export const buildSaleResponse = (
+//     sellQuantity: number,
+//     updatedProduct: any,
+//     previousStock: number,
+//     serverUrl: string
+// ) => {
+//     return {
+//         message: `Venta realizada. ${sellQuantity} unidad(es) vendida(s)`,
+//         product: {
+//             ...updatedProduct,
+//             image: buildProductImageUrl(updatedProduct.image, serverUrl)
+//         },
+//         sale: {
+//             quantity: sellQuantity,
+//             previousStock: previousStock,
+//             newStock: updatedProduct.stock
+//         }
+//     };
+// };
 // Helper para parsear valores boolean de form-data
 export const parseBoolean = (value: unknown, defaultValue: boolean = false): boolean => {
     if (value === undefined || value === null) {

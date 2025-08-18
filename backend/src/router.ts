@@ -179,7 +179,7 @@ router.put('/products/:id',
     handleInputErrors,
     updateProduct);
 
-/* VENDER PRODUCTO (DECREMENTAR STOCK) */
+/* VENDER PRODUCTO y REGISTRAR VENTA */
 router.patch('/products/:id/sell',
     authenticate,
     requireAdmin,

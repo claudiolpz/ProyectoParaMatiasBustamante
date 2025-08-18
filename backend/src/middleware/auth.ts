@@ -6,6 +6,7 @@ declare global {
     namespace Express {
         interface Request {
             user?: {
+                id: number;
                 name: string;
                 lastname: string;
                 role: string;
@@ -33,6 +34,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         if(typeof result === 'object' && result.id){
             const user = await prisma.user.findUnique({
                 select:{
+                    id: true,
                     name: true,
                     lastname: true,
                     role: true,
