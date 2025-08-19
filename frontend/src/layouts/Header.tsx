@@ -211,8 +211,8 @@ export default function Header() {
               <Link to="/products/create" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
                 Crear Producto
               </Link>
-              <Link to="/admin" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
-                Admin
+              <Link to="/Sales" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
+                Ventas
               </Link>
             </>
           )}
@@ -282,11 +282,11 @@ export default function Header() {
                         Crear Producto
                       </Link>
                       <Link
-                        to="/admin"
+                        to="/sales"
                         onClick={() => setMobileMenuOpen(false)}
                         className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
                       >
-                        Admin
+                        Ventas
                       </Link>
                     </>
                   )}

@@ -69,3 +69,34 @@ export const login = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
     res.json(req.user);
 };
+
+// Obtener Todos los Usuarios
+export const getUsersAdmins = async (req: Request, res: Response) => {
+    try {
+        const users = await prisma.user.findMany({
+            where:{
+                role: 'admin'
+            },
+            select: {
+                id: true,
+                name: true,
+                lastname: true,
+                email: true,
+                role: true
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        });
+
+        return res.status(200).json({
+            users: users
+        });
+        
+    } catch (error) {
+        console.error("Error al obtener usuarios:", error);
+        return res.status(500).json({
+            error: "Error al obtener usuarios"
+        });
+    }
+};

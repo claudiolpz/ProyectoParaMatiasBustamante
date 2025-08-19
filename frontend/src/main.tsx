@@ -15,6 +15,7 @@ import FrontendLayout from "./layouts/FrontendLayout";
 import { GuestRoute, ProtectedRoute } from "./components/AuthGuard";
 import InitialLayout from "./layouts/InitalLayout";
 import Error404 from "./views/Error404";
+import SalesTable from "./views/SalesTable";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,14 @@ const router = createBrowserRouter([
         path: '/*',
         element: <Error404 />,
       },
+      {
+            path: "/sales",
+            element: (
+              <ProtectedRoute requiredRole="admin">
+                <SalesTable />
+              </ProtectedRoute>
+            ),
+          },
       {
         element: <InitialLayout />,
         children: [

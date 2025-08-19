@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator'
-import { createAccount, getUser, login } from './handlers/auth';
+import { createAccount, getUser, getUsersAdmins, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProductById, getProducts, sellProduct, updateProduct, toggleProductStatus } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
@@ -208,6 +208,12 @@ router.get('/categories', getCategories);
 
 // OBTENER USUARIO
 router.get('/user', authenticate, getUser);
+
+// Obtener Todos los Usuarios
+router.get('/users',
+    authenticate,
+    requireAdmin,
+    getUsersAdmins);
 
 /* OBTENER VENTAS */
 router.get('/sales',
