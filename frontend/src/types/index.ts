@@ -6,6 +6,11 @@ export type User = {
   lastname: string
 }
 
+export type UserSell = Pick<User, 'name' | 'lastname' | 'email'> & {
+  id:number;
+  role: string;
+}
+
 export type UserTokenVerify = {
   email: string ,
   name: string,
@@ -329,4 +334,64 @@ export interface FormResetOptions {
     keepDefaultValues?: boolean;
     keepValues?: boolean;
     keepErrors?: boolean;
+}
+
+// SaleFilters
+export interface SaleFilters {
+  search?: string;
+  categoryId?: number;
+  userId?: number;
+  productId?: number;
+  startDate?: string;
+  endDate?: string;
+  orderBy?: string;
+  order?: string;
+}
+
+// Sale
+export interface Sale {
+  id: number;
+  createdAt: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  product: {
+    id: number;
+    name: string;
+    sku?: string;
+    image?: string;
+    category?: {
+      id: number;
+      name: string;
+    };
+  };
+  user: {
+    id: number;
+    name: string;
+    lastname: string;
+    email: string;
+  };
+}
+
+export interface SaleFilters {
+  search?: string;
+  categoryId?: number;
+  userId?: number;
+  productId?: number;
+  startDate?: string;
+  endDate?: string;
+  orderBy?: string;
+  order?: string;
+}
+export interface SaleFiltersProps {
+  onSearch: (value: string) => void;
+  onCategoryFilter: (categoryId: string) => void;
+  onUserFilter: (userId: string) => void;
+  onDateFilter: (startDate: string, endDate: string) => void;
+  onRefresh: () => void;
+  categories: Category[];
+  users: UserSell[];
+  categoriesLoading: boolean;
+  usersLoading: boolean;
+  currentFilters: SaleFilters;
 }

@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator'
-import { createAccount, getUser, login } from './handlers/auth';
+import { createAccount, getUser, getUsersAdmins, login } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProductById, getProducts, sellProduct, updateProduct, toggleProductStatus } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
 import { getCategories } from './handlers/category';
 import { authenticate, requireAdmin } from './middleware/auth';
 import { optionalAuth } from './middleware/optionalAuth';
+import { getSaleById, getSales } from './handlers/sale';
 
 const router = Router();
 
@@ -179,7 +180,7 @@ router.put('/products/:id',
     handleInputErrors,
     updateProduct);
 
-/* VENDER PRODUCTO (DECREMENTAR STOCK) */
+/* VENDER PRODUCTO y REGISTRAR VENTA */
 router.patch('/products/:id/sell',
     authenticate,
     requireAdmin,
@@ -207,5 +208,69 @@ router.get('/categories', getCategories);
 
 // OBTENER USUARIO
 router.get('/user', authenticate, getUser);
+
+// Obtener Todos los Usuarios
+router.get('/users',
+    authenticate,
+    requireAdmin,
+    getUsersAdmins);
+
+/* OBTENER VENTAS */
+router.get('/sales',
+    authenticate,
+    requireAdmin,
+    query('page')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('La página debe ser un número entero mayor a 0'),
+    query('limit')
+        .optional()
+        .isInt({ min: 1, max: 100 })
+        .withMessage('El límite debe ser un número entre 1 y 100'),
+    query('orderBy')
+        .optional()
+        .isIn(['createdAt', 'totalPrice', 'quantity', 'unitPrice'])
+        .withMessage('orderBy debe ser: createdAt, totalPrice, quantity o unitPrice'),
+    query('order')
+        .optional()
+        .isIn(['asc', 'desc'])
+        .withMessage('order debe ser: asc o desc'),
+    query('userId')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('userId debe ser un número entero válido'),
+    query('productId')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('productId debe ser un número entero válido'),
+    query('categoryId') 
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('categoryId debe ser un número entero válido'),
+    query('search') 
+        .optional()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('La búsqueda debe tener entre 1 y 100 caracteres')
+        .trim(),
+    query('startDate')
+        .optional()
+        .isISO8601()
+        .withMessage('startDate debe ser una fecha válida en formato ISO8601'),
+    query('endDate')
+        .optional()
+        .isISO8601()
+        .withMessage('endDate debe ser una fecha válida en formato ISO8601'),
+    handleInputErrors,
+    getSales);
+
+/* OBTENER VENTA POR ID */
+router.get('/sales/:id',
+    authenticate,
+    requireAdmin,
+    param('id')
+        .isInt({ min: 1 })
+        .withMessage('El ID debe ser un número entero válido'),
+    handleInputErrors,
+    getSaleById);
 
 export default router;

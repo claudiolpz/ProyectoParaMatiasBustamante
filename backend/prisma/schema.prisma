@@ -60,7 +60,6 @@ model Sale {
   quantity   Int
   unitPrice  Int // Precio al momento de la venta
   totalPrice Int // quantity * unitPrice
-  note       String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

@@ -109,15 +109,15 @@ export default function Header() {
     }
 
     return (
-      <div className="flex items-center gap-x-4 animate-fade-in">
-        <Link 
-          to="/auth/login" 
+      <div className="flex items-center gap-x-4 animate-fade-in select-none">
+        <Link
+          to="/auth/login"
           className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200"
         >
           Iniciar Sesión
         </Link>
-        <Link 
-          to="/auth/register" 
+        <Link
+          to="/auth/register"
           className="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
         >
           Registrarse
@@ -130,7 +130,7 @@ export default function Header() {
   const renderMobileAuthSection = () => {
     if (loading && !shouldShowAuth) {
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 select-none">
           <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
           <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
         </div>
@@ -139,7 +139,7 @@ export default function Header() {
 
     if (handleEstaLogeado()) {
       return (
-        <div className="space-y-2 animate-fade-in">
+        <div className="space-y-2 animate-fade-in select-none">
           <div className="px-3 py-2">
             <p className="text-sm text-gray-600">Hola, {user?.name || 'Usuario'}</p>
             <p className="text-xs text-gray-500">{user?.role || 'user'}</p>
@@ -155,7 +155,7 @@ export default function Header() {
     }
 
     return (
-      <div className="space-y-2 animate-fade-in">
+      <div className="space-y-2 animate-fade-in select-none">
         <Link
           to="/auth/login"
           onClick={() => setMobileMenuOpen(false)}
@@ -175,7 +175,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white shadow-sm select-none">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
         {/* Logo - Siempre visible */}
         <div className="flex lg:flex-1">
@@ -204,15 +204,15 @@ export default function Header() {
           <Link to="/" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
             Productos
           </Link>
-          
+
           {/* Enlaces solo para usuarios autenticados y admin */}
           {(!loading && handleEstaLogeado() && isAdmin()) && (
             <>
               <Link to="/products/create" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
                 Crear Producto
               </Link>
-              <Link to="/admin" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
-                Admin
+              <Link to="/Sales" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
+                Ventas
               </Link>
             </>
           )}
@@ -228,7 +228,7 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="lg:hidden">
           {/* Backdrop */}
-          <button 
+          <button
             type="button"
             className="fixed inset-0 z-50 bg-black bg-opacity-25 animate-fade-in cursor-default"
             onClick={() => setMobileMenuOpen(false)}
@@ -254,23 +254,16 @@ export default function Header() {
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-2 py-6">
+
+                  {/* Productos - Siempre visible en mobile también */}
                   <Link
                     to="/"
                     onClick={() => setMobileMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
                   >
-                    Inicio
-                  </Link>
-                  
-                  {/* Productos - Siempre visible en mobile también */}
-                  <Link
-                    to="/list-products"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
-                  >
                     Productos
                   </Link>
-                  
+
                   {/* Mobile navigation - Solo mostrar enlaces admin si está autenticado y es admin */}
                   {(!loading && handleEstaLogeado() && isAdmin()) && (
                     <>
@@ -282,11 +275,11 @@ export default function Header() {
                         Crear Producto
                       </Link>
                       <Link
-                        to="/admin"
+                        to="/sales"
                         onClick={() => setMobileMenuOpen(false)}
                         className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
                       >
-                        Admin
+                        Ventas
                       </Link>
                     </>
                   )}

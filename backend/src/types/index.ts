@@ -1,8 +1,8 @@
 export interface UpdateProductRequest {
     id: number;
-    name?: string;        // ← Opcional
-    price?: number;       // ← Opcional
-    stock?: number;       // ← Opcional
+    name?: string;       
+    price?: number;      
+    stock?: number;       
     sku?: string;
     categoryId?: number;
     categoryName?: string;
@@ -25,7 +25,7 @@ export interface CreateProductRequest {
     categoryId?: number;
     categoryName?: string;
     imageFile?: Express.Multer.File;
-    isActive?: boolean; // ← Por defecto será true
+    isActive?: boolean; 
 }
 
 export interface ValidationSuccessResult extends UpdateProductResult {
@@ -90,4 +90,18 @@ export interface CategoryProcessResult {
     error?: string;
     statusCode?: number;
     categoryData?: any;
+}
+
+export interface SalePaginationParams {
+    page: number;
+    limit: number;
+    total: number;
+    userId?: number;
+    productId?: number;
+    categoryId?: number;
+    search?: string;
+    orderBy?: string;
+    order?: string;
+    startDate?: Date;
+    endDate?: Date;
 }
