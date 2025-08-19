@@ -356,8 +356,7 @@ const TableProduct = () => {
                   : 'Explora nuestro catálogo de productos'
                 } (10 por página)
               </p>
-            </div>
-
+            </div>              
             {/* Botón Crear Producto solo para admin */}
             {handleEstaLogeado() && isAdmin() && (
               <Link

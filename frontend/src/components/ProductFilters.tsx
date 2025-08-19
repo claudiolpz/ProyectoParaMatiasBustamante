@@ -1,11 +1,12 @@
 import React from 'react';
-import { SearchOutlined } from '@ant-design/icons';
+import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import type { ProductFiltersProps } from '../types';
 
 export const ProductFilters: React.FC<ProductFiltersProps> = ({
   onSearch,
   onCategoryFilter,
   onActiveStatusFilter,
+  onRefresh,
   categories,
   categoriesLoading,
   showActiveFilter = false,
@@ -57,11 +58,14 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
               value={currentFilters?.categoryId || ''}
               disabled={categoriesLoading}
             >
+
               <option value="" className="bg-slate-600">
                 {categoriesLoading ? 'Cargando categorías...' : 'Todas las categorías'}
               </option>
               {renderCategoryOptions()}
             </select>
+
+
           </div>
 
           {showActiveFilter && (
@@ -75,14 +79,22 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                   Todos los productos
                 </option>
                 <option value="true" className="bg-slate-600">
-                  Solo productos activos
+                  Productos activos
                 </option>
                 <option value="false" className="bg-slate-600">
-                  Solo productos inactivos
+                  Productos inactivos
                 </option>
               </select>
             </div>
           )}
+          <button
+            onClick={onRefresh}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
+            title="Actualizar datos"
+          >
+            <ReloadOutlined />
+            <span className="hidden sm:inline">Actualizar</span>
+          </button>
         </div>
       </div >
     </div >
