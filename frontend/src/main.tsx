@@ -16,6 +16,7 @@ import { GuestRoute, ProtectedRoute } from "./components/AuthGuard";
 import InitialLayout from "./layouts/InitalLayout";
 import Error404 from "./views/Error404";
 import SalesTable from "./views/SalesTable";
+import VerifyEmailView from "./views/VerifyEmailView";
 
 const router = createBrowserRouter([
   {
@@ -54,6 +55,14 @@ const router = createBrowserRouter([
             element: (
               <GuestRoute>
                 <RegisterView />
+              </GuestRoute>
+            ),
+          },
+          {
+            path: "/auth/verify-email",
+            element: (
+              <GuestRoute>
+                <VerifyEmailView />
               </GuestRoute>
             ),
           },

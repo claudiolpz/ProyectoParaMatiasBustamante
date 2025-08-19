@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator'
-import { createAccount, getUser, getUsersAdmins, login } from './handlers/auth';
+import { createAccount, getUser, getUsersAdmins, login, resendVerificationEmail, verifyEmail } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProductById, getProducts, sellProduct, updateProduct, toggleProductStatus } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
@@ -35,6 +35,25 @@ router.post('/auth/register',
         .withMessage('El Apellido es obligatorio'),
     handleInputErrors,
     createAccount);
+
+/* VERIFICAR EMAIL */
+router.post('/auth/verify-email',
+    body('token')
+        .notEmpty()
+        .withMessage('Token es obligatorio'),
+    handleInputErrors,
+    verifyEmail);
+
+/* REENVIAR EMAIL DE VERIFICACIÓN */
+router.post('/auth/resend-verification',
+    body('email')
+        .notEmpty()
+        .withMessage('El Email es obligatorio')
+        .isEmail()
+        .withMessage('Formato de Email incorrecto')
+        .normalizeEmail(),
+    handleInputErrors,
+    resendVerificationEmail);
 
 /* AUTENTICAR */
 router.post('/auth/login',
@@ -247,11 +266,11 @@ router.get('/sales',
         .optional()
         .isInt({ min: 1 })
         .withMessage('productId debe ser un número entero válido'),
-    query('categoryId') 
+    query('categoryId')
         .optional()
         .isInt({ min: 1 })
         .withMessage('categoryId debe ser un número entero válido'),
-    query('search') 
+    query('search')
         .optional()
         .isLength({ min: 1, max: 100 })
         .withMessage('La búsqueda debe tener entre 1 y 100 caracteres')

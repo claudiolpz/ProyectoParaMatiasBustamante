@@ -48,7 +48,10 @@ const RegisterView = () => {
             
             navigate('/auth/login', { 
                 replace: true,
-                state: { message: 'Cuenta creada. Inicia sesión con tu nueva cuenta.' }
+                state: { 
+                    message: 'Cuenta creada. Revisa tu email para verificar tu cuenta antes de iniciar sesión.',
+                    email: formData.email 
+                }
             });
             
         } catch (error) {
