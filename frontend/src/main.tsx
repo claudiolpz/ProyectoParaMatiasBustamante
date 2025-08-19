@@ -31,13 +31,13 @@ const router = createBrowserRouter([
         element: <Error404 />,
       },
       {
-            path: "/sales",
-            element: (
-              <ProtectedRoute requiredRole="admin">
-                <SalesTable />
-              </ProtectedRoute>
-            ),
-          },
+        path: "/sales",
+        element: (
+          <ProtectedRoute requiredRole="admin">
+            <SalesTable />
+          </ProtectedRoute>
+        ),
+      },
       {
         element: <InitialLayout />,
         children: [

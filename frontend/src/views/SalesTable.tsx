@@ -138,7 +138,7 @@ const SalesTable = () => {
         );
 
         return (
-            <thead className="bg-slate-800">
+            <thead className="bg-slate-800 select-none">
                 <tr>
                     {renderSortableHeader('createdAt', 'Fecha', 'min-w-[150px]')}
                     <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider min-w-[200px]">

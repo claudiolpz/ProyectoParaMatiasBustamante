@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { SearchOutlined, EditOutlined, EyeOutlined, CaretUpOutlined, LoginOutlined, UserAddOutlined, PlusCircleOutlined, PoweroffOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, EyeOutlined, CaretUpOutlined, PlusCircleOutlined, PoweroffOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useSalesFlow } from '../hooks/useSalesFlow';
@@ -144,7 +144,7 @@ const TableProduct = () => {
 
   const handleActiveStatusFilter = useCallback((status: string) => {
     let isActiveValue: boolean | 'all';
-    
+
     if (status === 'true') {
       isActiveValue = true;
     } else if (status === 'false') {
@@ -152,7 +152,7 @@ const TableProduct = () => {
     } else {
       isActiveValue = 'all';
     }
-    
+
     const newFilters: ProductFilters = {
       ...filters,
       isActive: isActiveValue
@@ -182,7 +182,7 @@ const TableProduct = () => {
     );
 
     return (
-      <thead className="bg-slate-800">
+      <thead className="bg-slate-800 select-none">
         <tr>
           {/* Columna de imagen */}
           <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-20">
@@ -356,7 +356,7 @@ const TableProduct = () => {
                   : 'Explora nuestro catálogo de productos'
                 } (10 por página)
               </p>
-            </div>              
+            </div>
             {/* Botón Crear Producto solo para admin */}
             {handleEstaLogeado() && isAdmin() && (
               <Link
@@ -375,22 +375,6 @@ const TableProduct = () => {
                 <p className="text-blue-200">
                   <span className="font-semibold">¿Quieres administrar productos?</span> Inicia sesión para acceder a todas las funcionalidades.
                 </p>
-                <div className="flex items-center space-x-2 ml-4">
-                  <Link
-                    to="/auth/login"
-                    className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200"
-                  >
-                    <LoginOutlined className="mr-1.5" />
-                    Iniciar Sesión
-                  </Link>
-                  <Link
-                    to="/auth/register"
-                    className="inline-flex items-center px-3 py-1.5 bg-slate-600 text-white text-sm font-medium rounded-md hover:bg-slate-700 transition-colors duration-200"
-                  >
-                    <UserAddOutlined className="mr-1.5" />
-                    Registrarse
-                  </Link>
-                </div>
               </div>
             </div>
           )}

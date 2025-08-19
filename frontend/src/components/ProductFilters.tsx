@@ -35,7 +35,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   };
 
   return (
-    <div className="bg-slate-700 rounded-lg shadow-lg border border-slate-600 p-4 mb-6">
+    <div className="bg-slate-700 rounded-lg shadow-lg border border-slate-600 p-4 mb-6 select-none">
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Primera fila - Búsqueda */}
         <div className="relative flex-1">
@@ -89,11 +89,11 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           )}
           <button
             onClick={onRefresh}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
+            className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 min-w-[120px] lg:min-w-[140px]"
             title="Actualizar datos"
           >
-            <ReloadOutlined />
-            <span className="hidden sm:inline">Actualizar</span>
+            <ReloadOutlined className="lg:mr-2" />
+            <span className="ml-2 lg:ml-0">Actualizar</span>
           </button>
         </div>
       </div >
