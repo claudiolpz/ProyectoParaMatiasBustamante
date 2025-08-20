@@ -77,7 +77,7 @@ export function useSalesTable() {
     setSearchParams(params);
   }, [setSearchParams]);
 
-  // ✅ FUNCIÓN PARA HACER LA LLAMADA A LA API
+  // FUNCIÓN PARA HACER LA LLAMADA A LA API
   const fetchSales = useCallback(async (filters?: SaleFilters, page?: number) => {
     setLoading(true);
     try {

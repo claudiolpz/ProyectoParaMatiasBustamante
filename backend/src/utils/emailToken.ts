@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 
 //  token de verificación
 export const generateToken = async (): Promise<string> => {
-    const salt = await bcrypt.genSalt(12); //
+    const salt = await bcrypt.genSalt(12); 
     return salt.replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
 };
 

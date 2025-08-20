@@ -188,7 +188,7 @@ export const buildProductSearchWhereByRole = (
 
     return where;
 };
-// CORREGIDO: Construir cláusula ORDER BY con tipos correctos de Prisma
+// Construir cláusula ORDER BY con tipos correctos de Prisma
 export const buildOrderByClause = (orderBy: string, order: 'asc' | 'desc') => {
     if (orderBy === 'category') {
         return {

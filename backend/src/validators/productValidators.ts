@@ -138,7 +138,7 @@ export const validatePartialProductData = (data: PartialProductData): ProductVal
         return stockValidation;
     }
 
-    // NUEVO: Validar isActive
+    // Validar isActive
     const isActiveValidation = validateProductIsActive(data.isActive);
     if (!isActiveValidation.isValid) {
         return isActiveValidation;
