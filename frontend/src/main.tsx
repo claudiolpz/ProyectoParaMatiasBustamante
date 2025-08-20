@@ -17,6 +17,8 @@ import InitialLayout from "./layouts/InitalLayout";
 import Error404 from "./views/Error404";
 import SalesTable from "./views/SalesTable";
 import VerifyEmailView from "./views/VerifyEmailView";
+import ForgotPasswordView from "./views/ForgotPasswordView";
+import ResetPasswordView from "./views/ResetPasswordView";
 
 const router = createBrowserRouter([
   {
@@ -47,6 +49,22 @@ const router = createBrowserRouter([
             element: (
               <GuestRoute>
                 <LoginView />
+              </GuestRoute>
+            ),
+          },
+          {
+            path: "/auth/forgot-password",
+            element: (
+              <GuestRoute>
+                <ForgotPasswordView />
+              </GuestRoute>
+            ),
+          },
+          {
+            path: "/auth/reset-password",
+            element: (
+              <GuestRoute>
+                <ResetPasswordView />
               </GuestRoute>
             ),
           },

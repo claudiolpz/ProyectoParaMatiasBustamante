@@ -395,3 +395,13 @@ export interface SaleFiltersProps {
   usersLoading: boolean;
   currentFilters: SaleFilters;
 }
+
+export type ForgotPasswordForm = {
+    email: string;
+}
+
+
+export type ResetPasswordForm = {
+    password: string;
+    password_confirmation: string;
+}

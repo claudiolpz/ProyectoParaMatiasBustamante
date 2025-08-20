@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import { checkPassword, hashString } from "../utils/auth";
 import { generateJWT } from "../utils/jwt";
-import { generateEmailToken, sendVerificationEmail } from "../utils/emailToken";
+import { generateToken, sendPasswordResetEmail, sendVerificationEmail } from "../utils/emailToken";
 
 export const createAccount = async (req: Request, res: Response) => {
     try {
@@ -21,7 +21,7 @@ export const createAccount = async (req: Request, res: Response) => {
         }
 
         const passwordHashed = await hashString(password);
-        const emailToken = await generateEmailToken();
+        const emailToken = await generateToken();
         const emailTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const user = await prisma.user.create({
@@ -119,7 +119,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "El email ya está verificado" });
         }
 
-        const emailToken = await generateEmailToken();
+        const emailToken = await generateToken();
         const emailTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         await prisma.user.update({
@@ -211,3 +211,133 @@ export const getUsersAdmins = async (req: Request, res: Response) => {
         });
     }
 };
+
+// SOLICITAR RESET DE CONTRASEÑA
+export const requestPasswordReset = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        const normalizedEmail = email.toLowerCase();
+
+        const user = await prisma.user.findUnique({
+            where: { email: normalizedEmail }
+        });
+
+        // Siempre devolver éxito por seguridad (no revelar si el email existe)
+        if (!user) {
+            return res.status(200).json({
+                message: "Si el email existe, recibirás un enlace de recuperación"
+            });
+        }
+
+        // Solo permitir reset si el email está verificado
+        if (!user.emailVerified) {
+            return res.status(400).json({
+                error: "Debes verificar tu email antes de poder restablecer la contraseña"
+            });
+        }
+
+        const resetToken = await generateToken();
+        const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                resetPasswordToken: resetToken,
+                resetPasswordExpires: resetTokenExpires
+            }
+        });
+
+        await sendPasswordResetEmail(normalizedEmail, user.name, resetToken);
+
+        return res.status(200).json({
+            message: "Si el email existe, recibirás un enlace de recuperación"
+        });
+
+    } catch (error) {
+        console.error("Error al solicitar reset de contraseña:", error);
+        return res.status(500).json({ error: "Error al procesar solicitud" });
+    }
+};
+
+// VERIFICAR TOKEN DE RESET
+export const verifyResetToken = async (req: Request, res: Response) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({ error: "Token requerido" });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpires: {
+                    gt: new Date() // Token no expirado
+                }
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({ 
+                error: "Token inválido o expirado" 
+            });
+        }
+
+        return res.status(200).json({
+            message: "Token válido",
+            email: user.email // Para mostrar en el frontend
+        });
+
+    } catch (error) {
+        console.error("Error al verificar token:", error);
+        return res.status(500).json({ error: "Error al verificar token" });
+    }
+};
+
+//Restablecer Contraseña
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ error: "Token y contraseña requeridos" });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpires: {
+                    gt: new Date() // Token no expirado
+                }
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({ 
+                error: "Token inválido o expirado" 
+            });
+        }
+
+        const passwordHashed = await hashString(password);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: passwordHashed,
+                resetPasswordToken: null,
+                resetPasswordExpires: null
+            }
+        });
+
+        return res.status(200).json({
+            message: "Contraseña restablecida exitosamente"
+        });
+
+    } catch (error) {
+        console.error("Error al restablecer contraseña:", error);
+        return res.status(500).json({ error: "Error al restablecer contraseña" });
+    }
+};
+
+
