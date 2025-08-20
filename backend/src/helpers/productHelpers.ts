@@ -116,7 +116,7 @@ export const validateOrderByField = (orderBy: string): boolean => {
 };
 
 // Construir cláusula WHERE para búsqueda de productos
-export const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?: boolean) => {
+const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?: boolean) => {
     const where: {
         categoryId?: number;
         isActive?: boolean;
@@ -235,7 +235,7 @@ export const buildPaginationResponse = (
 };
 
 // Helper para parsear valores boolean de form-data
-export const parseBoolean = (value: unknown, defaultValue: boolean = false): boolean => {
+const parseBoolean = (value: unknown, defaultValue: boolean = false): boolean => {
     if (value === undefined || value === null) {
         return defaultValue;
     }

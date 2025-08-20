@@ -30,7 +30,7 @@ export default function Header() {
       background: '#ffffff',
       color: '#1f2937', // gray-800
       customClass: {
-        popup: 'rounded-lg shadow-xl',
+        popup: 'rounded-lg shadow-xl select-none',
         title: 'text-lg font-semibold',
         htmlContainer: 'text-sm text-gray-600',
         confirmButton: 'px-4 py-2 rounded-md font-medium',
@@ -60,7 +60,7 @@ export default function Header() {
       background: '#ffffff',
       color: '#1f2937',
       customClass: {
-        popup: 'rounded-lg shadow-xl',
+        popup: 'rounded-lg shadow-xl select-none',
         title: 'text-lg font-semibold',
         htmlContainer: 'text-sm text-gray-600',
         confirmButton: 'px-4 py-2 rounded-md font-medium',

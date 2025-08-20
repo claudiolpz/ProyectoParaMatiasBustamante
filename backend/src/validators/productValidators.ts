@@ -39,8 +39,8 @@ export const validateProductStock = (stock?: number | string): ProductValidation
     return { isValid: true, stockNum };
 };
 
-// NUEVO: Validar isActive
-export const validateProductIsActive = (isActive?: boolean | string): ProductValidationResult => {
+// Validar isActive
+const validateProductIsActive = (isActive?: boolean | string): ProductValidationResult => {
     if (isActive === undefined) {
         return { isValid: true };
     }

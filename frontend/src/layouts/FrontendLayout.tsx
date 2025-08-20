@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from '../context/AuthProvider';
 import Header from './Header';
 import { useEffect } from "react";
+import Footer from './Footer';
 
 export default function FrontendLayout() {
      useEffect(() => {
@@ -25,7 +26,8 @@ export default function FrontendLayout() {
                 <Header />
                 <Outlet />
             </main>
-            <Toaster position='top-center' />
+            <Footer />
+            <Toaster position='top-center' className='select-none'/>
         </AuthProvider>
     );
 }

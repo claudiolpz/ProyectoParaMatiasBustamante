@@ -213,7 +213,7 @@ const LoginView = () => {
             <div className="text-center mt-4 space-y-2">
                 <Link
                     to="/auth/forgot-password"
-                    className="block text-blue-400 hover:underline text-sm"
+                    className="block text-blue-400 hover:underline text-sm hover:text-white"
                 >
                     ¿Olvidaste tu contraseña?
                 </Link>

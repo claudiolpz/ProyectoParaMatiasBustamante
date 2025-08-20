@@ -300,6 +300,9 @@ export const showToggleConfirmationModal = (product: Product): Promise<boolean> 
     confirmButtonColor: product.isActive ? MODAL_STYLES.colors.error : MODAL_STYLES.colors.success,
     cancelButtonColor: MODAL_STYLES.colors.gray,
     focusCancel: true,
+    customClass: {
+    popup: 'select-none' 
+  }
   }).then(result => result.isConfirmed);
 };
 
@@ -311,6 +314,9 @@ export const showToggleSuccessModal = (result: any): Promise<void> => {
     icon: 'success',
     confirmButtonText: 'Entendido',
     confirmButtonColor: MODAL_STYLES.colors.success,
+    customClass: {
+    popup: 'select-none' 
+  }
   }).then(() => { });
 };
 
