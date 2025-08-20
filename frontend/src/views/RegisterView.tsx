@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthProvider";
 import type { RegisterForm } from "../types";
 import ErrorMessage from "../components/ErrorMessage";
 import api from "../config/axios";
+import {passwordRegex, expresion_correo} from "../validators/accontValidator";
 
 const RegisterView = () => {
     const { handleEstaLogeado, loading } = useAuth();
@@ -134,7 +135,7 @@ const RegisterView = () => {
                         {...register("email", {
                             required: "El Email es obligatorio",
                             pattern: {
-                                value: /\S+@\S+\.\S+/,
+                                value: expresion_correo,
                                 message: "E-mail no válido",
                             },
                             setValueAs: (value) => value?.toLowerCase()
@@ -158,6 +159,10 @@ const RegisterView = () => {
                                 value: 6,
                                 message: "La Contraseña debe tener al menos 6 caracteres",
                             },
+                            pattern: {
+                                value: passwordRegex,
+                                message: "Debe incluir mayúscula, minúscula, número y carácter especial"
+                            }
                         })}
                     />
                     {errors.password && (<ErrorMessage>{errors.password.message}</ErrorMessage>)}

@@ -8,6 +8,7 @@ import { getCategories } from './handlers/category';
 import { authenticate, requireAdmin } from './middleware/auth';
 import { optionalAuth } from './middleware/optionalAuth';
 import { getSaleById, getSales } from './handlers/sale';
+import { password_validator } from './validators/accontValidator';
 
 const router = Router();
 
@@ -17,12 +18,15 @@ router.post('/auth/register',
         .notEmpty()
         .withMessage('El Email es obligatorio')
         .isEmail()
-        .withMessage('Formato de Email incorrecto'),
+        .withMessage('Formato de Email incorrecto')
+        .normalizeEmail(),
     body('password')
         .notEmpty()
         .withMessage('La Contraseña es obligatoria')
         .isLength({ min: 6 })
-        .withMessage('La Contraseña debe tener al menos 6 caracteres'),
+        .withMessage('La Contraseña debe tener al menos 6 caracteres')
+        .matches(password_validator)
+        .withMessage('La contraseña debe incluir mayúscula, minúscula, número y carácter especial'),
     body('name')
         .notEmpty()
         .withMessage('El Nombre es obligatorio'),
