@@ -157,6 +157,12 @@ export const login = async (req: Request, res: Response) => {
             res.status(404).json({ error: error.message });
             return;
         }
+        if (!user.emailVerified) {
+            return res.status(403).json({ 
+                error: "Debes verificar tu email antes de iniciar sesión",
+                requiresVerification: true 
+            });
+        }
         const isPasswordCorrect = await checkPassword(password, user.password);
         if (!isPasswordCorrect) {
             const error = new Error("Contraseña Incorrecta o Email no Incorrecto");

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { isAxiosError } from "axios";
 import { toast } from 'sonner';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthProvider";
 import type { RegisterForm } from "../types";
 import ErrorMessage from "../components/ErrorMessage";
@@ -13,6 +13,7 @@ const RegisterView = () => {
     const { handleEstaLogeado, loading } = useAuth();
     const navigate = useNavigate();
     const [isInitializing, setIsInitializing] = useState(true);
+    const toastShown = useRef(false);
 
     // Verificar si ya está logueado al cargar el componente
     useEffect(() => {
@@ -41,33 +42,36 @@ const RegisterView = () => {
     const password = watch("password");
 
     const handelRegister = async (formData: RegisterForm) => {
+        toastShown.current = false;
+
         try {
             const { data } = await api.post(`/auth/register`, formData);
-            toast.success(data.message || "Cuenta creada exitosamente");
+            
             reset();
             
             navigate('/auth/login', { 
                 replace: true,
                 state: { 
-                    message: 'Cuenta creada. Revisa tu email para verificar tu cuenta antes de iniciar sesión.',
-                    email: formData.email 
+                    message: data.message || 'Cuenta creada. Revisa tu email para verificar tu cuenta antes de iniciar sesión.',
+                    email: formData.email,
+                    type: 'success' // ✅ Especificar tipo
                 }
             });
             
-        } catch (error) {
-            if (isAxiosError(error) && error.response) {
-                if (error.response.data.error) {
-                    toast.error(error.response.data.error);
-                } 
-                if (error.response.data.errors) {
-                    error.response.data.errors.forEach((err: any) => {
-                        if (err.msg) {
-                            toast.error(err.msg);
-                        }
-                    });
+         } catch (error) {
+            if (!toastShown.current) {
+                if (isAxiosError(error) && error.response) {
+                    if (error.response.data.error) {
+                        toast.error(error.response.data.error);
+                        toastShown.current = true;
+                    } else if (error.response.data.errors) {
+                        toast.error(error.response.data.errors[0]?.msg || "Error en los datos");
+                        toastShown.current = true;
+                    }
+                } else {
+                    toast.error("Error al crear la cuenta");
+                    toastShown.current = true;
                 }
-            } else {
-                toast.error("Error al crear la cuenta");
             }
         }
     };

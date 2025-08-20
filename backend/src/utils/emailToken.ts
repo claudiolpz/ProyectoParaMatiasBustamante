@@ -10,7 +10,8 @@ export const generateEmailToken = async (): Promise<string> => {
 
 // Enviar email de verificación
 export const sendVerificationEmail = async (email: string, name: string, token: string) => {
-    const verificationUrl = `${process.env.URL_FRONTEND}/auth/verify-email?token=${token}`;
+
+    const verificationUrl = `${process.env.URL_FRONTEND}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -29,7 +30,10 @@ export const sendVerificationEmail = async (email: string, name: string, token: 
                     ${verificationUrl}
                 </p>
                 <p style="color: #6b7280; font-size: 14px;">
-                    Este enlace expira en 24 horas. Si no solicitaste esta cuenta, puedes ignorar este email.
+                    <strong>Este enlace expira en 24 horas.</strong> Si no solicitaste esta cuenta, puedes ignorar este email.
+                </p>
+                <p style="color: #6b7280; font-size: 14px;">
+                    Si el enlace expiró, puedes solicitar uno nuevo desde la página de inicio de sesión.
                 </p>
             </div>
         `
