@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation, Link } from "react-router";
 import { useForm } from "react-hook-form";
 import { toast } from 'sonner'
 import { isAxiosError } from "axios";
@@ -210,6 +210,14 @@ const LoginView = () => {
                     value="Iniciar Sesión"
                 />
             </form>
+            <div className="text-center mt-4 space-y-2">
+                <Link
+                    to="/auth/forgot-password" 
+                    className="block text-blue-400 hover:underline text-sm"
+                >
+                    ¿Olvidaste tu contraseña?
+                </Link>
+            </div>
         </>
     );
 };

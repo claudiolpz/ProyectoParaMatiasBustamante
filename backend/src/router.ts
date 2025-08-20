@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator'
-import { createAccount, getUser, getUsersAdmins, login, resendVerificationEmail, verifyEmail } from './handlers/auth';
+import { createAccount, getUser, getUsersAdmins, login, requestPasswordReset, resendVerificationEmail, resetPassword, verifyEmail, verifyResetToken } from './handlers/auth';
 import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProductById, getProducts, sellProduct, updateProduct, toggleProductStatus } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
@@ -67,6 +67,40 @@ router.post('/auth/login',
         .withMessage('La Contraseña es obligatoria'),
     handleInputErrors,
     login);
+
+/* SOLICITAR RESET DE CONTRASEÑA */
+router.post('/auth/request-password-reset',
+    body('email')
+        .notEmpty()
+        .withMessage('El Email es obligatorio')
+        .isEmail()
+        .withMessage('Formato de Email incorrecto')
+        .normalizeEmail(),
+    handleInputErrors,
+    requestPasswordReset);
+
+/* VERIFICAR TOKEN DE RESET */
+router.post('/auth/verify-reset-token',
+    body('token')
+        .notEmpty()
+        .withMessage('Token es obligatorio'),
+    handleInputErrors,
+    verifyResetToken);
+
+/* RESTABLECER CONTRASEÑA */
+router.post('/auth/reset-password',
+    body('token')
+        .notEmpty()
+        .withMessage('Token es obligatorio'),
+    body('password')
+        .notEmpty()
+        .withMessage('La Contraseña es obligatoria')
+        .isLength({ min: 6})
+        .withMessage('La Contraseña debe tener al menos 6 caracteres')
+        .matches(password_validator)
+        .withMessage('La contraseña debe incluir mayúscula, minúscula, número y carácter especial'),
+    handleInputErrors,
+    resetPassword);
 
 /* CREAR PRODUCTO */
 router.post('/products',

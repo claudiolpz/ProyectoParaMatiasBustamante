@@ -15,17 +15,18 @@ datasource db {
 }
 
 model User {
-  id                Int       @id @default(autoincrement())
-  email             String    @unique
-  password          String
-  name              String
-  lastname          String
-  role              UserRole  @default(user)
-  emailVerified     Boolean   @default(false)
-  emailToken        String?
-  emailTokenExpires DateTime?
-
-  sales Sale[]
+  id                   Int       @id @default(autoincrement())
+  email                String    @unique
+  password             String
+  name                 String
+  lastname             String
+  role                 UserRole  @default(user)
+  emailVerified        Boolean   @default(false)
+  emailToken           String?
+  emailTokenExpires    DateTime?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  sales                Sale[]
 }
 
 enum UserRole {
@@ -72,7 +73,6 @@ model Sale {
   @@map("sales")
 }
 
-// USO EN TYPESCRIPT
 // npx prisma migrate dev -n nombreMigracion
 // npx prisma migrate reset
 // npx prisma generate
