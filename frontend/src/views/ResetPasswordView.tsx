@@ -33,7 +33,7 @@ const ResetPasswordView = () => {
     useEffect(() => {
         const token = searchParams.get('token');
         const emailParam = searchParams.get('email');
-        
+
         if (!token) {
             setStatus('invalid');
             return;
@@ -60,33 +60,34 @@ const ResetPasswordView = () => {
 
     const handleResetPassword = async (formData: ResetPasswordForm) => {
         const token = searchParams.get('token');
-        
+
         if (!token) {
             toast.error('Token no válido');
             return;
         }
+
+        //Resetear el flag antes de cada intento
         toastShown.current = false;
         setIsSubmitting(true);
-        
+
         try {
             const { data } = await api.post('/auth/reset-password', {
                 token,
                 password: formData.password
             });
-            
-           
+
             setStatus('success');
-            
-            // Redirigir al login después de 3 segundos
+
+            // ✅ NO TOAST AQUÍ - solo en caso de error o navegación con state
             setTimeout(() => {
                 navigate('/auth/login', {
-                    state: { 
-                        message: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
+                    state: {
+                        message: data.message || 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
                         type: 'success'
                     }
                 });
-            }, 3000);
-            
+            }, 2000);
+
         } catch (error) {
             if (!toastShown.current) {
                 if (isAxiosError(error) && error.response) {
@@ -125,7 +126,7 @@ const ResetPasswordView = () => {
                         {email && (
                             <p className="text-gray-600 mb-6">Para: <strong>{email}</strong></p>
                         )}
-                        
+
                         <form onSubmit={handleSubmit(handleResetPassword)} className="space-y-4 text-left">
                             <div>
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
@@ -196,14 +197,14 @@ const ResetPasswordView = () => {
                             El enlace de recuperación es inválido o ha expirado.
                         </p>
                         <div className="space-y-2">
-                            <Link 
-                                to="/auth/forgot-password" 
+                            <Link
+                                to="/auth/forgot-password"
                                 className="block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
                             >
                                 Solicitar nuevo enlace
                             </Link>
-                            <Link 
-                                to="/auth/login" 
+                            <Link
+                                to="/auth/login"
                                 className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
                             >
                                 Volver al Login
