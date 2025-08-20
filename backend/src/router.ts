@@ -330,4 +330,12 @@ router.get('/sales/:id',
     handleInputErrors,
     getSaleById);
 
+router.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        service: 'pf-matiasb-backend'
+    });
+});
+
 export default router;

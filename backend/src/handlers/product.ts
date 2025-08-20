@@ -17,7 +17,7 @@ import {
 } from "../helpers/productHelpers"; // ← CORREGIDO: desde ../helpers en lugar de ../productHelpers
 import { sellAndRegisterSale } from "../services/productService";
 
-const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
+const SERVER_URL = process.env.BACKEND_URL;
 
 /* OBTENER PRODUCTOS - REFACTORIZADO CON HELPERS */
 export const getProducts = async (req: Request, res: Response) => {

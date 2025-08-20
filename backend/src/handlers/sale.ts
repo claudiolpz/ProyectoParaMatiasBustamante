@@ -9,7 +9,7 @@ import {
     addImageUrlsToSales
 } from "../helpers/saleHelpers";
 
-const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
+const SERVER_URL = process.env.BACKEND_URL;
 
 /* OBTENER VENTAS - CON FILTROS Y PAGINACIÓN */
 export const getSales = async (req: Request, res: Response) => {
