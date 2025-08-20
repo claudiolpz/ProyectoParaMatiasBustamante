@@ -58,11 +58,6 @@ export interface PartialProductData {
     isActive?: boolean;
 }
 
-export interface CategoryValidationResult {
-    isValid: boolean;
-    error?: string;
-}
-
 export interface SkuValidationResult {
     isValid: boolean;
     error?: string;

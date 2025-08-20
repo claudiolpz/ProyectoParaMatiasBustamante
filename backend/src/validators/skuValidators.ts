@@ -2,7 +2,7 @@ import prisma from "../config/prisma";
 import type { SkuValidationResult } from "../types";
 
 // Validar formato del SKU
-export const validateSkuFormat = (sku?: string): SkuValidationResult => {
+const validateSkuFormat = (sku?: string): SkuValidationResult => {
     if (!sku?.trim()) {
         return { isValid: false, error: "SKU no puede estar vacío" };
     }
