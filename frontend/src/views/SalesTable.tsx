@@ -14,7 +14,7 @@ import {
     getSaleImageButtonStyle,
     getSaleImagePlaceholderStyle, formatSaleDate,
     formatSalePrice
-} from '../helpers/salesTableHelpers';
+} from '../helpers/SalesTableHelpers';
 
 const SalesTable = () => {
     const { sales, loading, pagination, fetchSales, getFiltersFromURL, updateURL } = useSalesTable();
@@ -225,7 +225,7 @@ const SalesTable = () => {
 
                 {/* Cantidad */}
                 <td className="px-3 sm:px-6 py-6 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-300 border border-blue-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-white border border-blue-700">
                         {sale.quantity}
                     </span>
                 </td>

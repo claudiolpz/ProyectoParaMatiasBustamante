@@ -6,7 +6,6 @@ import router from './router';
 import { corsConfig } from './config/cors';
 
 const app = express();
-
 //Cors
 app.use(cors(corsConfig));
 

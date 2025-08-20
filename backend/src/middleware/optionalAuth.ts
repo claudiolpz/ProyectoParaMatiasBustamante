@@ -35,7 +35,9 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
         next();
         
     } catch (error) {
-        req.user = undefined;
+        if(error){
+            req.user = undefined;
         next();
+        }
     }
 };
