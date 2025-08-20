@@ -88,7 +88,7 @@ export const getProducts = async (req: Request, res: Response) => {
     }
 };
 
-/* CREAR PRODUCTO - VERSIÓN FINAL CON HELPERS */
+/* CREAR PRODUCTO  */
 export const createProduct = async (req: Request, res: Response) => {
     const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
     const imageFile = req.file;
