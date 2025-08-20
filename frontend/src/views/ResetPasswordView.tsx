@@ -50,7 +50,9 @@ const ResetPasswordView = () => {
                     setEmail(data.email);
                 }
             } catch (error) {
-                setStatus('invalid');
+                if(error){
+                    setStatus('invalid');
+                }
             }
         };
 
@@ -123,17 +125,16 @@ const ResetPasswordView = () => {
             {status === 'valid' && (
                 <>
                     <h1 className="text-4xl text-white font-bold">Restablecer Contraseña</h1>
-                    {email && (
-                        <p className="text-white text-center mt-2 mb-6">Para: <strong>{email}</strong></p>
-                    )}
-
                     <form
                         onSubmit={handleSubmit(handleResetPassword)}
                         className="bg-white px-5 py-8 rounded-lg space-y-8 mt-6"
                         noValidate
                     >
                         <div className="grid grid-cols-1 space-y-3">
-                            <label htmlFor="password" className="text-2xl text-slate-500">
+                            <label className="text-2xl text-slate-500">
+                                E-Mail: {email}
+                            </label>
+                            <label htmlFor="password" className="text-2xl text-slate-500 mt-3">
                                 Nueva Contraseña
                             </label>
                             <input
@@ -178,7 +179,7 @@ const ResetPasswordView = () => {
                         <input
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-red-600 p-3 text-lg w-full uppercase text-white rounded-lg font-bold cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="bg-red-600 p-3 text-lg w-full  text-white rounded-lg font-bold cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             value={isSubmitting ? 'Restableciendo...' : 'Restablecer Contraseña'}
                         />
                     </form>

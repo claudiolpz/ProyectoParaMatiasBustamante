@@ -206,7 +206,7 @@ const LoginView = () => {
 
                 <input
                     type="submit"
-                    className="bg-blue-600 p-3 text-lg w-full uppercase text-white rounded-lg font-bold cursor-pointer"
+                    className="bg-blue-600 p-3 text-lg w-full  text-white rounded-lg font-bold cursor-pointer"
                     value="Iniciar Sesión"
                 />
             </form>

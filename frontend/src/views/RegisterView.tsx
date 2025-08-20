@@ -200,7 +200,7 @@ const RegisterView = () => {
 
                 <input
                     type="submit"
-                    className="bg-blue-600 p-3 text-lg w-full uppercase text-white rounded-lg font-bold cursor-pointer hover:bg-blue-700 transition-colors"
+                    className="bg-blue-600 p-3 text-lg w-full text-white rounded-lg font-bold cursor-pointer hover:bg-blue-700 transition-colors"
                     value="Crear Cuenta"
                 />
             </form>

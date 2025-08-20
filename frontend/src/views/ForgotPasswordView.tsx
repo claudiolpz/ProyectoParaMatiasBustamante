@@ -45,10 +45,6 @@ const ForgotPasswordView = () => {
             {!emailSent ? (
                 <>
                     <h1 className="text-4xl text-white font-bold">Recuperar Contraseña</h1>
-                    <p className="text-white text-center mt-2 mb-6">
-                        Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
-                    </p>
-
                     <form
                         onSubmit={handleSubmit(handleForgotPassword)}
                         className="bg-white px-5 py-8 rounded-lg space-y-8 mt-6"
@@ -77,7 +73,7 @@ const ForgotPasswordView = () => {
                         <input
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-red-600 p-3 text-lg w-full uppercase text-white rounded-lg font-bold cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="bg-red-600 p-3 text-lg w-full text-white rounded-lg font-bold cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             value={isSubmitting ? 'Enviando...' : 'Enviar enlace de recuperación'}
                         />
                     </form>
@@ -85,13 +81,13 @@ const ForgotPasswordView = () => {
                     <div className="text-center mt-6 space-y-2">
                         <Link
                             to="/auth/login"
-                            className="block text-blue-400 hover:underline"
+                            className="block text-blue-400 hover:underline hover:text-white"
                         >
                             Volver al login
                         </Link>
                         <Link
                             to="/auth/register"
-                            className="block text-blue-400 hover:underline"
+                            className="block text-blue-400 hover:underline  hover:text-white"
                         >
                             Crear cuenta nueva
                         </Link>
