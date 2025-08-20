@@ -1,13 +1,7 @@
 // Product validators
-
-
 export {
-    validateProductName,
-    validateProductPrice,
-    validateProductStock,
     validateProductData,
-    validatePartialProductData,
-    validateAtLeastOneField
+    validatePartialProductData,    
 } from './productValidators';
 
 // Category validators
@@ -29,3 +23,8 @@ export type {
     CategoryValidationResult,
     SkuValidationResult
 } from '../types';
+
+// Password validators
+export {
+    password_validator
+} from './accontValidator';

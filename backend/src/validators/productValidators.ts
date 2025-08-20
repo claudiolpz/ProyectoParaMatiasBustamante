@@ -1,13 +1,13 @@
 import type { PartialProductData, ProductValidationResult } from "../types";
 
-export const validateProductName = (name?: string): ProductValidationResult => {
+const validateProductName = (name?: string): ProductValidationResult => {
     if (name !== undefined && (!name?.trim())) {
         return { isValid: false, error: "El nombre del producto no puede estar vacío" };
     }
     return { isValid: true };
 };
 
-export const validateProductPrice = (price?: number | string): ProductValidationResult => {
+const validateProductPrice = (price?: number | string): ProductValidationResult => {
     if (price === undefined) {
         return { isValid: true, priceNum: undefined };
     }
@@ -23,7 +23,7 @@ export const validateProductPrice = (price?: number | string): ProductValidation
     return { isValid: true, priceNum };
 };
 
-export const validateProductStock = (stock?: number | string): ProductValidationResult => {
+const validateProductStock = (stock?: number | string): ProductValidationResult => {
     if (stock === undefined) {
         return { isValid: true, stockNum: undefined };
     }
@@ -66,7 +66,7 @@ const validateProductIsActive = (isActive?: boolean | string): ProductValidation
     return { isValid: true };
 };
 
-export const validateAtLeastOneField = (data: PartialProductData): ProductValidationResult => {
+const validateAtLeastOneField = (data: PartialProductData): ProductValidationResult => {
     const { name, price, stock, categoryId, categoryName, isActive } = data;
     
     if (name === undefined && price === undefined && stock === undefined && 

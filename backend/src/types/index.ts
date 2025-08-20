@@ -17,17 +17,6 @@ export interface UpdateProductResult {
     statusCode?: number;
 }
 
-export interface CreateProductRequest {
-    name: string;
-    price: number;
-    stock: number;
-    sku?: string;
-    categoryId?: number;
-    categoryName?: string;
-    imageFile?: Express.Multer.File;
-    isActive?: boolean; 
-}
-
 export interface ValidationSuccessResult extends UpdateProductResult {
     success: true;
     validatedData: {

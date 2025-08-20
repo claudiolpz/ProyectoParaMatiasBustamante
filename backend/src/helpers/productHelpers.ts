@@ -1,6 +1,5 @@
 import prisma from "../config/prisma";
-import { validateProductData } from "../validators";
-import { validateSkuUniqueness } from "../validators/skuValidators";
+import { validateProductData, validateSkuUniqueness } from "../validators";
 import { handleCategoryById, handleCategoryByName } from "../services/productService";
 import type { ProductValidationResult, CategoryProcessResult } from "../types";
 
@@ -245,9 +244,4 @@ const parseBoolean = (value: unknown, defaultValue: boolean = false): boolean =>
     }
     
     return Boolean(value);
-};
-
-// Helper específico para isActive con default true
-export const parseIsActive = (isActive: unknown): boolean => {
-    return parseBoolean(isActive, true);
 };
