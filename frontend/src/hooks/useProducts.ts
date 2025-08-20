@@ -48,7 +48,7 @@ export const useProducts = () => {
     };
   }, [searchParams]);
 
-  // CORREGIDO: Actualizar URL con parámetros por defecto al final
+  // Actualizar URL con parámetros por defecto al final
   const updateURL = useCallback((filters: ProductFilters, page = 1) => {
     const params = new URLSearchParams();
 
@@ -65,7 +65,7 @@ export const useProducts = () => {
     setSearchParams(params);
   }, [setSearchParams]);
 
-  // CORREGIDO: fetchProducts con parámetros por defecto al final
+  // fetchProducts con parámetros por defecto al final
   const fetchProducts = useCallback(async (filters: ProductFilters, page = 1) => {
     try {
       setLoading(true);

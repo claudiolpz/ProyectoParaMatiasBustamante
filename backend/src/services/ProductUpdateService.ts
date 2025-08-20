@@ -1,7 +1,8 @@
 import prisma from "../config/prisma";
 import { validatePartialProductData } from "../validators";
 import { cleanupFile } from "../utils/fileUtils";
-import { handleCategoryById, handleCategoryByName, validateSKU } from "./productService";import type { UpdateProductResult, UpdateProductRequest, ValidationSuccessResult, ValidationErrorResult, CategorySuccessResult, CategoryErrorResult } from "../types/index"
+import { handleCategoryById, handleCategoryByName, validateSKU } from "./productService";
+import type { UpdateProductResult, UpdateProductRequest, ValidationSuccessResult, ValidationErrorResult, CategorySuccessResult, CategoryErrorResult } from "../types/index"
 
 const SERVER_URL = process.env.URL_BACKEND || process.env.URL_BACKEND_LOCAL;
 
@@ -167,7 +168,7 @@ export class ProductUpdateService {
         };
     }
 
-    // NUEVA función para construir datos parciales
+    // construir datos parciales
     private buildPartialUpdateData(
         request: UpdateProductRequest,
         validatedData: { priceNum?: number; stockNum?: number },
