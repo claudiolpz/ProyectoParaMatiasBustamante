@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthProvider";
 import type { RegisterForm } from "../types";
 import ErrorMessage from "../components/ErrorMessage";
 import api from "../config/axios";
-import {passwordRegex, expresion_correo} from "../validators/accontValidator";
+import { passwordRegex, expresion_correo } from "../validators/accontValidator";
 
 const RegisterView = () => {
     const { handleEstaLogeado, loading } = useAuth();
@@ -34,11 +34,11 @@ const RegisterView = () => {
         password: "",
         password_confirmation: ""
     };
-    
-    const { register, watch, reset, handleSubmit, formState: { errors } } = useForm({ 
-        defaultValues: initialValues 
+
+    const { register, watch, reset, handleSubmit, formState: { errors } } = useForm({
+        defaultValues: initialValues
     });
-    
+
     const password = watch("password");
 
     const handelRegister = async (formData: RegisterForm) => {
@@ -46,19 +46,19 @@ const RegisterView = () => {
 
         try {
             const { data } = await api.post(`/auth/register`, formData);
-            
+
             reset();
-            
-            navigate('/auth/login', { 
+
+            navigate('/auth/login', {
                 replace: true,
-                state: { 
+                state: {
                     message: data.message || 'Cuenta creada. Revisa tu email para verificar tu cuenta antes de iniciar sesión.',
                     email: formData.email,
-                    type: 'success' // ✅ Especificar tipo
+                    type: 'success' // Especificar tipo
                 }
             });
-            
-         } catch (error) {
+
+        } catch (error) {
             if (!toastShown.current) {
                 if (isAxiosError(error) && error.response) {
                     if (error.response.data.error) {

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { isAxiosError } from 'axios';
+import { LoadingOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import api from '../config/axios';
 
 const VerifyEmailView = () => {
@@ -10,10 +11,10 @@ const VerifyEmailView = () => {
     const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired'>('loading');
     const [message, setMessage] = useState('');
     const [email, setEmail] = useState('');
-    const [resendingEmail, setResendingEmail] = useState(false); 
+    const [resendingEmail, setResendingEmail] = useState(false);
     const toastShown = useRef(false);
 
-   useEffect(() => {
+    useEffect(() => {
         if (!toastShown.current) {
             if (status === 'error' && message) {
                 toast.error(message);
@@ -30,7 +31,7 @@ const VerifyEmailView = () => {
             toast.error('Email no disponible. Vuelve a registrarte.');
             return;
         }
-        
+
         setResendingEmail(true);
         try {
             const { data } = await api.post('/auth/resend-verification', { email });
@@ -47,10 +48,10 @@ const VerifyEmailView = () => {
             setResendingEmail(false);
         }
     };
-    
+
     useEffect(() => {
         const token = searchParams.get('token');
-        
+
         if (!token) {
             setStatus('error');
             setMessage('Token de verificación no encontrado');
@@ -61,28 +62,27 @@ const VerifyEmailView = () => {
         if (emailParam) {
             setEmail(decodeURIComponent(emailParam));
         }
-        
+
         const verifyEmail = async () => {
             try {
                 const { data } = await api.post('/auth/verify-email', { token });
                 setStatus('success');
                 setMessage(data.message);
-                
-                // Redirigir al login después de 3 segundos
+
                 setTimeout(() => {
                     navigate('/auth/login', {
-                        state: { 
+                        state: {
                             message: 'Email verificado exitosamente. Ya puedes iniciar sesión.',
                             type: 'success'
                         }
                     });
                 }, 2000);
-                
+
             } catch (error) {
                 setStatus('error');
                 if (isAxiosError(error) && error.response) {
                     const errorMessage = error.response.data.error;
-                    
+
                     if (errorMessage.includes('expirado') || errorMessage.includes('expired')) {
                         setStatus('expired');
                         setMessage(errorMessage);
@@ -99,29 +99,40 @@ const VerifyEmailView = () => {
     }, [searchParams, navigate]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-                {status === 'loading' && (
-                    <>
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <h2 className="text-xl font-semibold mb-2">Verificando email...</h2>
-                        <p className="text-gray-600">Por favor espera mientras verificamos tu cuenta.</p>
-                    </>
-                )}
+        <>
+            {status === 'loading' && (
 
-                {status === 'success' && (
-                    <>
-                        <div className="text-green-600 text-5xl mb-4">✓</div>
-                        <h2 className="text-xl font-semibold text-green-600 mb-2">¡Email verificado!</h2>
+                <div className="text-center">
+                    <LoadingOutlined className="text-6xl mb-4"
+                        style={{ color: 'white', fontSize: '4rem'}} />
+                    <h1 className="text-4xl text-white font-bold mb-4">Verificando email...</h1>
+                    <div className="bg-white px-5 py-8 rounded-lg">
+                        <p className="text-gray-600">Por favor espera mientras verificamos tu cuenta.</p>
+                    </div>
+                </div>
+
+            )}
+
+            {status === 'success' && (
+                <div className="text-center">
+                    <CheckCircleOutlined className="text-6xl mb-4"
+                        style={{ color: 'white', fontSize: '4rem'}} />
+                    <h1 className="text-4xl text-white font-bold mb-4">¡Email verificado!</h1>
+                    <div className="bg-white px-5 py-8 rounded-lg">
                         <p className="text-gray-600 mb-4">{message}</p>
                         <p className="text-sm text-gray-500">Serás redirigido al login en unos segundos...</p>
-                    </>
-                )}
+                    </div>
+                </div>
 
-                {status === 'expired' && (
-                    <>
-                        <div className="text-yellow-600 text-5xl mb-4">⏰</div>
-                        <h2 className="text-xl font-semibold text-yellow-600 mb-2">Token expirado</h2>
+            )}
+
+            {status === 'expired' && (
+
+                <div className="text-center">
+                    <ClockCircleOutlined className="text-6xl mb-4"
+                        style={{ color: 'white', fontSize: '4rem'}} />
+                    <h1 className="text-4xl text-white font-bold mb-4">Token expirado</h1>
+                    <div className="bg-white px-5 py-8 rounded-lg space-y-4">
                         <p className="text-gray-600 mb-4">{message}</p>
                         <div className="space-y-3">
                             {email && (
@@ -133,45 +144,51 @@ const VerifyEmailView = () => {
                                     {resendingEmail ? 'Enviando...' : 'Reenviar email de verificación'}
                                 </button>
                             )}
-                            <Link 
-                                to="/auth/register" 
-                                className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                            <Link
+                                to="/auth/register"
+                                className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-center"
                             >
                                 Registrarse de nuevo
                             </Link>
-                            <Link 
-                                to="/auth/login" 
-                                className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                            <Link
+                                to="/auth/login"
+                                className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-center"
                             >
                                 Ir al Login
                             </Link>
                         </div>
-                    </>
-                )}
+                    </div>
+                </div>
 
-                {status === 'error' && (
-                    <>
-                        <div className="text-red-600 text-5xl mb-4">✗</div>
-                        <h2 className="text-xl font-semibold text-red-600 mb-2">Error de verificación</h2>
+            )}
+
+            {status === 'error' && (
+
+                <div className="text-center">
+                    <CloseCircleOutlined className="text-6xl mb-4"
+                        style={{ color: 'white', fontSize: '4rem'}} />
+                    <h1 className="text-4xl text-white font-bold mb-4">Error de verificación</h1>
+                    <div className="bg-white px-5 py-8 rounded-lg space-y-4">
                         <p className="text-gray-600 mb-4">{message}</p>
                         <div className="space-y-2">
-                            <Link 
-                                to="/auth/login" 
-                                className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                            <Link
+                                to="/auth/login"
+                                className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-center"
                             >
                                 Ir al Login
                             </Link>
-                            <Link 
-                                to="/auth/register" 
-                                className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                            <Link
+                                to="/auth/register"
+                                className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-center"
                             >
                                 Registrarse de nuevo
                             </Link>
                         </div>
-                    </>
-                )}
-            </div>
-        </div>
+                    </div>
+                </div>
+
+            )}
+        </>
     );
 };
 

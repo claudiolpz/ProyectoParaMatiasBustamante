@@ -30,18 +30,18 @@ const LoginView = () => {
         }
     }, [loading, handleEstaLogeado, navigate]);
 
-     useEffect(() => {
+    useEffect(() => {
         if (location.state?.message && !toastShown.current) {
             const { message, type } = location.state;
-            
+
             if (type === 'success') {
                 toast.success(message);
             } else {
                 toast.info(message);
             }
-            
+
             toastShown.current = true;
-            
+
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
@@ -212,7 +212,7 @@ const LoginView = () => {
             </form>
             <div className="text-center mt-4 space-y-2">
                 <Link
-                    to="/auth/forgot-password" 
+                    to="/auth/forgot-password"
                     className="block text-blue-400 hover:underline text-sm"
                 >
                     ¿Olvidaste tu contraseña?
