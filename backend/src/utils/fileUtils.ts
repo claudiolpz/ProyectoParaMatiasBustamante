@@ -10,13 +10,3 @@ export const cleanupFile = (filename: string): void => {
         console.error("Error al eliminar archivo:", unlinkError);
     }
 };
-
-// Función para verificar si un archivo existe
-export const fileExists = (filename: string): boolean => {
-    try {
-        return fs.existsSync(path.join('public/uploads/products', filename));
-    } catch (error) {
-        console.error("Error al verificar archivo:", error);
-        return false;
-    }
-};

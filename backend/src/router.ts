@@ -8,7 +8,7 @@ import { getCategories } from './handlers/category';
 import { authenticate, requireAdmin } from './middleware/auth';
 import { optionalAuth } from './middleware/optionalAuth';
 import { getSaleById, getSales } from './handlers/sale';
-import { password_validator } from './validators/accontValidator';
+import { password_validator } from './validators';
 
 const router = Router();
 
@@ -95,7 +95,7 @@ router.post('/auth/reset-password',
     body('password')
         .notEmpty()
         .withMessage('La Contraseña es obligatoria')
-        .isLength({ min: 6})
+        .isLength({ min: 6 })
         .withMessage('La Contraseña debe tener al menos 6 caracteres')
         .matches(password_validator)
         .withMessage('La contraseña debe incluir mayúscula, minúscula, número y carácter especial'),
