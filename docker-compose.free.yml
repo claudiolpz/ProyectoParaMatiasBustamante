@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL optimizada para Railway gratuito
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-inventory_db}
+      POSTGRES_USER: ${DATABASE_USER:-pf_matiasb}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    # Railway asigna puertos automáticamente, no exponer puerto fijo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Optimización de memoria para plan gratuito
+    command: postgres -c 'max_connections=20' -c 'shared_buffers=32MB' -c 'effective_cache_size=128MB'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-pf_matiasb}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  # Backend optimizado para memoria baja
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.cloud
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${DATABASE_USER:-pf_matiasb}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-inventory_db}?schema=public"
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      BACKEND_URL: ${BACKEND_URL}
+      CORS_DEV_ORIGINS: ${CORS_DEV_ORIGINS}
+      CORS_ALLOW_CREDENTIALS: "true"
+      CORS_DEVELOPMENT_MODE: "false"
+      # Optimización de memoria Node.js
+      NODE_OPTIONS: "--max-old-space-size=512"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/public/uploads:/app/public/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 2
+      start_period: 40s
+    networks:
+      - app-network
+
+  # Frontend con nginx ultra-ligero
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.free
+      args:
+        VITE_API_URL: ${BACKEND_URL}
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 60s
+      timeout: 10s
+      retries: 2
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
