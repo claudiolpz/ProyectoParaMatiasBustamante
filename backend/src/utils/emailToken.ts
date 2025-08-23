@@ -42,7 +42,7 @@ export const sendVerificationEmail = async (email: string, name: string, token: 
 };
 
 export const sendPasswordResetEmail = async (email: string, name: string, token: string) => {
-    const resetUrl = `${process.env.URL_FRONTEND}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
