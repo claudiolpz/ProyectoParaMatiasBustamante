@@ -10,7 +10,7 @@ export const generateToken = async (): Promise<string> => {
 // Enviar email de verificación
 export const sendVerificationEmail = async (email: string, name: string, token: string) => {
 
-    const verificationUrl = `${process.env.URL_FRONTEND}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+    const verificationUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 
     const mailOptions = {
         from: process.env.EMAIL_USER,

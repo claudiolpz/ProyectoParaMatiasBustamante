@@ -6,3 +6,4 @@ dist
 /src/generated/prisma
 /prisma/migrations
 /public/uploads
+/.env.docker
