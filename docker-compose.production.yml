@@ -6,9 +6,9 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-inventory_db}
-      POSTGRES_USER: ${DATABASE_USER:-pf_matiasb}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-tomi2000}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - "5432:5432"
@@ -16,7 +16,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-pf_matiasb}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,11 +31,11 @@ services:
     restart: always
     environment:
       NODE_ENV: production
-      DATABASE_URL: "postgresql://${DATABASE_USER:-pf_matiasb}:${DATABASE_PASSWORD:-tomi2000}@postgres:5432/${DATABASE_NAME:-inventory_db}?schema=public"
+      DATABASE_URL: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}?schema=public"
       JWT_SECRET: ${JWT_SECRET}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
-      BACKEND_URL: ${BACKEND_URL:-http://localhost:4000}
-      CORS_DEV_ORIGINS: ${CORS_DEV_ORIGINS:-http://localhost:8080}
+      FRONTEND_URL: ${FRONTEND_URL}
+      BACKEND_URL: ${BACKEND_URL}
+      CORS_DEV_ORIGINS: ${CORS_DEV_ORIGINS}
       CORS_ALLOW_CREDENTIALS: "true"
       CORS_DEVELOPMENT_MODE: "false"
       PORT: 4000
@@ -61,7 +61,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${BACKEND_URL:-http://localhost:4000}
+        VITE_API_URL: ${BACKEND_URL}
     restart: always
     ports:
       - "8080:8080"

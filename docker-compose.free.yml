@@ -6,8 +6,8 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-inventory_db}
-      POSTGRES_USER: ${DATABASE_USER:-pf_matiasb}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     # Railway asigna puertos automáticamente, no exponer puerto fijo
@@ -16,7 +16,7 @@ services:
     # Optimización de memoria para plan gratuito
     command: postgres -c 'max_connections=20' -c 'shared_buffers=32MB' -c 'effective_cache_size=128MB'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-pf_matiasb}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -31,7 +31,7 @@ services:
     restart: always
     environment:
       NODE_ENV: production
-      DATABASE_URL: "postgresql://${DATABASE_USER:-pf_matiasb}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-inventory_db}?schema=public"
+      DATABASE_URL: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}?schema=public"
       JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: ${FRONTEND_URL}
       BACKEND_URL: ${BACKEND_URL}
