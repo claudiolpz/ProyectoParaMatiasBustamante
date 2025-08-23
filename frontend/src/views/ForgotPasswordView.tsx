@@ -83,7 +83,7 @@ const ForgotPasswordView = () => {
                             to="/auth/login"
                             className="block text-blue-400 hover:underline hover:text-white"
                         >
-                            Volver al login
+                            Volver a Iniciar Sesión 
                         </Link>
                         <Link
                             to="/auth/register"

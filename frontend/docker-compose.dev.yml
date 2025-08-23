@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=${VITE_API_URL}
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - frontend-network
+    restart: unless-stopped
+networks:
+  frontend-network:
+    driver: bridge

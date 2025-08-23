@@ -5,9 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:dev:rebuild": "docker-compose -f docker-compose.dev.yml down && docker-compose -f docker-compose.dev.yml build --no-cache && docker-compose -f docker-compose.dev.yml up",
+    "docker:prod": "docker-compose up",
+    "docker:prod:build": "docker-compose up --build",
+    "docker:prod:rebuild": "docker-compose down && docker-compose build --no-cache && docker-compose up",
+    "docker:prod:rebuild-full": "npm run database:restart && docker-compose down && docker-compose build --no-cache && docker-compose up",
+    "database:restart": "cd ../database && docker-compose down && docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:clean": "docker-compose down --volumes --remove-orphans"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",

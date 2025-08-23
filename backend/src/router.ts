@@ -12,6 +12,16 @@ import { password_validator } from './validators';
 
 const router = Router();
 
+/* HEALTH CHECK */
+router.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        service: 'backend',
+        version: '1.0.0'
+    });
+});
+
 /* REGISTRO */
 router.post('/auth/register',
     body('email')
