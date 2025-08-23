@@ -13,6 +13,8 @@ const RegisterView = () => {
     const { handleEstaLogeado, loading } = useAuth();
     const navigate = useNavigate();
     const [isInitializing, setIsInitializing] = useState(true);
+    const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
+    const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false); // Estado para mostrar/ocultar confirmación
     const toastShown = useRef(false);
 
     // Verificar si ya está logueado al cargar el componente
@@ -40,6 +42,15 @@ const RegisterView = () => {
     });
 
     const password = watch("password");
+
+    // Funciones para alternar la visibilidad de las contraseñas
+    const togglePasswordVisibility = () => {
+        setShowPassword(prev => !prev);
+    };
+
+    const togglePasswordConfirmationVisibility = () => {
+        setShowPasswordConfirmation(prev => !prev);
+    };
 
     const handelRegister = async (formData: RegisterForm) => {
         toastShown.current = false;
@@ -97,7 +108,6 @@ const RegisterView = () => {
                 className="bg-white px-5 py-8 rounded-lg space-y-8 mt-6"
                 noValidate
             >
-                {/* ... resto del formulario igual ... */}
                 <div className="grid grid-cols-1 space-y-3">
                     <label htmlFor="name" className="text-2xl text-slate-500">
                         Nombre
@@ -155,23 +165,44 @@ const RegisterView = () => {
                     <label htmlFor="password" className="text-2xl text-slate-500">
                         Contraseña
                     </label>
-                    <input
-                        id="password"
-                        type="password"
-                        placeholder="Contraseña de Registro"
-                        className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
-                        {...register("password", {
-                            required: "La Contraseña es obligatoria",
-                            minLength: {
-                                value: 6,
-                                message: "La Contraseña debe tener al menos 6 caracteres",
-                            },
-                            pattern: {
-                                value: passwordRegex,
-                                message: "Debe incluir mayúscula, minúscula, número y carácter especial"
-                            }
-                        })}
-                    />
+                    <div className="relative">
+                        <input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Contraseña de Registro"
+                            className="bg-slate-100 border-none p-3 pr-12 rounded-lg placeholder-slate-400 w-full"
+                            {...register("password", {
+                                required: "La Contraseña es obligatoria",
+                                minLength: {
+                                    value: 6,
+                                    message: "La Contraseña debe tener al menos 6 caracteres",
+                                },
+                                pattern: {
+                                    value: passwordRegex,
+                                    message: "Debe incluir mayúscula, minúscula, número y carácter especial"
+                                }
+                            })}
+                        />
+                        <button
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-700 focus:outline-none"
+                            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                            {showPassword ? (
+                                // Icono de ojo cerrado (ocultar)
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                </svg>
+                            ) : (
+                                // Icono de ojo abierto (mostrar)
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
                     {errors.password && (<ErrorMessage>{errors.password.message}</ErrorMessage>)}
                 </div>
 
@@ -182,16 +213,37 @@ const RegisterView = () => {
                     >
                         Repetir Contraseña
                     </label>
-                    <input
-                        id="password_confirmation"
-                        type="password"
-                        placeholder="Repetir Contraseña"
-                        className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
-                        {...register("password_confirmation", {
-                            required: "La Contraseña es obligatoria",
-                            validate: (value) => value === password || 'Las Contraseñas no son iguales'
-                        })}
-                    />
+                    <div className="relative">
+                        <input
+                            id="password_confirmation"
+                            type={showPasswordConfirmation ? "text" : "password"}
+                            placeholder="Repetir Contraseña"
+                            className="bg-slate-100 border-none p-3 pr-12 rounded-lg placeholder-slate-400 w-full"
+                            {...register("password_confirmation", {
+                                required: "La Contraseña es obligatoria",
+                                validate: (value) => value === password || 'Las Contraseñas no son iguales'
+                            })}
+                        />
+                        <button
+                            type="button"
+                            onClick={togglePasswordConfirmationVisibility}
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-700 focus:outline-none"
+                            aria-label={showPasswordConfirmation ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                            {showPasswordConfirmation ? (
+                                // Icono de ojo cerrado (ocultar)
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                </svg>
+                            ) : (
+                                // Icono de ojo abierto (mostrar)
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
 
                     {errors.password_confirmation && (
                         <ErrorMessage>{errors.password_confirmation.message}</ErrorMessage>
