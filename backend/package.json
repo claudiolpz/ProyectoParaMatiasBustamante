@@ -8,21 +8,7 @@
     "dev": "nodemon src/index.ts",
     "dev:api": "nodemon src/index.ts --api",
     "build": "npx prisma generate && tsc",
-    "start": "node dist/index.js",
-    "docker:build": "npx prisma generate && npm run build",
-    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
-    "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
-    "docker:dev:rebuild": "docker-compose -f docker-compose.dev.yml down && docker-compose -f docker-compose.dev.yml build --no-cache && docker-compose -f docker-compose.dev.yml up",
-    "docker:prod": "docker-compose up",
-    "docker:prod:build": "docker-compose up --build",
-    "docker:prod:rebuild": "npm run prisma:docker-setup && docker-compose down && docker-compose build --no-cache && docker-compose up -d && timeout /t 5 /nobreak > nul && npm run prisma:local-setup && npx prisma migrate deploy && npm run prisma:docker-setup",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio",
-    "prisma:local-setup": "node -e \"const fs = require('fs'); const env = fs.readFileSync('.env', 'utf8'); const newEnv = env.replace('@postgres:5432', '@localhost:5432'); fs.writeFileSync('.env', newEnv);\"",
-    "prisma:docker-setup": "node -e \"const fs = require('fs'); const env = fs.readFileSync('.env', 'utf8'); const newEnv = env.replace('@localhost:5432', '@postgres:5432'); fs.writeFileSync('.env', newEnv);\""
-  },
+    "start": "node dist/index.js" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/claudiolpz/ProyectoParaMatiasBustamante.git"
