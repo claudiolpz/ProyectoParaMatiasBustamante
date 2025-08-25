@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.ts",
     "dev:api": "nodemon src/index.ts --api",
-    "build": "npx prisma migrate deploy && tsc",
+    "build": "npx prisma migrate deploy && npx prisma generate && tsc",
     "start": "node dist/index.js" },
   "repository": {
     "type": "git",
