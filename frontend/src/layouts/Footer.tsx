@@ -35,7 +35,7 @@ const Footer = () => {
                             <li className="flex items-center gap-3">
                                 <WhatsAppOutlined className="text-white opacity-75" />
                                 <Link to="https://wa.me/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                                    +56912345678
+                                    +569XXXXXXXX
                                 </Link>
                             </li>
                             <li className="flex items-start gap-3">
