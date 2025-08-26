@@ -127,7 +127,7 @@ const TableProduct = () => {
     fetchProducts(newFilters, 1);
   }, [filters, fetchProducts]);
 
-  const handleSort = useCallback((field: 'name' | 'price' | 'stock' | 'category') => {
+  const handleSort = useCallback((field: 'name' | 'price' | 'stock' | 'category' | 'brand') => {
     const newOrder: 'asc' | 'desc' = filters.orderBy === field && filters.order === 'asc' ? 'desc' : 'asc';
     const newFilters: ProductFilters = {
       ...filters,
@@ -183,7 +183,7 @@ const TableProduct = () => {
 
   // Función para renderizar encabezados ordenables
   const renderTableHeader = () => {
-    const renderSortableHeader = (field: 'name' | 'price' | 'stock' | 'category', label: string, className: string = '') => (
+    const renderSortableHeader = (field: 'name' | 'price' | 'stock' | 'category' |'brand', label: string, className: string = '') => (
       <th
         key={field}
         className={`px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors ${className}`}
@@ -215,6 +215,7 @@ const TableProduct = () => {
           {renderSortableHeader('category', 'Categoría', 'min-w-[120px]')}
           {renderSortableHeader('price', 'Precio', 'min-w-[100px]')}
           {renderSortableHeader('stock', 'Stock', 'min-w-[100px]')}
+          {renderSortableHeader('brand', 'Marca', 'min-w-[100px]')}
 
           {/* Columna de acciones solo para admin */}
           {(handleEstaLogeado() && isAdmin()) && (

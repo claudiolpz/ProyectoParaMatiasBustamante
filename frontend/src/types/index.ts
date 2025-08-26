@@ -84,7 +84,7 @@ export type ProductsResponse = {
 export interface ProductFilters {
   search: string;
   categoryId?: number;
-  orderBy: 'name' | 'price' | 'stock' | 'category';
+  orderBy: 'name' | 'price' | 'stock' | 'category' | 'brand';
   order: 'asc' | 'desc';
   isActive?: boolean | 'all';
 }

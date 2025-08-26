@@ -33,8 +33,8 @@ export const useProducts = () => {
     const validOrder: 'asc' | 'desc' = orderFromURL === 'desc' ? 'desc' : 'asc';
 
     // Validar que orderBy sea válido
-    const validOrderBy: 'name' | 'price' | 'stock' | 'category' =
-      orderByFromURL === 'price' || orderByFromURL === 'stock' || orderByFromURL === 'category'
+    const validOrderBy: 'name' | 'price' | 'stock' | 'category' | 'brand' =
+      orderByFromURL === 'price' || orderByFromURL === 'stock' || orderByFromURL === 'category' || orderByFromURL === 'brand'
         ? orderByFromURL
         : 'name';
 
@@ -54,8 +54,8 @@ export const useProducts = () => {
 
     if (filters.search) params.set('search', filters.search);
     if (filters.categoryId) params.set('categoryId', filters.categoryId.toString());
-    if (filters.orderBy !== 'name') params.set('orderBy', filters.orderBy);
-    if (filters.order !== 'asc') params.set('order', filters.order);
+  params.set('orderBy', filters.orderBy);
+  params.set('order', filters.order);
     if (page !== 1) params.set('page', page.toString());
 
     if (filters.isActive !== undefined && filters.isActive !== 'all') {

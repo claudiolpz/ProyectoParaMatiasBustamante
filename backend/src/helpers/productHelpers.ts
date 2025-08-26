@@ -146,7 +146,7 @@ export const validateQueryParams = (query: any) => {
 
 // Validar campos permitidos para ordenamiento
 export const validateOrderByField = (orderBy: string): boolean => {
-    const allowedFields = ['name', 'price', 'stock', 'category'];
+    const allowedFields = ['name', 'price', 'stock', 'category', 'brand'];
     return allowedFields.includes(orderBy);
 };
 
@@ -221,6 +221,14 @@ export const buildOrderByClause = (orderBy: string, order: 'asc' | 'desc') => {
     if (orderBy === 'category') {
         return {
             category: {
+                name: order
+            }
+        };
+    }
+
+    if (orderBy === 'brand') {
+        return {
+            brand: {
                 name: order
             }
         };

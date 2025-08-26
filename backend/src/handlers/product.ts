@@ -23,8 +23,9 @@ const SERVER_URL = process.env.BACKEND_URL;
 /* OBTENER PRODUCTOS - REFACTORIZADO CON HELPERS */
 export const getProducts = async (req: Request, res: Response) => {
     try {
-        // Validar y extraer parámetros de query
-        const { page, limit, offset, orderBy, order, categoryId, search } = validateQueryParams(req.query);
+    // Validar y extraer parámetros de query
+    const { page, limit, offset, orderBy, order, categoryId, search } = validateQueryParams(req.query);
+    console.log('getProducts params:', { orderBy, order, categoryId, search });
 
         // Verificar si el usuario es admin
         const userRole = req.user?.role;
@@ -40,7 +41,7 @@ export const getProducts = async (req: Request, res: Response) => {
         // Validar campo de ordenamiento
         if (!validateOrderByField(orderBy)) {
             return res.status(400).json({
-                error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category'
+                error: 'Campo de ordenamiento inválido. Permitidos: name, price, stock, category, brand'
             });
         }
 
