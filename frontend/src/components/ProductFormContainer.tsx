@@ -289,19 +289,35 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
 
                     <input
                         id="price"
-                        type="number"
-                        min="0"
+                        type="text"
                         placeholder="0"
-                        className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
                         {...form.register("price", {
                             required: "El Precio es obligatorio",
-                            min: { value: 0, message: "El precio debe ser mayor a 0" },
-                            valueAsNumber: true,
+                            validate: {
+                                positive: (value) => {
+                                    if (!value) return "El precio es obligatorio";
+                                    const numericValue = parseInt(value.toString().replace(/\./g, '')) || 0;
+                                    return numericValue > 0 || "El precio debe ser mayor a 0";
+                                }
+                            },
+                            onChange: (e) => {
+                                // Formatear precio con puntos mientras el usuario escribe
+                                let value = e.target.value.replace(/\D/g, ''); // Solo números
+                                if (value) {
+                                    // Agregar puntos cada tres dígitos desde la derecha
+                                    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                }
+                                e.target.value = value;
+                            }
                         })}
                     />
                     {form.errors.price && (
                         <ErrorMessage>{form.errors.price.message}</ErrorMessage>
                     )}
+                    <p className="text-sm text-gray-600">
+                        Ingresa el precio en pesos chilenos. Ejemplo: 12.000
+                    </p>
                 </div>
 
                 {/* 5. Imagen */}

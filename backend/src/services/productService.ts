@@ -49,6 +49,55 @@ export const handleCategoryByName = async (categoryName: string) => {
     return { isValid: true, categoryData };
 };
 
+// Función para manejar marca por ID
+export const handleBrandById = async (brandId: number) => {
+    const brandIdNum = Number(brandId);
+
+    if (isNaN(brandIdNum) || brandIdNum <= 0) {
+        return { isValid: false, error: "brandId debe ser un número válido mayor a 0" };
+    }
+
+    const existingBrand = await prisma.brand.findUnique({
+        where: { id: brandIdNum }
+    });
+
+    if (!existingBrand) {
+        return { isValid: false, error: "La marca especificada no existe" };
+    }
+
+    return {
+        isValid: true,
+        brandData: { connect: { id: existingBrand.id } }
+    };
+};
+
+// Función para manejar marca por nombre
+export const handleBrandByName = async (brandName: string) => {
+    const trimmedBrandName = brandName.trim();
+
+    if (!trimmedBrandName || trimmedBrandName.length < 2) {
+        return {
+            isValid: false,
+            error: "Nombre de marca inválido. Debe tener al menos 2 caracteres"
+        };
+    }
+
+    const existingBrand = await prisma.brand.findFirst({
+        where: {
+            name: {
+                equals: trimmedBrandName,
+                mode: "insensitive"
+            }
+        }
+    });
+
+    const brandData = existingBrand
+        ? { connect: { id: existingBrand.id } }
+        : { create: { name: trimmedBrandName } };
+
+    return { isValid: true, brandData };
+};
+
 export const sellAndRegisterSale = async (
     productId: number,
     quantity: number,

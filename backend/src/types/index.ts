@@ -74,11 +74,12 @@ export interface CategoryProcessResult {
     statusCode?: number;
     categoryData?: any;
 }
-export interface CategoryProcessResult {
+
+export interface BrandProcessResult {
     success: boolean;
     error?: string;
     statusCode?: number;
-    categoryData?: any;
+    brandData?: any;
 }
 
 export interface SalePaginationParams {

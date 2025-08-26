@@ -7,6 +7,7 @@ import { cleanupFile } from "../utils/fileUtils";
 import {
     validateProductInput,
     processProductCategory,
+    processProductBrand,
     createProductInDatabase,
     buildProductImageUrl,
     validateQueryParams,
@@ -96,7 +97,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 /* CREAR PRODUCTO  */
 export const createProduct = async (req: Request, res: Response) => {
-    const { name, price, stock, brandId, categoryId, categoryName, isActive } = req.body;
+    const { name, price, stock, brandId, brandName, categoryId, categoryName, isActive } = req.body;
     const imageFile = req.file;
 
     try {
@@ -110,8 +111,15 @@ export const createProduct = async (req: Request, res: Response) => {
             isActiveValue = Boolean(isActive);
         }
 
+        // Convertir IDs a números si existen
+        const brandIdNum = brandId ? parseInt(brandId) : undefined;
+        const categoryIdNum = categoryId ? parseInt(categoryId) : undefined;
+        
+        // Procesar precio removiendo puntos (para formato chileno: 12.000 -> 12000)
+        const processedPrice = typeof price === 'string' ? price.replace(/\./g, '') : price;
+
         // 1. Validar entrada usando helper
-        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, brandId, isActiveValue);
+        const inputValidation = await validateProductInput(name, processedPrice, stock, categoryIdNum, categoryName, brandIdNum, isActiveValue);
         if (!inputValidation.success) {
             if (imageFile?.filename) {
                 cleanupFile(imageFile.filename);
@@ -120,7 +128,7 @@ export const createProduct = async (req: Request, res: Response) => {
         }
 
         // 2. Procesar categoría usando helper
-        const categoryResult = await processProductCategory(categoryId, categoryName);
+        const categoryResult = await processProductCategory(categoryIdNum, categoryName);
         if (!categoryResult.success) {
             if (imageFile?.filename) {
                 cleanupFile(imageFile.filename);
@@ -128,18 +136,27 @@ export const createProduct = async (req: Request, res: Response) => {
             return res.status(categoryResult.statusCode).json({ error: categoryResult.error });
         }
 
-        // 3. Crear producto en base de datos usando helper
+        // 3. Procesar marca usando helper
+        const brandResult = await processProductBrand(brandIdNum, brandName);
+        if (!brandResult.success) {
+            if (imageFile?.filename) {
+                cleanupFile(imageFile.filename);
+            }
+            return res.status(brandResult.statusCode).json({ error: brandResult.error });
+        }
+
+        // 4. Crear producto en base de datos usando helper
         const newProduct = await createProductInDatabase(
             name,
             inputValidation.priceNum,
             inputValidation.stockNum,
-            brandId,
+            brandResult.brandData,
             imageFile,
             categoryResult.categoryData,
             isActiveValue
         );
 
-        // 4. Respuesta exitosa con URL de imagen construida por helper
+        // 5. Respuesta exitosa con URL de imagen construida por helper
         return res.status(201).json({
             message: "Producto creado correctamente",
             product: {
@@ -260,8 +277,11 @@ export const updateProduct = async (req: Request, res: Response) => {
         const imageFile = req.file;
         const productId = parseInt(id);
 
+        // Procesar precio removiendo puntos (para formato chileno: 12.000 -> 12000)
+        const processedPrice = typeof price === 'string' ? price.replace(/\./g, '') : price;
+
         // Construir request dinámicamente
-        const fieldsToUpdate = { name, price, stock, brandId, categoryId, categoryName, isActive };
+        const fieldsToUpdate = { name, price: processedPrice, stock, brandId, categoryId, categoryName, isActive };
 
         // Filtrar solo campos que tienen valor (no undefined)
         const updateRequest: any = {

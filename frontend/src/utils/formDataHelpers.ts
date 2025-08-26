@@ -8,25 +8,28 @@ export const prepareProductFormData = (formData: CreateProductForm): FormData =>
     productData.append('name', formData.name);
 
     if (formData.price !== undefined) {
-        productData.append('price', formData.price.toString());
+        // Remover puntos del precio antes de enviarlo (12.000 -> 12000)
+        const cleanPrice = formData.price.toString().replace(/\./g, '');
+        productData.append('price', cleanPrice);
     }
 
     if (formData.stock !== undefined) {
         productData.append('stock', formData.stock.toString());
     }
 
-    if (formData.brandId) {
-        productData.append('brandId', formData.brandId);
-    }
-
-    if (formData.brandName) {
-        productData.append('brandName', formData.brandName);
-    }
-
+    addBrandToFormData(productData, formData);
     addCategoryToFormData(productData, formData);
     addImageToFormData(productData);
 
     return productData;
+};
+
+const addBrandToFormData = (productData: FormData, formData: CreateProductForm): void => {
+    if (formData.brandId && formData.brandId !== "0" && Number(formData.brandId) > 0) {
+        productData.append('brandId', formData.brandId.toString());
+    } else if (formData.brandName) {
+        productData.append('brandName', formData.brandName);
+    }
 };
 
 const addCategoryToFormData = (productData: FormData, formData: CreateProductForm): void => {

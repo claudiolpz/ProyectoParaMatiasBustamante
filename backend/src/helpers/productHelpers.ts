@@ -1,7 +1,7 @@
 import prisma from "../config/prisma";
 import { validateProductData } from "../validators";
-import { handleCategoryById, handleCategoryByName } from "../services/productService";
-import type { ProductValidationResult, CategoryProcessResult } from "../types";
+import { handleCategoryById, handleCategoryByName, handleBrandById, handleBrandByName } from "../services/productService";
+import type { ProductValidationResult, CategoryProcessResult, BrandProcessResult } from "../types";
 
 // Validar entrada completa del producto
 export const validateProductInput = async (
@@ -62,12 +62,39 @@ export const processProductCategory = async (
     return { success: true, categoryData: categoryResult.categoryData };
 };
 
+// Procesar marca (por ID o nombre)
+export const processProductBrand = async (
+    brandId?: number,
+    brandName?: string
+): Promise<BrandProcessResult> => {
+    let brandResult;
+
+    if (brandId) {
+        brandResult = await handleBrandById(brandId);
+    } else if (brandName) {
+        brandResult = await handleBrandByName(brandName);
+    } else {
+        // Si no se proporciona brandId ni brandName, es válido (marca opcional)
+        return { success: true, brandData: null };
+    }
+
+    if (!brandResult.isValid) {
+        return {
+            success: false,
+            error: brandResult.error,
+            statusCode: brandId ? 404 : 400
+        };
+    }
+
+    return { success: true, brandData: brandResult.brandData };
+};
+
 // Crear producto en la base de datos
 export const createProductInDatabase = async (
     name: string,
     priceNum: number,
     stockNum: number,
-    brandId: number | undefined,
+    brandData: any,
     imageFile: Express.Multer.File | undefined,
     categoryData: any,
     isActive: boolean = true
@@ -77,10 +104,10 @@ export const createProductInDatabase = async (
             name: name.trim(),
             price: priceNum,
             stock: stockNum,
-            brandId: brandId || null,
+            brand: brandData,
             image: imageFile?.filename || null,
             isActive,
-            categoryId: categoryData.id
+            category: categoryData
         },
         include: {
             category: {

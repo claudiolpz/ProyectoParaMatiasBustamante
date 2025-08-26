@@ -129,9 +129,14 @@ router.post('/products',
     body('stock')
         .isInt({ min: 0 })
         .withMessage('El stock debe ser un número entero mayor o igual a 0'),
-    body('brand')
-        .notEmpty()
-        .withMessage('La marca es obligatoria')
+    body('brandId')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('brandId debe ser un número entero válido'),
+    body('brandName')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre de la marca debe tener entre 2 y 50 caracteres')
         .trim(),
     body('categoryId')
         .optional()
