@@ -287,7 +287,7 @@ const TableProduct = () => {
               'bg-slate-700 text-slate-400 border-slate-600'
             )
               }`}>
-              {product.brand}
+              {product.brand?.name}
             </span>
           ) : (
             <span className="text-slate-400 text-sm">Sin Marca</span>

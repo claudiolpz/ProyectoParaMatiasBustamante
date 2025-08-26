@@ -6,7 +6,8 @@ export {
 
 // Brand validators
 export {
-    validateBrand
+    createBrandValidation,
+    updateBrandValidation
 } from './brandValidators';
 
 // Password validators

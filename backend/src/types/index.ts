@@ -3,7 +3,7 @@ export interface UpdateProductRequest {
     name?: string;       
     price?: number;      
     stock?: number;       
-    brand?: string;
+    brandId?: number;
     categoryId?: number;
     categoryName?: string;
     imageFile?: Express.Multer.File;
@@ -93,4 +93,17 @@ export interface SalePaginationParams {
     order?: string;
     startDate?: Date;
     endDate?: Date;
+}
+
+export interface Brand {
+    id: number;
+    name: string;
+}
+
+export interface BrandCreateRequest {
+    name: string;
+}
+
+export interface BrandUpdateRequest {
+    name?: string;
 }

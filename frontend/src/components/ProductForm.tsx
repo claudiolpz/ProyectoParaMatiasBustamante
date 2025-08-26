@@ -1,7 +1,22 @@
 import type { ProductFormFieldsProps } from "../types";
 import ErrorMessage from "./ErrorMessage";
+import BrandSelector from "./BrandSelector";
+import { useBrands } from "../hooks/useBrands";
+import { useEffect, useState } from "react";
 
-const ProductFormFields = ({ register, errors }: ProductFormFieldsProps) => {
+const ProductFormFields = ({ register, errors, watch }: ProductFormFieldsProps) => {
+    const { brands, loading: loadingBrands, fetchBrands } = useBrands();
+    const [showNewBrandInput, setShowNewBrandInput] = useState(false);
+    const watchBrandId = watch("brandId");
+
+    useEffect(() => {
+        fetchBrands();
+    }, [fetchBrands]);
+
+    useEffect(() => {
+        setShowNewBrandInput(watchBrandId === "0");
+    }, [watchBrandId]);
+
     return (
         <>
             {/* 1. Nombre del producto */}
@@ -22,19 +37,13 @@ const ProductFormFields = ({ register, errors }: ProductFormFieldsProps) => {
             </div>
 
             {/* 2. Marca */}
-            <div className="grid grid-cols-1 space-y-3">
-                <label htmlFor="brand" className="text-2xl text-slate-500">
-                    Marca
-                </label>
-                <input
-                    id="brand"
-                    type="text"
-                    placeholder="Marca del producto"
-                    className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
-                    {...register("brand")}
-                />
-                {errors.brand && <ErrorMessage>{errors.brand.message}</ErrorMessage>}
-            </div>
+            <BrandSelector
+                register={register}
+                errors={errors}
+                brands={brands}
+                loadingBrands={loadingBrands}
+                showNewBrandInput={showNewBrandInput}
+            />
         </>
     );
 };

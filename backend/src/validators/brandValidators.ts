@@ -1,19 +1,18 @@
-import type { BrandValidationResult } from "../types";
+import { body } from 'express-validator';
 
-// Validar formato de la marca
-const validateBrandFormat = (brand?: string): BrandValidationResult => {
-    if (!brand?.trim()) {
-        return { isValid: false, error: "La marca no puede estar vacía" };
-    }
+export const createBrandValidation = [
+    body('name')
+        .notEmpty()
+        .withMessage('El nombre de la marca es obligatorio')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre de la marca debe tener entre 2 y 50 caracteres')
+        .trim()
+];
 
-    if (brand.trim().length > 50) {
-        return { isValid: false, error: "La marca no puede tener más de 50 caracteres" };
-    }
-
-    return { isValid: true };
-};
-
-// Validar marca (solo formato, no unicidad)
-export const validateBrand = async (brand: string): Promise<BrandValidationResult> => {
-    return validateBrandFormat(brand);
-};
+export const updateBrandValidation = [
+    body('name')
+        .optional()
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre de la marca debe tener entre 2 y 50 caracteres')
+        .trim()
+];

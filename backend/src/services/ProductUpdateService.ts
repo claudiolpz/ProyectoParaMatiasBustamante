@@ -67,7 +67,21 @@ export class ProductUpdateService {
 
     private async findExistingProduct(productId: number): Promise<UpdateProductResult> {
         const existingProduct = await prisma.product.findUnique({
-            where: { id: productId }
+            where: { id: productId },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                brand: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
         });
 
         if (!existingProduct) {
@@ -164,7 +178,7 @@ export class ProductUpdateService {
         validatedData: { priceNum?: number; stockNum?: number },
         categoryData?: any
     ): any {
-        const { name, brand } = request;
+        const { name, brandId } = request;
         const { priceNum, stockNum } = validatedData;
         
         const updateData: any = {};
@@ -182,12 +196,12 @@ export class ProductUpdateService {
             updateData.stock = stockNum;
         }
 
-        if (brand !== undefined) {
-            updateData.brand = brand?.trim() || null;
+        if (brandId !== undefined) {
+            updateData.brandId = brandId || null;
         }
 
         if (categoryData !== undefined) {
-            updateData.category = categoryData;
+            updateData.categoryId = categoryData.id;
         }
 
         return updateData;
@@ -215,6 +229,12 @@ export class ProductUpdateService {
             data: updateData,
             include: {
                 category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                brand: {
                     select: {
                         id: true,
                         name: true

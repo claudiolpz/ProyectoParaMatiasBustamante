@@ -1,4 +1,4 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
 
 export type User = {
   email: string ,
@@ -31,7 +31,8 @@ export interface CreateProductForm {
     name: string;
     price: number | undefined; 
     stock: number | undefined; 
-    brand?: string;
+    brandId?: string;
+    brandName?: string;
     categoryId?: string;
     categoryName?: string;
     image?: FileList;
@@ -43,12 +44,18 @@ export type Category = {
     name: string;
 }
 
+export type Brand = {
+    id: number;
+    name: string;
+}
+
 export type Product = {
   id: number;
   name: string;
   price: number;
   stock: number;
-  brand: string | null;
+  brandId: number | null;
+  brand: Brand | null;
   image: string | null;
   category: Category;
   createdAt: string;
@@ -123,6 +130,7 @@ export type ProductFiltersProps = {
 export type ProductFormFieldsProps = {
     register: UseFormRegister<CreateProductForm>;
     errors: FieldErrors<CreateProductForm>;
+    watch: UseFormWatch<CreateProductForm>;
 }
 
 export type CategorySelectorProps = {
@@ -358,7 +366,7 @@ export interface Sale {
   product: {
     id: number;
     name: string;
-    brand?: string;
+    brand?: Brand;
     image?: string;
     category?: {
       id: number;
@@ -405,4 +413,21 @@ export type ForgotPasswordForm = {
 export type ResetPasswordForm = {
     password: string;
     password_confirmation: string;
+}
+
+// Brand types
+export type BrandsResponse = {
+    brands: Brand[];
+}
+
+export interface CreateBrandForm {
+    name: string;
+}
+
+export interface BrandSelectorProps {
+    register: UseFormRegister<CreateProductForm>;
+    errors: FieldErrors<CreateProductForm>;
+    brands: Brand[];
+    loadingBrands: boolean;
+    showNewBrandInput: boolean;
 }

@@ -258,7 +258,7 @@ const createDeleteConfirmationHTML = (product: Product): string => `
       <h3 class="font-semibold text-red-800 mb-2">⚠️ Esta acción no se puede deshacer</h3>
       <div class="text-left space-y-2">
         <p><strong>Producto a eliminar:</strong> ${product.name}</p>
-        ${product.brand ? `<p><strong>Marca:</strong> ${product.brand}</p>` : ''}
+        ${product.brand ? `<p><strong>Marca:</strong> ${product.brand.name}</p>` : ''}
         <p><strong>Categoría:</strong> ${product.category?.name || 'Sin categoría'}</p>
         <p><strong>Stock actual:</strong> ${product.stock} unidades</p>
         <p><strong>Precio:</strong> $${product.price.toLocaleString('es-CL')} CLP</p>
@@ -333,7 +333,7 @@ const createToggleConfirmationHTML = (product: Product): string => {
         </h3>
         <div class="text-left space-y-2">
           <p><strong>Producto:</strong> ${product.name}</p>
-          ${product.brand ? `<p><strong>Marca:</strong> ${product.brand}</p>` : ''}
+          ${product.brand ? `<p><strong>Marca:</strong> ${product.brand.name}</p>` : ''}
           <p><strong>Categoría:</strong> ${product.category?.name || 'Sin categoría'}</p>
           <p><strong>Stock:</strong> ${product.stock} unidades</p>
         </div>

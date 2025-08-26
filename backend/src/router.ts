@@ -5,6 +5,8 @@ import { handleInputErrors } from './middleware/validation';
 import { createProduct, getProductById, getProducts, sellProduct, updateProduct, toggleProductStatus } from './handlers/product';
 import { uploadProductImage } from './middleware/upload';
 import { getCategories } from './handlers/category';
+import { createBrand, deleteBrand, getBrands, updateBrand } from './handlers/brand';
+import { createBrandValidation, updateBrandValidation } from './validators/brandValidators';
 import { authenticate, requireAdmin } from './middleware/auth';
 import { optionalAuth } from './middleware/optionalAuth';
 import { getSaleById, getSales } from './handlers/sale';
@@ -271,6 +273,39 @@ router.patch('/products/:id/toggle-status',
 
 // OBTENER CATEGORÍAS
 router.get('/categories', getCategories);
+
+// === RUTAS DE MARCAS ===
+// OBTENER MARCAS
+router.get('/brands', getBrands);
+
+// CREAR MARCA
+router.post('/brands',
+    authenticate,
+    requireAdmin,
+    createBrandValidation,
+    handleInputErrors,
+    createBrand);
+
+// ACTUALIZAR MARCA
+router.put('/brands/:id',
+    authenticate,
+    requireAdmin,
+    param('id')
+        .isInt({ min: 1 })
+        .withMessage('ID inválido'),
+    updateBrandValidation,
+    handleInputErrors,
+    updateBrand);
+
+// ELIMINAR MARCA
+router.delete('/brands/:id',
+    authenticate,
+    requireAdmin,
+    param('id')
+        .isInt({ min: 1 })
+        .withMessage('ID inválido'),
+    handleInputErrors,
+    deleteBrand);
 
 // OBTENER USUARIO
 router.get('/user', authenticate, getUser);

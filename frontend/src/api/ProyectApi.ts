@@ -12,3 +12,26 @@ export async function getUser() {
         }
     }
 } 
+
+// === MARCAS ===
+export async function getBrands() {
+    try {
+        const { data } = await api.get('/brands');
+        return data;
+    } catch (error) {
+        if (isAxiosError(error) && error.response) {
+            throw new Error(error.response.data.error);
+        }
+    }
+}
+
+export async function createBrand(formData: { name: string }) {
+    try {
+        const { data } = await api.post('/brands', formData);
+        return data;
+    } catch (error) {
+        if (isAxiosError(error) && error.response) {
+            throw new Error(error.response.data.error);
+        }
+    }
+}

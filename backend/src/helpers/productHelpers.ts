@@ -10,7 +10,7 @@ export const validateProductInput = async (
     stock: number,
     categoryId?: number,
     categoryName?: string,
-    brand?: string,
+    brandId?: number,
     isActive?: boolean
 ): Promise<ProductValidationResult & { success: boolean; statusCode?: number }> => {
     // Validar datos del producto
@@ -19,7 +19,16 @@ export const validateProductInput = async (
         return { success: false, error: validation.error, statusCode: 400, isValid: false };
     }
 
-    // No validar unicidad de marca ya que puede repetirse
+    // Validar que la marca existe si se proporciona brandId
+    if (brandId !== undefined && brandId !== null) {
+        const brand = await prisma.brand.findUnique({
+            where: { id: brandId }
+        });
+        
+        if (!brand) {
+            return { success: false, error: "La marca especificada no existe", statusCode: 400, isValid: false };
+        }
+    }
     
     return {
         success: true,
@@ -58,7 +67,7 @@ export const createProductInDatabase = async (
     name: string,
     priceNum: number,
     stockNum: number,
-    brand: string | undefined,
+    brandId: number | undefined,
     imageFile: Express.Multer.File | undefined,
     categoryData: any,
     isActive: boolean = true
@@ -68,13 +77,19 @@ export const createProductInDatabase = async (
             name: name.trim(),
             price: priceNum,
             stock: stockNum,
-            brand: brand?.trim() || null,
+            brandId: brandId || null,
             image: imageFile?.filename || null,
             isActive,
-            category: categoryData
+            categoryId: categoryData.id
         },
         include: {
             category: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            },
+            brand: {
                 select: {
                     id: true,
                     name: true
@@ -129,19 +144,12 @@ const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?
                 }
             },
             {
-                AND: [
-                    {
-                        brand: {
-                            not: null
-                        }
-                    },
-                    {
-                        brand: {
-                            contains: search.trim(),
-                            mode: 'insensitive'
-                        }
+                brand: {
+                    name: {
+                        contains: search.trim(),
+                        mode: 'insensitive'
                     }
-                ]
+                }
             },
             {
                 category: {
