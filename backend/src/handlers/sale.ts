@@ -68,7 +68,6 @@ export const getSales = async (req: Request, res: Response) => {
         const where = buildSaleSearchWhere(userId, productId, categoryId, search, startDate, endDate);
         const orderByClause = buildSaleOrderByClause(orderBy, order as 'asc' | 'desc');
 
-
         // Ejecutar consultas
         const [sales, total] = await Promise.all([
             prisma.sale.findMany({

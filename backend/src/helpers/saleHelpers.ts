@@ -68,49 +68,67 @@ export const buildSaleSearchWhere = (
     }
 
     if (search && search.length > 0) {
-        where.OR = [
-            {
-                product: {
-                    name: {
-                        contains: search,
-                        mode: 'insensitive'
+            where.OR = [
+                {
+                    product: {
+                        name: {
+                            contains: search,
+                            mode: 'insensitive'
+                        }
+                    }
+                },
+                {
+                    product: {
+                        brand: {
+                            name: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        }
+                    }
+                },
+                {
+                    product: {
+                        category: {
+                            name: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        }
+                    }
+                },
+                {
+                    user: {
+                        name: {
+                            contains: search,
+                            mode: 'insensitive'
+                        }
+                    }
+                },
+                {
+                    user: {
+                        lastname: {
+                            contains: search,
+                            mode: 'insensitive'
+                        }
                     }
                 }
-            },
-            {
-                product: {
-                    sku: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                }
-            },
-            {
-                user: {
-                    name: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                }
-            },
-            {
-                user: {
-                    lastname: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                }
-            }
-        ];
+            ];
     }
 
     if (startDate || endDate) {
         where.createdAt = {};
         if (startDate) {
-            where.createdAt.gte = startDate;
+            // Crear fecha sin conversión automática a UTC
+            const startStr = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
+            const start = new Date(startStr + 'T00:00:00.000');
+            where.createdAt.gte = start;
         }
         if (endDate) {
-            where.createdAt.lte = endDate;
+            // Crear fecha sin conversión automática a UTC
+            const endStr = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
+            const end = new Date(endStr + 'T23:59:59.999');
+            where.createdAt.lte = end;
         }
     }
 

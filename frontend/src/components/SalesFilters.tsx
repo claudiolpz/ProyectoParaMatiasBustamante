@@ -1,6 +1,7 @@
 import React from 'react';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { SaleFiltersProps } from '../types';
+import DateInput from './DateInput';
 
 const SalesFilters: React.FC<SaleFiltersProps> = ({
   onSearch,
@@ -65,19 +66,17 @@ const SalesFilters: React.FC<SaleFiltersProps> = ({
         ))}
       </select>
 
-      <input
-        type="date"
+      <DateInput
         placeholder="Fecha inicio"
-        className="w-full px-4 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-        onChange={e => onDateFilter(e.target.value, currentFilters?.endDate || '')}
+        className="w-full px-4 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        onChange={value => onDateFilter(value, currentFilters?.endDate || '')}
         value={currentFilters?.startDate || ''}
       />
 
-      <input
-        type="date"
+      <DateInput
         placeholder="Fecha fin"
-        className="w-full px-4 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-        onChange={e => onDateFilter(currentFilters?.startDate || '', e.target.value)}
+        className="w-full px-4 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        onChange={value => onDateFilter(currentFilters?.startDate || '', value)}
         value={currentFilters?.endDate || ''}
       />
     </div>
