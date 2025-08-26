@@ -209,13 +209,11 @@ const TableProduct = () => {
             Imagen
           </th>
           {renderSortableHeader('name', 'Nombre', 'min-w-[150px]')}
-          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider min-w-[100px]">
-            Marca
-          </th>
+          {renderSortableHeader('brand', 'Marca', 'min-w-[100px]')}
           {renderSortableHeader('category', 'Categoría', 'min-w-[120px]')}
           {renderSortableHeader('price', 'Precio', 'min-w-[100px]')}
           {renderSortableHeader('stock', 'Stock', 'min-w-[100px]')}
-          {renderSortableHeader('brand', 'Marca', 'min-w-[100px]')}
+          
 
           {/* Columna de acciones solo para admin */}
           {(handleEstaLogeado() && isAdmin()) && (

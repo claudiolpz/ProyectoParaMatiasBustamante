@@ -25,7 +25,7 @@ export const getProducts = async (req: Request, res: Response) => {
     try {
     // Validar y extraer parámetros de query
     const { page, limit, offset, orderBy, order, categoryId, search } = validateQueryParams(req.query);
-    console.log('getProducts params:', { orderBy, order, categoryId, search });
+    // Debug eliminado
 
         // Verificar si el usuario es admin
         const userRole = req.user?.role;

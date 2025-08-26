@@ -77,12 +77,12 @@ export const useProducts = () => {
 
       if (filters.search) params.append('search', filters.search);
       if (filters.categoryId) params.append('categoryId', filters.categoryId.toString());
+      if (filters.brandId) params.append('brandId', filters.brandId.toString());
       if (filters.orderBy) params.append('orderBy', filters.orderBy);
       if (filters.order) params.append('order', filters.order);
       if (filters.isActive !== undefined && filters.isActive !== 'all') {
         params.append('isActive', filters.isActive.toString());
       }
-
       const { data } = await api.get(`/products?${params.toString()}`);
 
       setProducts(data.products || []);

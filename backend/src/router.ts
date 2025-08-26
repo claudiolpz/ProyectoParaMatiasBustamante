@@ -166,9 +166,9 @@ router.get('/products',
         .isInt({ min: 1, max: 100 })
         .withMessage('El límite debe ser un número entre 1 y 100'),
     query('orderBy')
-        .optional()
-        .isIn(['name', 'price', 'stock', 'category'])
-        .withMessage('orderBy debe ser: name, price o stock'),
+    .optional()
+    .isIn(['name', 'price', 'stock', 'category', 'brand'])
+    .withMessage('orderBy debe ser: name, price, stock, category o brand'),
     query('order')
         .optional()
         .isIn(['asc', 'desc'])
