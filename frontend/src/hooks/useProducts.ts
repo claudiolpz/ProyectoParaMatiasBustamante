@@ -54,8 +54,8 @@ export const useProducts = () => {
 
     if (filters.search) params.set('search', filters.search);
     if (filters.categoryId) params.set('categoryId', filters.categoryId.toString());
-  params.set('orderBy', filters.orderBy);
-  params.set('order', filters.order);
+    if (filters.orderBy !== 'name') params.set('orderBy', filters.orderBy);
+    if (filters.order !== 'asc') params.set('order', filters.order);
     if (page !== 1) params.set('page', page.toString());
 
     if (filters.isActive !== undefined && filters.isActive !== 'all') {
