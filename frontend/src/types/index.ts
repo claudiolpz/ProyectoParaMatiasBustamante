@@ -394,6 +394,7 @@ export interface SaleFiltersProps {
   categoriesLoading: boolean;
   usersLoading: boolean;
   currentFilters: SaleFilters;
+  searchValue?: string; // Valor inmediato del input de búsqueda
 }
 
 export type ForgotPasswordForm = {

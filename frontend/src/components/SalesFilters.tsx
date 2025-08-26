@@ -12,7 +12,8 @@ const SalesFilters: React.FC<SaleFiltersProps> = ({
   users,
   categoriesLoading,
   usersLoading,
-  currentFilters
+  currentFilters,
+  searchValue
 }) => (
   <div className="bg-slate-700 rounded-lg shadow-lg border border-slate-600 p-4 mb-6 select-none">
     {/* Barra de búsqueda */}
@@ -23,7 +24,7 @@ const SalesFilters: React.FC<SaleFiltersProps> = ({
           placeholder="Buscar por producto, marca o vendedor..."
           className="w-full pl-10 pr-4 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           onChange={e => onSearch(e.target.value)}
-          value={currentFilters?.search || ''}
+          value={searchValue ?? currentFilters?.search ?? ''}
         />
         <SearchOutlined className="absolute left-3 top-3 text-slate-300" />
       </div>

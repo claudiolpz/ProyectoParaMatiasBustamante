@@ -9,6 +9,7 @@ import SalesFilters from '../components/SalesFilters';
 import ImageModal from '../components/ImageModal';
 import PaginationComponent from '../components/PaginationComponent';
 import type { Sale, SaleFilters } from '../types';
+import { useDebounce } from '../hooks/useDebounce';
 import {
     getSaleRowStyle,
     getSaleImageButtonStyle,
@@ -25,9 +26,31 @@ const SalesTable = () => {
 
     const [filters, setFilters] = useState<SaleFilters>(() => getFiltersFromURL());
 
+    // Estado separado para el término de búsqueda inmediato (sin debounce)
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    
+    // Aplicar debounce al término de búsqueda
+    const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms de delay
+
     useEffect(() => {
         setFilters(getFiltersFromURL());
     }, [getFiltersFromURL]);
+
+    // Efecto para sincronizar searchTerm con los filtros iniciales
+    useEffect(() => {
+        const initialFilters = getFiltersFromURL();
+        setSearchTerm(initialFilters.search || '');
+    }, [getFiltersFromURL]);
+
+    // Efecto para manejar la búsqueda con debounce
+    useEffect(() => {
+        if (debouncedSearchTerm !== filters.search) {
+            const newFilters: SaleFilters = { ...filters, search: debouncedSearchTerm };
+            setFilters(newFilters);
+            updateURL(newFilters, 1);
+            fetchSales(newFilters, 1);
+        }
+    }, [debouncedSearchTerm, filters, updateURL, fetchSales]);
 
 
     // Estado para modal de imagen
@@ -68,10 +91,8 @@ const SalesTable = () => {
 
     // Handlers para filtros
     const handleSearch = useCallback((value: string) => {
-        const newFilters: SaleFilters = { ...filters, search: value };
-        setFilters(newFilters);
-        updateURL(newFilters, 1);
-    }, [filters, updateURL]);
+        setSearchTerm(value); // Solo actualizar el estado inmediato, el debounce se encarga del resto
+    }, []);
 
     const handleCategoryFilter = useCallback((categoryId: string) => {
         const newFilters: SaleFilters = {
@@ -341,6 +362,7 @@ const SalesTable = () => {
                             categoriesLoading={categoriesLoading}
                             usersLoading={usersLoading}
                             currentFilters={filters}
+                            searchValue={searchTerm}
                         />
 
                         {/* Tabla */}

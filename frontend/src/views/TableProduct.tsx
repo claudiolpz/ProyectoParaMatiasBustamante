@@ -10,6 +10,7 @@ import ImageModal from '../components/ImageModal';
 import PaginationComponent from '../components/PaginationComponent';
 import type { Product, ProductFilters } from '../types';
 import { useToggleFlow } from '../hooks/useToggleFlow';
+import { useDebounce } from '../hooks/useDebounce';
 import {
   getProductRowStyle,
   getSellButtonStyle,
@@ -49,6 +50,12 @@ const TableProduct = () => {
     order: 'asc',
     isActive: 'all'
   });
+
+  // Estado separado para el término de búsqueda inmediato (sin debounce)
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
+  // Aplicar debounce al término de búsqueda
+  const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms de delay
 
   // Función para abrir modal de imagen
   const handleImageClick = useCallback((imageSrc: string, imageAlt: string) => {
@@ -91,12 +98,25 @@ const TableProduct = () => {
     fetchCategories();
   }, [fetchCategories]);
 
+  // Efecto para sincronizar searchTerm con los filtros iniciales
+  useEffect(() => {
+    setSearchTerm(filters.search || '');
+  }, []);
+
+  // Efecto para manejar la búsqueda con debounce
+  useEffect(() => {
+    if (debouncedSearchTerm !== filters.search) {
+      const newFilters: ProductFilters = { ...filters, search: debouncedSearchTerm };
+      setFilters(newFilters);
+      fetchProducts(newFilters, 1);
+    }
+  }, [debouncedSearchTerm, filters, fetchProducts]);
+
   // Handlers que actualizan URL
   const handleSearch = useCallback((value: string) => {
-    const newFilters: ProductFilters = { ...filters, search: value };
-    setFilters(newFilters);
-    fetchProducts(newFilters, 1);
-  }, [filters, fetchProducts]);
+    // Solo actualizar el término de búsqueda inmediato, el debounce se encarga del resto
+    setSearchTerm(value);
+  }, []);
 
   const handleCategoryFilter = useCallback((categoryId: string) => {
     const newFilters: ProductFilters = {
@@ -412,7 +432,7 @@ const TableProduct = () => {
           categories={categories}
           categoriesLoading={categoriesLoading}
           showActiveFilter={handleEstaLogeado() && isAdmin()}
-          currentFilters={filters}
+          currentFilters={{...filters, search: searchTerm}}
         />
 
         {/* Tabla */}
