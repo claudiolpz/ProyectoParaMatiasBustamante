@@ -110,17 +110,7 @@ export const validateOrderByField = (orderBy: string): boolean => {
 
 // Construir cláusula WHERE para búsqueda de productos
 const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?: boolean) => {
-    const where: {
-        categoryId?: number;
-        isActive?: boolean;
-        OR?: Array<{
-            name?: { contains: string; mode: 'insensitive' };
-            brand?: { contains: string; mode: 'insensitive' };
-            category?: {
-                name: { contains: string; mode: 'insensitive' };
-            };
-        }>;
-    } = {};
+    const where: any = {};
 
     if (categoryId !== undefined && !isNaN(categoryId)) {
         where.categoryId = categoryId;
@@ -139,10 +129,19 @@ const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?
                 }
             },
             {
-                brand: {
-                    contains: search.trim(),
-                    mode: 'insensitive'
-                }
+                AND: [
+                    {
+                        brand: {
+                            not: null
+                        }
+                    },
+                    {
+                        brand: {
+                            contains: search.trim(),
+                            mode: 'insensitive'
+                        }
+                    }
+                ]
             },
             {
                 category: {
