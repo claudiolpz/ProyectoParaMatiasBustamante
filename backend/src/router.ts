@@ -127,10 +127,9 @@ router.post('/products',
     body('stock')
         .isInt({ min: 0 })
         .withMessage('El stock debe ser un número entero mayor o igual a 0'),
-    body('sku')
-        .optional()
-        .isLength({ min: 1, max: 50 })
-        .withMessage('El SKU debe tener entre 1 y 50 caracteres')
+    body('brand')
+        .notEmpty()
+        .withMessage('La marca es obligatoria')
         .trim(),
     body('categoryId')
         .optional()
@@ -220,11 +219,11 @@ router.put('/products/:id',
         .isInt({ min: 0 })
         .withMessage('El stock debe ser un número entero mayor o igual a 0'),
 
-    body('sku')
+    body('brand')
         .optional()
-        .if(body('sku').exists())
+        .if(body('brand').exists())
         .isLength({ min: 1, max: 50 })
-        .withMessage('El SKU debe tener entre 1 y 50 caracteres')
+        .withMessage('La marca debe tener entre 1 y 50 caracteres')
         .trim(),
 
     body('categoryId')

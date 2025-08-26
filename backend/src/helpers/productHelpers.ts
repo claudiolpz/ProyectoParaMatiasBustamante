@@ -1,5 +1,5 @@
 import prisma from "../config/prisma";
-import { validateProductData, validateSkuUniqueness } from "../validators";
+import { validateProductData } from "../validators";
 import { handleCategoryById, handleCategoryByName } from "../services/productService";
 import type { ProductValidationResult, CategoryProcessResult } from "../types";
 
@@ -10,7 +10,7 @@ export const validateProductInput = async (
     stock: number,
     categoryId?: number,
     categoryName?: string,
-    sku?: string,
+    brand?: string,
     isActive?: boolean
 ): Promise<ProductValidationResult & { success: boolean; statusCode?: number }> => {
     // Validar datos del producto
@@ -19,14 +19,8 @@ export const validateProductInput = async (
         return { success: false, error: validation.error, statusCode: 400, isValid: false };
     }
 
-    // Validar SKU único si se proporciona
-    if (sku) {
-        const skuValidation = await validateSkuUniqueness(sku);
-        if (!skuValidation.isValid) {
-            return { success: false, error: skuValidation.error, statusCode: 409, isValid: false };
-        }
-    }
-
+    // No validar unicidad de marca ya que puede repetirse
+    
     return {
         success: true,
         isValid: true,
@@ -64,7 +58,7 @@ export const createProductInDatabase = async (
     name: string,
     priceNum: number,
     stockNum: number,
-    sku: string | undefined,
+    brand: string | undefined,
     imageFile: Express.Multer.File | undefined,
     categoryData: any,
     isActive: boolean = true
@@ -74,7 +68,7 @@ export const createProductInDatabase = async (
             name: name.trim(),
             price: priceNum,
             stock: stockNum,
-            sku: sku?.trim() || null,
+            brand: brand?.trim() || null,
             image: imageFile?.filename || null,
             isActive,
             category: categoryData
@@ -121,7 +115,7 @@ const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?
         isActive?: boolean;
         OR?: Array<{
             name?: { contains: string; mode: 'insensitive' };
-            sku?: { contains: string; mode: 'insensitive' };
+            brand?: { contains: string; mode: 'insensitive' };
             category?: {
                 name: { contains: string; mode: 'insensitive' };
             };
@@ -145,7 +139,7 @@ const buildProductSearchWhere = (categoryId?: number, search?: string, isActive?
                 }
             },
             {
-                sku: {
+                brand: {
                     contains: search.trim(),
                     mode: 'insensitive'
                 }

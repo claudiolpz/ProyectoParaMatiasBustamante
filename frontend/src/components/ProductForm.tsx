@@ -21,19 +21,19 @@ const ProductFormFields = ({ register, errors }: ProductFormFieldsProps) => {
                 {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
             </div>
 
-            {/* 2. SKU */}
+            {/* 2. Marca */}
             <div className="grid grid-cols-1 space-y-3">
-                <label htmlFor="sku" className="text-2xl text-slate-500">
-                    SKU (Opcional)
+                <label htmlFor="brand" className="text-2xl text-slate-500">
+                    Marca
                 </label>
                 <input
-                    id="sku"
+                    id="brand"
                     type="text"
-                    placeholder="SKU del producto"
+                    placeholder="Marca del producto"
                     className="bg-slate-100 border-none p-3 rounded-lg placeholder-slate-400"
-                    {...register("sku")}
+                    {...register("brand")}
                 />
-                {errors.sku && <ErrorMessage>{errors.sku.message}</ErrorMessage>}
+                {errors.brand && <ErrorMessage>{errors.brand.message}</ErrorMessage>}
             </div>
         </>
     );

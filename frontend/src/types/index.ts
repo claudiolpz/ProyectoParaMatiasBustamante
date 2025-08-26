@@ -31,7 +31,7 @@ export interface CreateProductForm {
     name: string;
     price: number | undefined; 
     stock: number | undefined; 
-    sku?: string;
+    brand?: string;
     categoryId?: string;
     categoryName?: string;
     image?: FileList;
@@ -48,7 +48,7 @@ export type Product = {
   name: string;
   price: number;
   stock: number;
-  sku: string | null;
+  brand: string | null;
   image: string | null;
   category: Category;
   createdAt: string;
@@ -358,7 +358,7 @@ export interface Sale {
   product: {
     id: number;
     name: string;
-    sku?: string;
+    brand?: string;
     image?: string;
     category?: {
       id: number;

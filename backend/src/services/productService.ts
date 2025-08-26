@@ -1,5 +1,4 @@
 import prisma from "../config/prisma";
-import { validateSkuUniqueness } from "../validators";
 
 // Función para manejar categoría por ID
 export const handleCategoryById = async (categoryId: number) => {
@@ -131,7 +130,7 @@ export const sellAndRegisterSale = async (
                         select: {
                             id: true,
                             name: true,
-                            sku: true
+                            brand: true
                         }
                     }
                 }
@@ -169,8 +168,4 @@ export const sellAndRegisterSale = async (
         };
     }
 };
-
-
-// Re-exportar validador de SKU para compatibilidad
-export const validateSKU = validateSkuUniqueness;
 

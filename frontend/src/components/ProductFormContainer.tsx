@@ -40,7 +40,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
     useEffect(() => {
         const subscription = form.watch((value) => {
             // Si todos los campos principales están vacíos, consideramos que se reseteó
-            if (!value.name && !value.price && !value.stock && !value.sku) {
+            if (!value.name && !value.price && !value.stock && !value.brand) {
                 setSelectedFileName(null);
             }
         });
@@ -247,7 +247,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                 className="bg-white px-5 py-8 rounded-lg space-y-8 mt-6"
                 encType="multipart/form-data"
             >
-                {/* 1. Nombre y SKU */}
+                {/* 1. Nombre y Marca */}
                 <ProductFormFields register={form.register} errors={form.errors} />
 
                 {/* 2. Categoría */}

@@ -88,7 +88,7 @@ export const getSales = async (req: Request, res: Response) => {
                         select: {
                             id: true,
                             name: true,
-                            sku: true,
+                            brand: true,
                             image: true,
                             price: true,
                             category: {
@@ -161,7 +161,7 @@ export const getSaleById = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        sku: true,
+                        brand: true,
                         image: true,
                         price: true,
                         category: {

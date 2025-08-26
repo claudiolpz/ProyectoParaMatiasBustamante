@@ -4,10 +4,10 @@ export {
     validatePartialProductData,    
 } from './productValidators';
 
-// SKU validators
+// Brand validators
 export {
-    validateSkuUniqueness
-} from './skuValidators';
+    validateBrand
+} from './brandValidators';
 
 // Password validators
 export {

@@ -15,8 +15,8 @@ export const prepareProductFormData = (formData: CreateProductForm): FormData =>
         productData.append('stock', formData.stock.toString());
     }
 
-    if (formData.sku) {
-        productData.append('sku', formData.sku);
+    if (formData.brand) {
+        productData.append('brand', formData.brand);
     }
 
     addCategoryToFormData(productData, formData);

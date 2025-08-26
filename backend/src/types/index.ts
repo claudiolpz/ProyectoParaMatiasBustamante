@@ -3,7 +3,7 @@ export interface UpdateProductRequest {
     name?: string;       
     price?: number;      
     stock?: number;       
-    sku?: string;
+    brand?: string;
     categoryId?: number;
     categoryName?: string;
     imageFile?: Express.Multer.File;
@@ -59,6 +59,11 @@ export interface PartialProductData {
 }
 
 export interface SkuValidationResult {
+    isValid: boolean;
+    error?: string;
+}
+
+export interface BrandValidationResult {
     isValid: boolean;
     error?: string;
 }

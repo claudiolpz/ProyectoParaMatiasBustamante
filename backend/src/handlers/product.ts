@@ -90,7 +90,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 /* CREAR PRODUCTO  */
 export const createProduct = async (req: Request, res: Response) => {
-    const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
+    const { name, price, stock, brand, categoryId, categoryName, isActive } = req.body;
     const imageFile = req.file;
 
     try {
@@ -105,7 +105,7 @@ export const createProduct = async (req: Request, res: Response) => {
         }
 
         // 1. Validar entrada usando helper
-        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, sku, isActiveValue);
+        const inputValidation = await validateProductInput(name, price, stock, categoryId, categoryName, brand, isActiveValue);
         if (!inputValidation.success) {
             if (imageFile?.filename) {
                 cleanupFile(imageFile.filename);
@@ -127,7 +127,7 @@ export const createProduct = async (req: Request, res: Response) => {
             name,
             inputValidation.priceNum,
             inputValidation.stockNum,
-            sku,
+            brand,
             imageFile,
             categoryResult.categoryData,
             isActiveValue
@@ -244,12 +244,12 @@ export const updateProduct = async (req: Request, res: Response) => {
     const productUpdateService = new ProductUpdateService();
     try {
         const { id } = req.params;
-        const { name, price, stock, sku, categoryId, categoryName, isActive } = req.body;
+        const { name, price, stock, brand, categoryId, categoryName, isActive } = req.body;
         const imageFile = req.file;
         const productId = parseInt(id);
 
         // Construir request dinámicamente
-        const fieldsToUpdate = { name, price, stock, sku, categoryId, categoryName, isActive };
+        const fieldsToUpdate = { name, price, stock, brand, categoryId, categoryName, isActive };
 
         // Filtrar solo campos que tienen valor (no undefined)
         const updateRequest: any = {

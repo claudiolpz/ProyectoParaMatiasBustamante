@@ -145,7 +145,7 @@ const SalesTable = () => {
                         Producto
                     </th>
                     <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider min-w-[100px]">
-                        SKU
+                        Marca
                     </th>
                     <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider min-w-[120px]">
                         Categoría
@@ -205,14 +205,14 @@ const SalesTable = () => {
                     </div>
                 </td>
 
-                {/* SKU */}
+                {/* Marca */}
                 <td className="px-3 sm:px-6 py-6 whitespace-nowrap">
-                    {sale.product.sku ? (
+                    {sale.product.brand ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-600 text-slate-200 border border-slate-500">
-                            {sale.product.sku}
+                            {sale.product.brand}
                         </span>
                     ) : (
-                        <span className="text-slate-400 text-sm">Sin SKU</span>
+                        <span className="text-slate-400 text-sm">Sin Marca</span>
                     )}
                 </td>
 

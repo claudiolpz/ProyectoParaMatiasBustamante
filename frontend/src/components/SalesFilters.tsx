@@ -20,7 +20,7 @@ const SalesFilters: React.FC<SaleFiltersProps> = ({
       <div className="relative flex-1">
         <input
           type="text"
-          placeholder="Buscar por producto, SKU o vendedor..."
+          placeholder="Buscar por producto, marca o vendedor..."
           className="w-full pl-10 pr-4 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           onChange={e => onSearch(e.target.value)}
           value={currentFilters?.search || ''}

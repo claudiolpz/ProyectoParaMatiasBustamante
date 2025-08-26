@@ -1,7 +1,7 @@
 import prisma from "../config/prisma";
 import { validatePartialProductData } from "../validators";
 import { cleanupFile } from "../utils/fileUtils";
-import { handleCategoryById, handleCategoryByName, validateSKU } from "./productService";
+import { handleCategoryById, handleCategoryByName } from "./productService";
 import type { UpdateProductResult, UpdateProductRequest, ValidationSuccessResult, ValidationErrorResult, CategorySuccessResult, CategoryErrorResult } from "../types/index"
 
 const SERVER_URL = process.env.BACKEND_URL;
@@ -88,7 +88,7 @@ export class ProductUpdateService {
         request: UpdateProductRequest,
         existingProduct: any
     ): Promise<ValidationSuccessResult | ValidationErrorResult> {
-        const { name, price, stock, categoryId, categoryName, sku } = request;
+        const { name, price, stock, categoryId, categoryName } = request;
 
         // CORREGIDO: Usar validatePartialProductData
         const validation = validatePartialProductData({
@@ -107,17 +107,7 @@ export class ProductUpdateService {
             };
         }
 
-        // Validar SKU único si se cambió
-        if (sku !== undefined && sku !== existingProduct.sku) {
-            const skuValidation = await validateSKU(sku, request.id);
-            if (!skuValidation.isValid) {
-                return {
-                    success: false,
-                    error: skuValidation.error,
-                    statusCode: 409
-                };
-            }
-        }
+        // No validar unicidad de marca ya que puede repetirse
 
         return {
             success: true,
@@ -174,7 +164,7 @@ export class ProductUpdateService {
         validatedData: { priceNum?: number; stockNum?: number },
         categoryData?: any
     ): any {
-        const { name, sku } = request;
+        const { name, brand } = request;
         const { priceNum, stockNum } = validatedData;
         
         const updateData: any = {};
@@ -192,8 +182,8 @@ export class ProductUpdateService {
             updateData.stock = stockNum;
         }
 
-        if (sku !== undefined) {
-            updateData.sku = sku?.trim() || null;
+        if (brand !== undefined) {
+            updateData.brand = brand?.trim() || null;
         }
 
         if (categoryData !== undefined) {
