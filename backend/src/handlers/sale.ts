@@ -9,8 +9,6 @@ import {
     addImageUrlsToSales
 } from "../helpers/saleHelpers";
 
-const SERVER_URL = process.env.BACKEND_URL;
-
 /* OBTENER VENTAS - CON FILTROS Y PAGINACIÓN */
 export const getSales = async (req: Request, res: Response) => {
     try {
@@ -110,7 +108,7 @@ export const getSales = async (req: Request, res: Response) => {
         ]);
 
         // Agregar URLs de imágenes
-        const salesWithImages = addImageUrlsToSales(sales, SERVER_URL);
+        const salesWithImages = addImageUrlsToSales(sales);
 
         // Construir respuesta con paginación
         const paginationInfo = buildSalePaginationResponse({
@@ -189,7 +187,7 @@ export const getSaleById = async (req: Request, res: Response) => {
         }
 
         // Agregar URL de imagen
-        const saleWithImage = addImageUrlsToSales([sale], SERVER_URL)[0];
+        const saleWithImage = addImageUrlsToSales([sale])[0];
 
         return res.status(200).json({
             sale: saleWithImage
