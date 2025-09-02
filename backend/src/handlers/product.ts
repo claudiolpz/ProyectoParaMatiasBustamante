@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import { ProductUpdateService } from "../services/ProductUpdateService";
-import { cleanupFile } from "../utils/fileUtils";
+import { cleanupCloudinaryFile } from '../middleware/upload';
 
 // Importar helpers desde la carpeta correcta
 import {
@@ -9,16 +9,17 @@ import {
     processProductCategory,
     processProductBrand,
     createProductInDatabase,
-    buildProductImageUrl,
     validateQueryParams,
     validateOrderByField,
     buildOrderByClause,
     buildPaginationResponse,
-    buildProductSearchWhereByRole
-} from "../helpers/productHelpers"; // ← CORREGIDO: desde ../helpers en lugar de ../productHelpers
+    buildProductSearchWhereByRole,
+    processProductCreationData
+} from "../helpers/productHelpers";
 import { sellAndRegisterSale } from "../services/productService";
 
-const SERVER_URL = process.env.BACKEND_URL;
+// Helper para manejar tipos de Cloudinary
+const getCloudinaryFile = (file: Express.Multer.File | undefined) => file as any;
 
 /* OBTENER PRODUCTOS - REFACTORIZADO CON HELPERS */
 export const getProducts = async (req: Request, res: Response) => {
@@ -74,10 +75,10 @@ export const getProducts = async (req: Request, res: Response) => {
             prisma.product.count({ where }),
         ]);
 
-        // Construir URLs de imágenes
+        // Construir URLs de imágenes (con Cloudinary ya no necesitas buildProductImageUrl)
         const productsWithImages = products.map(product => ({
             ...product,
-            image: buildProductImageUrl(product.image, SERVER_URL)
+            image: product.image // Ya es URL completa de Cloudinary
         }));
 
         // Construir respuesta con paginación
@@ -102,51 +103,35 @@ export const createProduct = async (req: Request, res: Response) => {
     const imageFile = req.file;
 
     try {
-        let isActiveValue: boolean;
-
-        if (isActive === undefined) {
-            isActiveValue = true; // Valor por defecto
-        } else if (typeof isActive === 'string') {
-            isActiveValue = isActive === 'true';
-        } else {
-            isActiveValue = Boolean(isActive);
-        }
-
-        // Convertir IDs a números si existen
-        const brandIdNum = brandId ? parseInt(brandId) : undefined;
-        const categoryIdNum = categoryId ? parseInt(categoryId) : undefined;
-        
-        // Procesar precio removiendo puntos (para formato chileno: 12.000 -> 12000)
-        const processedPrice = typeof price === 'string' ? price.replace(/\./g, '') : price;
+        // Procesar los datos de entrada
+        const { isActiveValue, brandIdNum, categoryIdNum, processedPrice } = processProductCreationData({
+            isActive, brandId, categoryId, price
+        });
 
         // 1. Validar entrada usando helper
-        const inputValidation = await validateProductInput(name, processedPrice, stock, categoryIdNum, categoryName, brandIdNum, isActiveValue);
+        const inputValidation = await validateProductInput(
+            name, processedPrice, stock, categoryIdNum, categoryName, brandIdNum, isActiveValue
+        );
         if (!inputValidation.success) {
-            if (imageFile?.filename) {
-                cleanupFile(imageFile.filename);
-            }
+            await cleanupCloudinaryIfExists(imageFile);
             return res.status(inputValidation.statusCode).json({ error: inputValidation.error });
         }
 
-        // 2. Procesar categoría usando helper
+        // 2. Procesar categoría
         const categoryResult = await processProductCategory(categoryIdNum, categoryName);
         if (!categoryResult.success) {
-            if (imageFile?.filename) {
-                cleanupFile(imageFile.filename);
-            }
+            await cleanupCloudinaryIfExists(imageFile);
             return res.status(categoryResult.statusCode).json({ error: categoryResult.error });
         }
 
-        // 3. Procesar marca usando helper
+        // 3. Procesar marca
         const brandResult = await processProductBrand(brandIdNum, brandName);
         if (!brandResult.success) {
-            if (imageFile?.filename) {
-                cleanupFile(imageFile.filename);
-            }
+            await cleanupCloudinaryIfExists(imageFile);
             return res.status(brandResult.statusCode).json({ error: brandResult.error });
         }
 
-        // 4. Crear producto en base de datos usando helper
+        // 4. Crear producto en base de datos
         const newProduct = await createProductInDatabase(
             name,
             inputValidation.priceNum,
@@ -157,25 +142,29 @@ export const createProduct = async (req: Request, res: Response) => {
             isActiveValue
         );
 
-        // 5. Respuesta exitosa con URL de imagen construida por helper
+        // 5. Respuesta exitosa
         return res.status(201).json({
             message: "Producto creado correctamente",
             product: {
                 ...newProduct,
-                image: buildProductImageUrl(newProduct.image, SERVER_URL)
+                image: newProduct.image
             }
         });
 
     } catch (error) {
-        // Limpiar archivo si hay error
-        if (imageFile?.filename) {
-            cleanupFile(imageFile.filename);
-        }
-
+        await cleanupCloudinaryIfExists(imageFile);
         console.error("Error al crear producto:", error);
         return res.status(500).json({
             error: "Error al crear producto"
         });
+    }
+};
+
+// Helper local para limpiar archivos de Cloudinary si existen
+const cleanupCloudinaryIfExists = async (file: Express.Multer.File | undefined) => {
+    const cloudinaryFile = getCloudinaryFile(file);
+    if (cloudinaryFile?.public_id) {
+        await cleanupCloudinaryFile(cloudinaryFile.public_id);
     }
 };
 
@@ -210,7 +199,7 @@ export const getProductById = async (req: Request, res: Response) => {
         return res.status(200).json({
             product: {
                 ...product,
-                image: buildProductImageUrl(product.image, SERVER_URL)
+                image: product.image // Ya es URL completa de Cloudinary
             }
         });
 
@@ -264,8 +253,8 @@ export const sellProduct = async (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        error.message = "Error al procesar la venta";
-        return res.status(500).json({ error: error.message });
+        console.error("Error al procesar la venta:", error);
+        return res.status(500).json({ error: "Error al procesar la venta" });
     }
 };
 
@@ -300,6 +289,12 @@ export const updateProduct = async (req: Request, res: Response) => {
         const result = await productUpdateService.updateProduct(updateRequest);
 
         if (!result.success) {
+            // Si hay nueva imagen pero falló la actualización, limpiar de Cloudinary
+            const cloudinaryFile = getCloudinaryFile(imageFile);
+            if (cloudinaryFile?.public_id) {
+                await cleanupCloudinaryFile(cloudinaryFile.public_id);
+            }
+            
             return res.status(result.statusCode || 500).json({
                 error: result.error
             });
@@ -311,9 +306,10 @@ export const updateProduct = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        // Limpiar archivo si hay error
-        if (req.file?.filename) {
-            cleanupFile(req.file.filename);
+        // Limpiar archivo de Cloudinary si hay error
+        const cloudinaryFile = getCloudinaryFile(req.file);
+        if (cloudinaryFile?.public_id) {
+            await cleanupCloudinaryFile(cloudinaryFile.public_id);
         }
 
         console.error("Error al actualizar producto:", error);
@@ -363,7 +359,7 @@ export const toggleProductStatus = async (req: Request, res: Response) => {
             message: `Producto ${newStatus ? 'activado' : 'desactivado'} correctamente`,
             product: {
                 ...updatedProduct,
-                image: buildProductImageUrl(updatedProduct.image, SERVER_URL)
+                image: updatedProduct.image // Ya es URL completa de Cloudinary
             }
         });
 

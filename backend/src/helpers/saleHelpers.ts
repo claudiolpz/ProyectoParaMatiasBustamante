@@ -1,5 +1,5 @@
-import { buildProductImageUrl } from "./productHelpers";
 import type {SalePaginationParams} from "../types";
+
 // Validar parámetros de query para ventas
 export const validateSaleQueryParams = (query: any) => {
     const page = parseInt(query.page as string) || 1;
@@ -42,6 +42,75 @@ export const validateSaleOrderByField = (orderBy: string): boolean => {
     return validFields.includes(orderBy);
 };
 
+// Construir cláusula de búsqueda para texto
+const buildSearchClause = (search: string) => {
+    return [
+        {
+            product: {
+                name: {
+                    contains: search,
+                    mode: 'insensitive'
+                }
+            }
+        },
+        {
+            product: {
+                brand: {
+                    name: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            }
+        },
+        {
+            product: {
+                category: {
+                    name: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            }
+        },
+        {
+            user: {
+                name: {
+                    contains: search,
+                    mode: 'insensitive'
+                }
+            }
+        },
+        {
+            user: {
+                lastname: {
+                    contains: search,
+                    mode: 'insensitive'
+                }
+            }
+        }
+    ];
+};
+
+// Construir cláusula de fechas
+const buildDateClause = (startDate?: Date, endDate?: Date) => {
+    if (!startDate && !endDate) return null;
+
+    const dateClause: any = {};
+    
+    if (startDate) {
+        const startStr = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
+        dateClause.gte = new Date(startStr + 'T00:00:00.000');
+    }
+    
+    if (endDate) {
+        const endStr = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
+        dateClause.lte = new Date(endStr + 'T23:59:59.999');
+    }
+
+    return dateClause;
+};
+
 // Construir cláusula WHERE para búsqueda de ventas
 export const buildSaleSearchWhere = (
     userId?: number,
@@ -67,69 +136,13 @@ export const buildSaleSearchWhere = (
         };
     }
 
-    if (search && search.length > 0) {
-            where.OR = [
-                {
-                    product: {
-                        name: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
-                    }
-                },
-                {
-                    product: {
-                        brand: {
-                            name: {
-                                contains: search,
-                                mode: 'insensitive'
-                            }
-                        }
-                    }
-                },
-                {
-                    product: {
-                        category: {
-                            name: {
-                                contains: search,
-                                mode: 'insensitive'
-                            }
-                        }
-                    }
-                },
-                {
-                    user: {
-                        name: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
-                    }
-                },
-                {
-                    user: {
-                        lastname: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
-                    }
-                }
-            ];
+    if (search?.length > 0) {
+        where.OR = buildSearchClause(search);
     }
 
-    if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) {
-            // Crear fecha sin conversión automática a UTC
-            const startStr = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
-            const start = new Date(startStr + 'T00:00:00.000');
-            where.createdAt.gte = start;
-        }
-        if (endDate) {
-            // Crear fecha sin conversión automática a UTC
-            const endStr = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
-            const end = new Date(endStr + 'T23:59:59.999');
-            where.createdAt.lte = end;
-        }
+    const dateClause = buildDateClause(startDate, endDate);
+    if (dateClause) {
+        where.createdAt = dateClause;
     }
 
     return where;
@@ -171,13 +184,14 @@ export const buildSalePaginationResponse = (params: SalePaginationParams) => {
     };
 };
 
-// Agregar URLs de imágenes a las ventas
-export const addImageUrlsToSales = (sales: any[], serverUrl: string | undefined) => {
+// Agregar URLs de imágenes a las ventas (ACTUALIZADO PARA CLOUDINARY)
+export const addImageUrlsToSales = (sales: any[]) => {
     return sales.map(sale => ({
         ...sale,
         product: {
             ...sale.product,
-            image: buildProductImageUrl(sale.product.image, serverUrl)
+            // Con Cloudinary, la imagen ya es una URL completa
+            image: sale.product.image // Ya contiene la URL de Cloudinary o null
         }
     }));
 };

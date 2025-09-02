@@ -105,7 +105,7 @@ export const createProductInDatabase = async (
             price: priceNum,
             stock: stockNum,
             brand: brandData,
-            image: imageFile?.filename || null,
+            image: (imageFile as any)?.path || null,
             isActive,
             category: categoryData
         },
@@ -124,11 +124,6 @@ export const createProductInDatabase = async (
             }
         }
     });
-};
-
-// Construir URL completa de imagen de producto
-export const buildProductImageUrl = (imageName: string | null, serverUrl: string): string | null => {
-    return imageName ? `${serverUrl}/uploads/products/${imageName}` : null;
 };
 
 // Validar parámetros de query para getProducts
@@ -267,6 +262,92 @@ export const buildPaginationResponse = (
             search: search || null
         }
     };
+};
+
+// Procesar los datos de entrada para la creación de producto
+export const processProductCreationData = (data: {
+    isActive?: unknown;
+    brandId?: string | number;
+    categoryId?: string | number;
+    price: string | number;
+}) => {
+    let isActiveValue: boolean;
+
+    if (data.isActive === undefined) {
+        isActiveValue = true;
+    } else if (typeof data.isActive === 'string') {
+        isActiveValue = data.isActive === 'true';
+    } else {
+        isActiveValue = Boolean(data.isActive);
+    }
+
+    const brandIdNum = typeof data.brandId === 'string' ? parseInt(data.brandId) : data.brandId;
+    const categoryIdNum = typeof data.categoryId === 'string' ? parseInt(data.categoryId) : data.categoryId;
+    const priceStr = typeof data.price === 'string' ? data.price.replace(/\./g, '') : data.price.toString();
+    const processedPrice = Number(priceStr);
+
+    return {
+        isActiveValue,
+        brandIdNum,
+        categoryIdNum,
+        processedPrice
+    };
+};
+
+// Procesar los datos de entrada para la actualización de producto
+export const processProductUpdateData = (data: {
+    name?: string;
+    price?: string | number;
+    stock?: string | number;
+    brandId?: string | number;
+    categoryId?: string | number;
+    categoryName?: string;
+    isActive?: unknown;
+    id: string | number;
+}): Record<string, any> => {
+    const productId = typeof data.id === 'string' ? parseInt(data.id) : data.id;
+    
+    let processedPrice;
+    if (data.price) {
+        processedPrice = typeof data.price === 'string' ? 
+            data.price.replace(/\./g, '') : 
+            data.price;
+    }
+
+    let processedBrandId;
+    if (data.brandId) {
+        processedBrandId = typeof data.brandId === 'string' ? 
+            parseInt(data.brandId) : 
+            data.brandId;
+    }
+
+    let processedCategoryId;
+    if (data.categoryId) {
+        processedCategoryId = typeof data.categoryId === 'string' ? 
+            parseInt(data.categoryId) : 
+            data.categoryId;
+    }
+
+    // Construir request dinámicamente solo con campos definidos
+    const fieldsToUpdate = {
+        name: data.name,
+        price: processedPrice,
+        stock: data.stock,
+        brandId: processedBrandId,
+        categoryId: processedCategoryId,
+        categoryName: data.categoryName,
+        isActive: data.isActive !== undefined ? parseBoolean(data.isActive) : undefined
+    };
+
+    // Filtrar solo campos que tienen valor (no undefined)
+    const updateRequest = {
+        id: productId,
+        ...Object.fromEntries(
+            Object.entries(fieldsToUpdate).filter(([_, value]) => value !== undefined)
+        )
+    };
+
+    return updateRequest;
 };
 
 // Helper para parsear valores boolean de form-data

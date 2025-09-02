@@ -1,10 +1,11 @@
 import prisma from "../config/prisma";
 import { validatePartialProductData } from "../validators";
-import { cleanupFile } from "../utils/fileUtils";
+import { cleanupCloudinaryFile, getPublicIdFromUrl } from "../middleware/upload";
 import { handleCategoryById, handleCategoryByName } from "./productService";
 import type { UpdateProductResult, UpdateProductRequest, ValidationSuccessResult, ValidationErrorResult, CategorySuccessResult, CategoryErrorResult } from "../types/index"
 
-const SERVER_URL = process.env.BACKEND_URL;
+// Helper para manejar tipos de Cloudinary
+const getCloudinaryFile = (file: Express.Multer.File | undefined) => file as any;
 
 export class ProductUpdateService {
 
@@ -13,21 +14,21 @@ export class ProductUpdateService {
             // 1. Verificar que el producto existe
             const existingProduct = await this.findExistingProduct(request.id);
             if (!existingProduct.success) {
-                this.cleanupImageIfProvided(request.imageFile);
+                await this.cleanupImageIfProvided(request.imageFile);
                 return existingProduct;
             }
 
             // 2. Validar datos de entrada usando validatePartialProductData
             const validation = await this.validateUpdateRequest(request, existingProduct.product);
             if (!validation.success) {
-                this.cleanupImageIfProvided(request.imageFile);
+                await this.cleanupImageIfProvided(request.imageFile);
                 return validation;
             }
 
             // 3. Procesar categoría (solo si se proporciona)
             const categoryResult = await this.processCategoryUpdate(request);
             if (!categoryResult.success) {
-                this.cleanupImageIfProvided(request.imageFile);
+                await this.cleanupImageIfProvided(request.imageFile);
                 return categoryResult;
             }
 
@@ -35,7 +36,7 @@ export class ProductUpdateService {
             const updateData = this.buildPartialUpdateData(request, validation.validatedData, categoryResult.categoryData);
 
             // 5. Manejar imagen
-            this.handleImageUpdate(request, existingProduct.product, updateData);
+            await this.handleImageUpdate(request, existingProduct.product, updateData);
 
             // 6. Verificar que hay algo para actualizar
             if (Object.keys(updateData).length === 0) {
@@ -56,7 +57,7 @@ export class ProductUpdateService {
 
         } catch (error) {
             console.error("Error en ProductUpdateService:", error);
-            this.cleanupImageIfProvided(request.imageFile);
+            await this.cleanupImageIfProvided(request.imageFile);
             return {
                 success: false,
                 error: "Error interno al actualizar producto",
@@ -207,19 +208,24 @@ export class ProductUpdateService {
         return updateData;
     }
 
-    private handleImageUpdate(
+    private async handleImageUpdate(
         request: UpdateProductRequest,
         existingProduct: any,
         updateData: any
-    ): void {
+    ): Promise<void> {
         const { imageFile } = request;
 
-        if (imageFile?.filename) {
-            // Eliminar imagen anterior si existe
+        if (imageFile?.path) {
+            // Si hay imagen anterior, eliminarla de Cloudinary
             if (existingProduct.image) {
-                cleanupFile(existingProduct.image);
+                const oldPublicId = getPublicIdFromUrl(existingProduct.image);
+                if (oldPublicId) {
+                    await cleanupCloudinaryFile(oldPublicId);
+                }
             }
-            updateData.image = imageFile.filename;
+            
+            // Agregar nueva imagen (URL completa de Cloudinary)
+            updateData.image = imageFile.path;
         }
     }
 
@@ -243,15 +249,17 @@ export class ProductUpdateService {
             }
         });
 
+        // Con Cloudinary, la imagen ya es una URL completa, no necesitas construirla
         return {
             ...updatedProduct,
-            image: updatedProduct.image ? `${SERVER_URL}/uploads/products/${updatedProduct.image}` : null
+            image: updatedProduct.image // Ya es URL completa de Cloudinary
         };
     }
 
-    private cleanupImageIfProvided(imageFile?: Express.Multer.File): void {
-        if (imageFile?.filename) {
-            cleanupFile(imageFile.filename);
+    private async cleanupImageIfProvided(imageFile?: Express.Multer.File): Promise<void> {
+        const cloudinaryFile = getCloudinaryFile(imageFile);
+        if (cloudinaryFile?.public_id) {
+            await cleanupCloudinaryFile(cloudinaryFile.public_id);
         }
     }
 }
