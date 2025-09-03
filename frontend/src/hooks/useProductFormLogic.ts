@@ -19,7 +19,6 @@ export const useProductFormLogic = ({
         name: "",
         price: undefined,
         stock: undefined,
-        sku: "",
         categoryId: undefined,
         categoryName: "",
         image: undefined
@@ -36,7 +35,6 @@ export const useProductFormLogic = ({
                 name: initialProduct.name,
                 price: initialProduct.price,
                 stock: initialProduct.stock,
-                sku: initialProduct.sku || "",
                 categoryId: initialProduct.category?.id?.toString() || undefined,
                 categoryName: "",
                 image: undefined
@@ -61,7 +59,6 @@ export const useProductFormLogic = ({
                 name: initialProduct.name,
                 price: initialProduct.price,
                 stock: initialProduct.stock,
-                sku: initialProduct.sku || "",
                 categoryId: initialProduct.category?.id?.toString() || undefined,
                 categoryName: "",
                 image: undefined
@@ -79,7 +76,15 @@ export const useProductFormLogic = ({
         try {
             console.log(`Iniciando ${isEditing ? 'edición' : 'creación'} de producto...`);
             
+            // Usar el prepareProductFormData directamente
             const productData = prepareProductFormData(formData);
+            
+            // Si hay transactionId en formData, agregarlo
+            if (formData.transactionId) {
+                console.log('Agregando transactionId:', formData.transactionId);
+                productData.append('transactionId', formData.transactionId);
+            }
+            
             console.log('Enviando datos al servidor...');
             
             const response = isEditing && productId 

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useProductForm } from "../hooks/useProductForm";
+import { useProductSubmit } from "../hooks/useProductSubmit";
 import CategorySelector from "../components/CategorySelector";
 import ProductFormFields from "../components/ProductForm";
 import ErrorMessage from "../components/ErrorMessage";
@@ -24,6 +25,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
     // Estado para drag & drop
     const [isDragOver, setIsDragOver] = useState(false);
     const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+    const { isSubmitting, handleSubmit } = useProductSubmit(!!productId);
 
     const {
         form,
@@ -122,15 +124,35 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
     // Función personalizada para manejar el submit
     const onSubmit = useCallback(
         async (data: CreateProductForm) => {
-            const success = await handleSubmitProduct(data);
+            if (isSubmitting) return;
 
-            // Si el producto se creó exitosamente, resetear la imagen (solo en modo creación)
-            if (success && !isEditing) {
-                setSelectedFileName(null);
+            try {
+                await handleSubmit(async (transactionId) => {
+                    const success = await handleSubmitProduct({
+                        ...data,
+                        transactionId
+                    });
+
+                    if (success) {
+                        if (!isEditing) {
+                            setSelectedFileName(null);
+                        }
+                        // La navegación se manejará en el callback onSuccess
+                        if (onSuccess) {
+                            onSuccess();
+                        } else {
+                            navigate('/');
+                        }
+                    }
+
+                    return success;
+                });
+            } catch (error: any) {
+                console.error('Error en submit:', error);
+                toast.error(error.message || 'Error al procesar el producto');
             }
-            navigate(0);
         },
-        [handleSubmitProduct, isEditing, navigate]
+        [handleSubmit, handleSubmitProduct, isEditing, isSubmitting, navigate]
     );
 
     // Funciones para obtener clases CSS
@@ -406,11 +428,24 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     </p>
                 </div>
 
-                <input
+                <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 p-3 text-lg w-full uppercase text-white rounded-lg font-bold cursor-pointer transition-colors duration-200"
-                    value={isEditing ? "Actualizar Producto" : "Crear Producto"}
-                />
+                    disabled={isSubmitting}
+                    className={`p-3 text-lg w-full uppercase text-white rounded-lg font-bold transition-colors duration-200 flex items-center justify-center ${
+                        isSubmitting 
+                            ? 'bg-blue-400 cursor-not-allowed' 
+                            : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                    }`}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <LoadingOutlined className="mr-2" />
+                            {isEditing ? "Actualizando..." : "Creando..."}
+                        </>
+                    ) : (
+                        isEditing ? "Actualizar Producto" : "Crear Producto"
+                    )}
+                </button>
             </form>
 
             <nav className="mt-4">

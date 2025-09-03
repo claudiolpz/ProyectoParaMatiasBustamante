@@ -29,10 +29,17 @@ export const fetchCategories = async (): Promise<Category[]> => {
 
 // Servicio para crear producto
 export const createProduct = async (productData: FormData): Promise<any> => {
-    const response = await api.post(`/products`, productData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    return response.data;
+    try {
+        const response = await api.post(`/products`, productData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error) {
+        if (isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Error al crear el producto');
+        }
+        throw new Error('Error al crear el producto');
+    }
 };
 
 // Servicio para actualizar producto

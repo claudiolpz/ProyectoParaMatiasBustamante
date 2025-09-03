@@ -17,9 +17,18 @@ import {
     processProductCreationData
 } from "../helpers/productHelpers";
 import { sellAndRegisterSale } from "../services/productService";
+import { checkTransactionExists, saveTransaction } from "../services/transactionService";
 
-// Helper para manejar tipos de Cloudinary
+// Helpers locales
 const getCloudinaryFile = (file: Express.Multer.File | undefined) => file as any;
+
+// Helper para limpiar archivos de Cloudinary si existen
+const cleanupCloudinaryIfExists = async (file: Express.Multer.File | undefined) => {
+    const cloudinaryFile = getCloudinaryFile(file);
+    if (cloudinaryFile?.public_id) {
+        await cleanupCloudinaryFile(cloudinaryFile.public_id);
+    }
+};
 
 /* OBTENER PRODUCTOS - REFACTORIZADO CON HELPERS */
 export const getProducts = async (req: Request, res: Response) => {
@@ -99,10 +108,18 @@ export const getProducts = async (req: Request, res: Response) => {
 
 /* CREAR PRODUCTO  */
 export const createProduct = async (req: Request, res: Response) => {
-    const { name, price, stock, brandId, brandName, categoryId, categoryName, isActive } = req.body;
+    const { name, price, stock, brandId, brandName, categoryId, categoryName, isActive, transactionId } = req.body;
     const imageFile = req.file;
 
     try {
+        // Verificar transacción existente
+        if (transactionId) {
+            const existingTransaction = await checkTransactionExists(transactionId);
+            if (existingTransaction) {
+                return res.json(existingTransaction.responseData);
+            }
+        }
+
         // Procesar los datos de entrada
         const { isActiveValue, brandIdNum, categoryIdNum, processedPrice } = processProductCreationData({
             isActive, brandId, categoryId, price
@@ -142,31 +159,52 @@ export const createProduct = async (req: Request, res: Response) => {
             isActiveValue
         );
 
-        // 5. Respuesta exitosa
-        return res.status(201).json({
+        // 5. Preparar respuesta
+        const response = {
             message: "Producto creado correctamente",
             product: {
                 ...newProduct,
                 image: newProduct.image
             }
-        });
+        };
 
-    } catch (error) {
+        // 6. Guardar transacción si existe
+        if (transactionId) {
+            await saveTransaction(
+                transactionId,
+                'create',
+                'product',
+                newProduct.id,
+                response
+            );
+        }
+
+        // 7. Enviar respuesta exitosa
+        return res.status(201).json(response);
+
+    } catch (error: any) {
         await cleanupCloudinaryIfExists(imageFile);
-        console.error("Error al crear producto:", error);
+        
+        // Manejar errores específicos
+        if (error.code === 'P2002') {
+            return res.status(400).json({
+                error: "Ya existe un producto con ese nombre"
+            });
+        }
+        
+        if (error.message) {
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+
         return res.status(500).json({
-            error: "Error al crear producto"
+            error: "Error al crear el producto"
         });
     }
 };
 
-// Helper local para limpiar archivos de Cloudinary si existen
-const cleanupCloudinaryIfExists = async (file: Express.Multer.File | undefined) => {
-    const cloudinaryFile = getCloudinaryFile(file);
-    if (cloudinaryFile?.public_id) {
-        await cleanupCloudinaryFile(cloudinaryFile.public_id);
-    }
-};
+
 
 /* OBTENER PRODUCTO POR ID */
 export const getProductById = async (req: Request, res: Response) => {

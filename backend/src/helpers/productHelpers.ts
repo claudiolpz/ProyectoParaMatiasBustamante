@@ -47,8 +47,14 @@ export const processProductCategory = async (
 
     if (categoryId) {
         categoryResult = await handleCategoryById(categoryId);
-    } else {
+    } else if (categoryName) {
         categoryResult = await handleCategoryByName(categoryName);
+    } else {
+        return {
+            success: false,
+            error: "Se requiere una categoría (ID o nombre)",
+            statusCode: 400
+        };
     }
 
     if (!categoryResult.isValid) {
@@ -59,7 +65,20 @@ export const processProductCategory = async (
         };
     }
 
-    return { success: true, categoryData: categoryResult.categoryData };
+    // Asegurarse de que tenemos un ID válido
+    const categoryData = await prisma.category.findUnique({
+        where: { id: categoryResult.categoryData.connect.id }
+    });
+
+    if (!categoryData) {
+        return {
+            success: false,
+            error: "No se pudo encontrar la categoría",
+            statusCode: 404
+        };
+    }
+
+    return { success: true, categoryData };
 };
 
 // Procesar marca (por ID o nombre)
@@ -86,6 +105,23 @@ export const processProductBrand = async (
         };
     }
 
+    // Si tenemos una marca válida, obtener sus datos completos
+    if (brandResult.brandData?.connect?.id) {
+        const brandData = await prisma.brand.findUnique({
+            where: { id: brandResult.brandData.connect.id }
+        });
+
+        if (brandData) {
+            return { success: true, brandData };
+        }
+    } else if (brandResult.brandData?.create) {
+        // Si es una marca nueva, crearla primero
+        const newBrand = await prisma.brand.create({
+            data: { name: brandResult.brandData.create.name }
+        });
+        return { success: true, brandData: newBrand };
+    }
+
     return { success: true, brandData: brandResult.brandData };
 };
 
@@ -99,16 +135,30 @@ export const createProductInDatabase = async (
     categoryData: any,
     isActive: boolean = true
 ) => {
+    if (!categoryData?.id) {
+        throw new Error('La categoría es obligatoria');
+    }
+
+    const createData: any = {
+        name: name.trim(),
+        price: priceNum,
+        stock: stockNum,
+        image: (imageFile as any)?.path || null,
+        isActive,
+        category: {
+            connect: { id: categoryData.id }
+        }
+    };
+
+    // Manejar la marca
+    if (brandData) {
+        createData.brand = {
+            connect: { id: brandData.id }
+        };
+    }
+
     return await prisma.product.create({
-        data: {
-            name: name.trim(),
-            price: priceNum,
-            stock: stockNum,
-            brand: brandData,
-            image: (imageFile as any)?.path || null,
-            isActive,
-            category: categoryData
-        },
+        data: createData,
         include: {
             category: {
                 select: {
