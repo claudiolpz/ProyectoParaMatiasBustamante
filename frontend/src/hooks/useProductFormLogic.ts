@@ -35,8 +35,10 @@ export const useProductFormLogic = ({
                 name: initialProduct.name,
                 price: initialProduct.price,
                 stock: initialProduct.stock,
+                brandId: initialProduct.brand?.id?.toString() || undefined,
+                brandName: initialProduct.brand?.name || undefined,
                 categoryId: initialProduct.category?.id?.toString() || undefined,
-                categoryName: "",
+                categoryName: initialProduct.category?.name || undefined,
                 image: undefined
             });
         }
@@ -73,26 +75,20 @@ export const useProductFormLogic = ({
 
     // Función para manejar submit
     const handleSubmitProduct = async (formData: CreateProductForm): Promise<boolean> => {
-        try {
-            console.log(`Iniciando ${isEditing ? 'edición' : 'creación'} de producto...`);
-            
+        try {            
             // Usar el prepareProductFormData directamente
             const productData = prepareProductFormData(formData);
             
             // Si hay transactionId en formData, agregarlo
             if (formData.transactionId) {
-                console.log('Agregando transactionId:', formData.transactionId);
                 productData.append('transactionId', formData.transactionId);
             }
-            
-            console.log('Enviando datos al servidor...');
-            
+                        
             const response = isEditing && productId 
                 ? await updateProduct(productId, productData)
                 : await createProduct(productData);
 
-            console.log('Respuesta del servidor:', response);
-            toast.success(response.message);
+                toast.success(response.message);
 
             if (onSuccess) {
                 onSuccess();

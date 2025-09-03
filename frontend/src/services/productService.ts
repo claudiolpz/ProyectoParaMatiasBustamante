@@ -1,6 +1,6 @@
 import { isAxiosError } from "axios";
 import api from "../config/axios";
-import type { Product, Category } from "../types";
+import type { Product, Category, Brand } from "../types";
 
 // Servicio para cargar producto por ID
 export const fetchProductById = async (productId: string): Promise<Product> => {
@@ -26,6 +26,18 @@ export const fetchCategories = async (): Promise<Category[]> => {
         throw new Error('Error al cargar categorías');
     }
 };
+
+// Servicio para cargar marcas
+export const fetchBrands = async (): Promise<Brand[]> => {
+    try {
+        const { data } = await api.get('/brands');
+        return data.brands || data;
+    } catch (error) {
+        console.error('Error al cargar marcas:', error);
+        throw new Error('Error al cargar marcas');
+    }
+};
+
 
 // Servicio para crear producto
 export const createProduct = async (productData: FormData): Promise<any> => {

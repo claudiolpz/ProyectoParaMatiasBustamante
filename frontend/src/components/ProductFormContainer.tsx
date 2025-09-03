@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import Swal from "sweetalert2"; // 👈 Agregar esta importación
+import Swal from "sweetalert2"; // Agregar esta importación
 import { useProductForm } from "../hooks/useProductForm";
 import { useProductSubmit } from "../hooks/useProductSubmit";
 import CategorySelector from "../components/CategorySelector";
@@ -14,12 +14,9 @@ import {
     PaperClipOutlined,
     LoadingOutlined,
 } from "@ant-design/icons";
-import type { CreateProductForm } from "../types";
+import type { CreateProductForm, ProductFormContainerProps } from "../types";
 
-interface ProductFormContainerProps {
-    productId?: string;
-    onSuccess?: () => void;
-}
+
 
 const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProps) => {
     const [isDragOver, setIsDragOver] = useState(false);
@@ -37,7 +34,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         initialProduct
     } = useProductForm({ productId, onSuccess });
 
-    // 🎯 Funciones para SweetAlert2
+    // Funciones para SweetAlert2
     const showLoadingSwal = useCallback((isEditing: boolean) => {
         Swal.fire({
             title: isEditing ? 'Actualizando producto...' : 'Creando producto...',
@@ -161,13 +158,13 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
 
     const navigate = useNavigate();
     
-    // 🎯 Función personalizada para manejar el submit con SweetAlert2
+    // Función personalizada para manejar el submit con SweetAlert2
     const onSubmit = useCallback(
         async (data: CreateProductForm) => {
             if (isSubmitting) return;
 
             try {
-                // 🔥 Mostrar SweetAlert de loading
+                // Mostrar SweetAlert de loading
                 showLoadingSwal(isEditing);
 
                 await handleSubmit(async (transactionId) => {
@@ -176,7 +173,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                         transactionId
                     });
 
-                    // 🔥 Cerrar loading y mostrar resultado
+                    // Cerrar loading y mostrar resultado
                     if (success) {
                         showResultSwal(true, isEditing);
                         
@@ -201,7 +198,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
             } catch (error: any) {
                 console.error('Error en submit:', error);
                 
-                // 🔥 Mostrar error con SweetAlert
+                // Mostrar error con SweetAlert
                 showResultSwal(false, isEditing, error.message || 'Error al procesar el producto');
             }
         },
@@ -319,7 +316,11 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                 encType="multipart/form-data"
             >
                 {/* 1. Nombre y Marca */}
-                <ProductFormFields register={form.register} errors={form.errors} watch={form.watch} />
+                <ProductFormFields
+                    register={form.register}
+                    errors={form.errors}
+                    watch={form.watch}
+                />
 
                 {/* 2. Categoría */}
                 <CategorySelector
@@ -475,7 +476,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     </p>
                 </div>
 
-                {/* 🎯 Botón con loading y SweetAlert */}
+                {/* Botón con loading y SweetAlert */}
                 <button
                     type="submit"
                     disabled={isSubmitting}

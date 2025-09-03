@@ -8,6 +8,8 @@ export const useProductForm = ({ productId, onSuccess }: UseProductFormProps = {
         categories,
         loadingCategories,
         loadingProduct,
+        brands,
+        loadingBrands,
         initialProduct,
         isEditing
     } = useProductData(productId);
@@ -30,6 +32,8 @@ export const useProductForm = ({ productId, onSuccess }: UseProductFormProps = {
         categories,
         loadingCategories,
         loadingProduct,
+        brands,
+        loadingBrands,
         showNewCategoryInput,
         handleSubmitProduct,
         resetForm,
