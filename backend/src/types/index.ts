@@ -4,6 +4,7 @@ export interface UpdateProductRequest {
     price?: number;      
     stock?: number;       
     brandId?: number;
+    brandName?: string;
     categoryId?: number;
     categoryName?: string;
     imageFile?: Express.Multer.File;
@@ -37,6 +38,16 @@ export interface CategorySuccessResult extends UpdateProductResult {
 }
 
 export interface CategoryErrorResult extends UpdateProductResult {
+    success: false;
+    error: string;
+    statusCode: number;
+}
+export interface BrandSuccessResult extends UpdateProductResult {
+    success: true;
+    brandData?: any;
+}
+
+export interface BrandErrorResult extends UpdateProductResult {
     success: false;
     error: string;
     statusCode: number;

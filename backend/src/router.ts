@@ -226,11 +226,17 @@ router.put('/products/:id',
         .isInt({ min: 0 })
         .withMessage('El stock debe ser un número entero mayor o igual a 0'),
 
-    body('brand')
+    body('brandId')
         .optional()
-        .if(body('brand').exists())
-        .isLength({ min: 1, max: 50 })
-        .withMessage('La marca debe tener entre 1 y 50 caracteres')
+        .if(body('brandId').exists())
+        .isInt({ min: 1 })
+        .withMessage('brandId debe ser un número entero válido'),
+
+    body('brandName')
+        .optional()
+        .if(body('brandName').exists())
+        .isLength({ min: 2, max: 50 })
+        .withMessage('El nombre de la marca debe tener entre 2 y 50 caracteres')
         .trim(),
 
     body('categoryId')

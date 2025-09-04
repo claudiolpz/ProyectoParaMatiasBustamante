@@ -7,11 +7,11 @@ import { prepareProductFormData, clearFileInput } from '../utils/formDataHelpers
 import type { CreateProductForm, UseProductFormLogicProps } from "../types";
 
 
-export const useProductFormLogic = ({ 
-    initialProduct, 
-    isEditing, 
-    productId, 
-    onSuccess 
+export const useProductFormLogic = ({
+    initialProduct,
+    isEditing,
+    productId,
+    onSuccess
 }: UseProductFormLogicProps) => {
     const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
@@ -68,26 +68,25 @@ export const useProductFormLogic = ({
         } else {
             reset(initialValues);
         }
-        
+
         setShowNewCategoryInput(false);
         clearFileInput();
     };
 
     // Función para manejar submit
     const handleSubmitProduct = async (formData: CreateProductForm): Promise<boolean> => {
-        try {            
+        try {
             // Usar el prepareProductFormData directamente
             const productData = prepareProductFormData(formData);
             // Si hay transactionId en formData, agregarlo
             if (formData.transactionId) {
                 productData.append('transactionId', formData.transactionId);
             }
-                        
-            const response = isEditing && productId 
+            const response = isEditing && productId
                 ? await updateProduct(productId, productData)
                 : await createProduct(productData);
 
-                toast.success(response.message);
+            toast.success(response.message);
 
             if (onSuccess) {
                 onSuccess();
@@ -118,11 +117,11 @@ export const useProductFormLogic = ({
 const handleSubmitError = (error: any, isEditing: boolean): void => {
     if (isAxiosError(error) && error.response) {
         console.error('Respuesta del servidor:', error.response.data);
-        
+
         if (error.response.data.error) {
             toast.error(error.response.data.error);
         }
-        
+
         if (error.response.data.errors) {
             error.response.data.errors.forEach((err: any) => {
                 if (err.msg) toast.error(err.msg);

@@ -298,10 +298,11 @@ export const sellProduct = async (req: Request, res: Response) => {
 
 /* ACTUALIZAR PRODUCTO COMPLETO */
 export const updateProduct = async (req: Request, res: Response) => {
+
     const productUpdateService = new ProductUpdateService();
     try {
         const { id } = req.params;
-        const { name, price, stock, brandId, categoryId, categoryName, isActive } = req.body;
+        const { name, price, stock, brandId, brandName,categoryId, categoryName, isActive } = req.body;
         const imageFile = req.file;
         const productId = parseInt(id);
 
@@ -309,7 +310,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         const processedPrice = typeof price === 'string' ? price.replace(/\./g, '') : price;
 
         // Construir request dinámicamente
-        const fieldsToUpdate = { name, price: processedPrice, stock, brandId, categoryId, categoryName, isActive };
+        const fieldsToUpdate = { name, price: processedPrice, stock, brandId, brandName, categoryId, categoryName, isActive };
 
         // Filtrar solo campos que tienen valor (no undefined)
         const updateRequest: any = {
