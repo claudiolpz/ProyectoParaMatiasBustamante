@@ -78,7 +78,6 @@ export const useProductFormLogic = ({
         try {            
             // Usar el prepareProductFormData directamente
             const productData = prepareProductFormData(formData);
-            
             // Si hay transactionId en formData, agregarlo
             if (formData.transactionId) {
                 productData.append('transactionId', formData.transactionId);

@@ -31,9 +31,8 @@ export class ProductUpdateService {
                 await this.cleanupImageIfProvided(request.imageFile);
                 return categoryResult;
             }
-
             // 4. Construir datos de actualización (solo campos proporcionados)
-            const updateData = this.buildPartialUpdateData(request, validation.validatedData, categoryResult.categoryData);
+            const updateData = await this.buildPartialUpdateData(request, validation.validatedData, categoryResult.categoryData);
 
             // 5. Manejar imagen
             await this.handleImageUpdate(request, existingProduct.product, updateData);
@@ -166,7 +165,6 @@ export class ProductUpdateService {
                 statusCode: categoryId !== undefined ? 404 : 400
             };
         }
-
         return {
             success: true,
             categoryData: categoryResult.categoryData
@@ -174,40 +172,43 @@ export class ProductUpdateService {
     }
 
     // construir datos parciales
-    private buildPartialUpdateData(
+    private async buildPartialUpdateData(
         request: UpdateProductRequest,
         validatedData: { priceNum?: number; stockNum?: number },
         categoryData?: any
-    ): any {
+    ): Promise<any> {
+
         const { name, brandId } = request;
         const { priceNum, stockNum } = validatedData;
-        
+
         const updateData: any = {};
 
-        // Solo agregar campos que se proporcionaron
         if (name !== undefined) {
             updateData.name = name.trim();
         }
-
         if (priceNum !== undefined) {
             updateData.price = priceNum;
         }
-
         if (stockNum !== undefined) {
             updateData.stock = stockNum;
         }
-
         if (brandId !== undefined) {
-            updateData.brandId = brandId || null;
+            updateData.brandId = Number(brandId) || null;
         }
 
-        if (categoryData !== undefined) {
-            updateData.categoryId = categoryData.id;
+        if (categoryData?.connect?.id) {
+            // Categoría existente
+            updateData.categoryId = categoryData.connect.id;
+        } else if (categoryData?.create?.name) {
+            // Crear nueva categoría primero
+            const newCategory = await prisma.category.create({
+                data: { name: categoryData.create.name }
+            });
+            updateData.categoryId = newCategory.id;
         }
 
         return updateData;
     }
-
     private async handleImageUpdate(
         request: UpdateProductRequest,
         existingProduct: any,
@@ -223,7 +224,7 @@ export class ProductUpdateService {
                     await cleanupCloudinaryFile(oldPublicId);
                 }
             }
-            
+
             // Agregar nueva imagen (URL completa de Cloudinary)
             updateData.image = imageFile.path;
         }

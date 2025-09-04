@@ -3,7 +3,6 @@ import prisma from "../config/prisma";
 // Función para manejar categoría por ID
 export const handleCategoryById = async (categoryId: number) => {
     const categoryIdNum = Number(categoryId);
-
     if (isNaN(categoryIdNum) || categoryIdNum <= 0) {
         return { isValid: false, error: "categoryId debe ser un número válido mayor a 0" };
     }
@@ -15,7 +14,6 @@ export const handleCategoryById = async (categoryId: number) => {
     if (!existingCategory) {
         return { isValid: false, error: "La categoría especificada no existe" };
     }
-
     return {
         isValid: true,
         categoryData: { connect: { id: existingCategory.id } }
@@ -45,7 +43,6 @@ export const handleCategoryByName = async (categoryName: string) => {
     const categoryData = existingCategory
         ? { connect: { id: existingCategory.id } }
         : { create: { name: trimmedCategoryName } };
-
     return { isValid: true, categoryData };
 };
 

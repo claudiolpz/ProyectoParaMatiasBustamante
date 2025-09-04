@@ -323,7 +323,6 @@ export const updateProduct = async (req: Request, res: Response) => {
         if (imageFile) {
             updateRequest.imageFile = imageFile;
         }
-
         const result = await productUpdateService.updateProduct(updateRequest);
 
         if (!result.success) {
