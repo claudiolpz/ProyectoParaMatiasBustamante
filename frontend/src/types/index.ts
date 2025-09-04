@@ -37,6 +37,7 @@ export interface CreateProductForm {
     categoryName?: string;
     image?: FileList;
     isActive?: boolean;
+    transactionId?: string;
 }
 
 export type Category = {

@@ -7,11 +7,11 @@ import { prepareProductFormData, clearFileInput } from '../utils/formDataHelpers
 import type { CreateProductForm, UseProductFormLogicProps } from "../types";
 
 
-export const useProductFormLogic = ({ 
-    initialProduct, 
-    isEditing, 
-    productId, 
-    onSuccess 
+export const useProductFormLogic = ({
+    initialProduct,
+    isEditing,
+    productId,
+    onSuccess
 }: UseProductFormLogicProps) => {
     const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
@@ -19,7 +19,6 @@ export const useProductFormLogic = ({
         name: "",
         price: undefined,
         stock: undefined,
-        sku: "",
         categoryId: undefined,
         categoryName: "",
         image: undefined
@@ -36,9 +35,10 @@ export const useProductFormLogic = ({
                 name: initialProduct.name,
                 price: initialProduct.price,
                 stock: initialProduct.stock,
-                sku: initialProduct.sku || "",
+                brandId: initialProduct.brand?.id?.toString() || undefined,
+                brandName: initialProduct.brand?.name || undefined,
                 categoryId: initialProduct.category?.id?.toString() || undefined,
-                categoryName: "",
+                categoryName: initialProduct.category?.name || undefined,
                 image: undefined
             });
         }
@@ -61,7 +61,6 @@ export const useProductFormLogic = ({
                 name: initialProduct.name,
                 price: initialProduct.price,
                 stock: initialProduct.stock,
-                sku: initialProduct.sku || "",
                 categoryId: initialProduct.category?.id?.toString() || undefined,
                 categoryName: "",
                 image: undefined
@@ -69,7 +68,7 @@ export const useProductFormLogic = ({
         } else {
             reset(initialValues);
         }
-        
+
         setShowNewCategoryInput(false);
         clearFileInput();
     };
@@ -77,16 +76,16 @@ export const useProductFormLogic = ({
     // Función para manejar submit
     const handleSubmitProduct = async (formData: CreateProductForm): Promise<boolean> => {
         try {
-            console.log(`Iniciando ${isEditing ? 'edición' : 'creación'} de producto...`);
-            
+            // Usar el prepareProductFormData directamente
             const productData = prepareProductFormData(formData);
-            console.log('Enviando datos al servidor...');
-            
-            const response = isEditing && productId 
+            // Si hay transactionId en formData, agregarlo
+            if (formData.transactionId) {
+                productData.append('transactionId', formData.transactionId);
+            }
+            const response = isEditing && productId
                 ? await updateProduct(productId, productData)
                 : await createProduct(productData);
 
-            console.log('Respuesta del servidor:', response);
             toast.success(response.message);
 
             if (onSuccess) {
@@ -118,11 +117,11 @@ export const useProductFormLogic = ({
 const handleSubmitError = (error: any, isEditing: boolean): void => {
     if (isAxiosError(error) && error.response) {
         console.error('Respuesta del servidor:', error.response.data);
-        
+
         if (error.response.data.error) {
             toast.error(error.response.data.error);
         }
-        
+
         if (error.response.data.errors) {
             error.response.data.errors.forEach((err: any) => {
                 if (err.msg) toast.error(err.msg);

@@ -113,7 +113,7 @@ const router = createBrowserRouter([
 
 ]);
 
-// En tu main.tsx
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

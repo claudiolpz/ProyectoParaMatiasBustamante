@@ -50,6 +50,16 @@ model Product {
   brand    Brand?   @relation(fields: [brandId], references: [id])
 }
 
+model ProcessedTransaction {
+  id            String   @id
+  type          String   // "create" | "update"
+  entityType    String   // "product" | "sale" etc
+  entityId      Int?     // ID of the created/updated entity
+  createdAt     DateTime @default(now())
+  responseData  Json?    // Store the response data for idempotency
+}
+
+
 model Category {
   id   Int    @id @default(autoincrement())
   name String @unique

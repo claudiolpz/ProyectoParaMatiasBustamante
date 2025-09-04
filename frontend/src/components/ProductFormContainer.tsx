@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import Swal from "sweetalert2"; // Agregar esta importación
 import { useProductForm } from "../hooks/useProductForm";
+import { useProductSubmit } from "../hooks/useProductSubmit";
 import CategorySelector from "../components/CategorySelector";
 import ProductFormFields from "../components/ProductForm";
 import ErrorMessage from "../components/ErrorMessage";
@@ -11,19 +13,15 @@ import {
     CloseCircleOutlined,
     PaperClipOutlined,
     LoadingOutlined,
-
 } from "@ant-design/icons";
-import type { CreateProductForm } from "../types";
+import type { CreateProductForm, ProductFormContainerProps } from "../types";
 
-interface ProductFormContainerProps {
-    productId?: string; // Si existe, modo edición
-    onSuccess?: () => void; // Callback para éxito (útil para navegación)
-}
+
 
 const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProps) => {
-    // Estado para drag & drop
     const [isDragOver, setIsDragOver] = useState(false);
     const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+    const { isSubmitting, handleSubmit } = useProductSubmit(!!productId);
 
     const {
         form,
@@ -36,10 +34,53 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         initialProduct
     } = useProductForm({ productId, onSuccess });
 
+    // Funciones para SweetAlert2
+    const showLoadingSwal = useCallback((isEditing: boolean) => {
+        Swal.fire({
+            title: isEditing ? 'Actualizando producto...' : 'Creando producto...',
+            html: `
+                <div class="flex flex-col items-center py-4">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                    <p class="text-gray-600">Procesando información...</p>
+                </div>
+            `,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            showConfirmButton: false,
+            background: '#fff',
+            customClass: {
+                popup: 'rounded-lg shadow-xl',
+                htmlContainer: 'p-0'
+            }
+        });
+    }, []);
+
+    const showResultSwal = useCallback((success: boolean, isEditing: boolean, message = '') => {
+        let defaultMessage;
+        if (success) {
+            defaultMessage = `Producto ${isEditing ? 'actualizado' : 'creado'} correctamente`;
+        } else {
+            defaultMessage = `Error al ${isEditing ? 'actualizar' : 'crear'} el producto`;
+        }
+
+        Swal.fire({
+            title: success ? '¡Éxito!' : 'Error',
+            text: message || defaultMessage,
+            icon: success ? 'success' : 'error',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#3B82F6',
+            timer: success ? 3000 : undefined,
+            timerProgressBar: success,
+            customClass: {
+                popup: 'rounded-lg shadow-xl'
+            }
+        });
+    }, []);
+
     // Effect para resetear la imagen cuando el formulario se resetea
     useEffect(() => {
         const subscription = form.watch((value) => {
-            // Si todos los campos principales están vacíos, consideramos que se reseteó
             if (!value.name && !value.price && !value.stock && !value.brandId) {
                 setSelectedFileName(null);
             }
@@ -82,7 +123,6 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     fileInput.files = dataTransfer.files;
                     setSelectedFileName(file.name);
 
-                    // Trigger change event para react-hook-form
                     const event = new Event("change", { bubbles: true });
                     fileInput.dispatchEvent(event);
                 }
@@ -94,7 +134,6 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         }
     }, []);
 
-    // Manejar cambio de archivo
     const handleFileChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
@@ -103,7 +142,6 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         []
     );
 
-    // Manejar eliminación de archivo
     const handleRemoveFile = useCallback(
         (e: React.MouseEvent | React.KeyboardEvent) => {
             e.preventDefault();
@@ -119,18 +157,52 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
     );
 
     const navigate = useNavigate();
-    // Función personalizada para manejar el submit
+    
+    // Función personalizada para manejar el submit con SweetAlert2
     const onSubmit = useCallback(
         async (data: CreateProductForm) => {
-            const success = await handleSubmitProduct(data);
+            if (isSubmitting) return;
 
-            // Si el producto se creó exitosamente, resetear la imagen (solo en modo creación)
-            if (success && !isEditing) {
-                setSelectedFileName(null);
+            try {
+                // Mostrar SweetAlert de loading
+                showLoadingSwal(isEditing);
+
+                await handleSubmit(async (transactionId) => {
+                    const success = await handleSubmitProduct({
+                        ...data,
+                        transactionId
+                    });
+
+                    // Cerrar loading y mostrar resultado
+                    if (success) {
+                        showResultSwal(true, isEditing);
+                        
+                        if (!isEditing) {
+                            setSelectedFileName(null);
+                        }
+                        
+                        // Esperar un poco antes de navegar para que el usuario vea el éxito
+                        setTimeout(() => {
+                            if (onSuccess) {
+                                onSuccess();
+                            } else {
+                                navigate('/');
+                            }
+                        }, 2000);
+                    } else {
+                        showResultSwal(false, isEditing);
+                    }
+
+                    return success;
+                });
+            } catch (error: any) {
+                console.error('Error en submit:', error);
+                
+                // Mostrar error con SweetAlert
+                showResultSwal(false, isEditing, error.message || 'Error al procesar el producto');
             }
-            navigate(0);
         },
-        [handleSubmitProduct, isEditing, navigate]
+        [handleSubmit, handleSubmitProduct, isEditing, isSubmitting, navigate, onSuccess, showLoadingSwal, showResultSwal]
     );
 
     // Funciones para obtener clases CSS
@@ -208,17 +280,13 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         <>
             <div className="flex items-center space-x-3 mb-6">
                 {isEditing ? (
-
                     <h1 className="text-4xl text-white font-bold">
                         Editar Producto
                     </h1>
-
                 ) : (
-
                     <h1 className="text-4xl text-white font-bold">
                         Crear Producto
                     </h1>
-
                 )}
             </div>
 
@@ -248,7 +316,11 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                 encType="multipart/form-data"
             >
                 {/* 1. Nombre y Marca */}
-                <ProductFormFields register={form.register} errors={form.errors} watch={form.watch} />
+                <ProductFormFields
+                    register={form.register}
+                    errors={form.errors}
+                    watch={form.watch}
+                />
 
                 {/* 2. Categoría */}
                 <CategorySelector
@@ -302,10 +374,8 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                                 }
                             },
                             onChange: (e) => {
-                                // Formatear precio con puntos mientras el usuario escribe
-                                let value = e.target.value.replace(/\D/g, ''); // Solo números
+                                let value = e.target.value.replace(/\D/g, '');
                                 if (value) {
-                                    // Agregar puntos cada tres dígitos desde la derecha
                                     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
                                 }
                                 e.target.value = value;
@@ -406,11 +476,27 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     </p>
                 </div>
 
-                <input
+                {/* Botón con loading y SweetAlert */}
+                <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 p-3 text-lg w-full uppercase text-white rounded-lg font-bold cursor-pointer transition-colors duration-200"
-                    value={isEditing ? "Actualizar Producto" : "Crear Producto"}
-                />
+                    disabled={isSubmitting}
+                    className={`p-3 text-lg w-full uppercase text-white rounded-lg font-bold transition-colors duration-200 flex items-center justify-center ${
+                        isSubmitting 
+                            ? 'bg-blue-400 cursor-not-allowed' 
+                            : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                    }`}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <LoadingOutlined className="mr-2" />
+                            {isEditing ? "Actualizando..." : "Creando..."}
+                        </>
+                    ) : (
+                        <>
+                            {isEditing ? "Actualizar Producto" : "Crear Producto"}
+                        </>
+                    )}
+                </button>
             </form>
 
             <nav className="mt-4">

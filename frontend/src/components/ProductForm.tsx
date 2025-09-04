@@ -8,7 +8,6 @@ const ProductFormFields = ({ register, errors, watch }: ProductFormFieldsProps) 
     const { brands, loading: loadingBrands, fetchBrands } = useBrands();
     const [showNewBrandInput, setShowNewBrandInput] = useState(false);
     const watchBrandId = watch("brandId");
-
     useEffect(() => {
         fetchBrands();
     }, [fetchBrands]);
