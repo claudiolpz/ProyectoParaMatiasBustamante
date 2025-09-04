@@ -24,12 +24,12 @@ export const validateProductInput = async (
         const brand = await prisma.brand.findUnique({
             where: { id: brandId }
         });
-        
+
         if (!brand) {
             return { success: false, error: "La marca especificada no existe", statusCode: 400, isValid: false };
         }
     }
-    
+
     return {
         success: true,
         isValid: true,
@@ -66,21 +66,37 @@ export const processProductCategory = async (
     }
 
     // Asegurarse de que tenemos un ID válido
-    const categoryData = await prisma.category.findUnique({
-        where: { id: categoryResult.categoryData.connect.id }
-    });
+    if (categoryResult.categoryData?.connect?.id) {
+        const categoryData = await prisma.category.findUnique({
+            where: { id: categoryResult.categoryData.connect.id }
+        });
 
-    if (!categoryData) {
+        if (!categoryData) {
+            return {
+                success: false,
+                error: "No se pudo encontrar la categoría",
+                statusCode: 404
+            };
+        }
+
+        return { success: true, categoryData };
+    }
+    // Si es una categoría nueva a crear
+    else if (categoryResult.categoryData?.create) {
+        const newCategory = await prisma.category.create({
+            data: { name: categoryResult.categoryData.create.name }
+        });
+        return { success: true, categoryData: newCategory };
+    }
+    // Si no hay datos válidos
+    else {
         return {
             success: false,
-            error: "No se pudo encontrar la categoría",
-            statusCode: 404
+            error: "Datos de categoría no válidos",
+            statusCode: 400
         };
     }
-
-    return { success: true, categoryData };
 };
-
 // Procesar marca (por ID o nombre)
 export const processProductBrand = async (
     brandId?: number,
@@ -350,31 +366,32 @@ export const processProductUpdateData = (data: {
     price?: string | number;
     stock?: string | number;
     brandId?: string | number;
+    brandName?: string | number;
     categoryId?: string | number;
     categoryName?: string;
     isActive?: unknown;
     id: string | number;
 }): Record<string, any> => {
     const productId = typeof data.id === 'string' ? parseInt(data.id) : data.id;
-    
+
     let processedPrice;
     if (data.price) {
-        processedPrice = typeof data.price === 'string' ? 
-            data.price.replace(/\./g, '') : 
+        processedPrice = typeof data.price === 'string' ?
+            data.price.replace(/\./g, '') :
             data.price;
     }
 
     let processedBrandId;
     if (data.brandId) {
-        processedBrandId = typeof data.brandId === 'string' ? 
-            parseInt(data.brandId) : 
+        processedBrandId = typeof data.brandId === 'string' ?
+            parseInt(data.brandId) :
             data.brandId;
     }
 
     let processedCategoryId;
     if (data.categoryId) {
-        processedCategoryId = typeof data.categoryId === 'string' ? 
-            parseInt(data.categoryId) : 
+        processedCategoryId = typeof data.categoryId === 'string' ?
+            parseInt(data.categoryId) :
             data.categoryId;
     }
 
@@ -384,6 +401,7 @@ export const processProductUpdateData = (data: {
         price: processedPrice,
         stock: data.stock,
         brandId: processedBrandId,
+        brandName: data.brandName,
         categoryId: processedCategoryId,
         categoryName: data.categoryName,
         isActive: data.isActive !== undefined ? parseBoolean(data.isActive) : undefined
@@ -405,10 +423,10 @@ const parseBoolean = (value: unknown, defaultValue: boolean = false): boolean =>
     if (value === undefined || value === null) {
         return defaultValue;
     }
-    
+
     if (typeof value === 'string') {
         return value.toLowerCase() === 'true';
     }
-    
+
     return Boolean(value);
 };

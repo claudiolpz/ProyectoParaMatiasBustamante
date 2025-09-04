@@ -136,6 +136,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
         // 2. Procesar categoría
         const categoryResult = await processProductCategory(categoryIdNum, categoryName);
+
         if (!categoryResult.success) {
             await cleanupCloudinaryIfExists(imageFile);
             return res.status(categoryResult.statusCode).json({ error: categoryResult.error });

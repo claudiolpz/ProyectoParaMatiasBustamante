@@ -56,9 +56,6 @@ export const createProduct = async (productData: FormData): Promise<any> => {
 
 // Servicio para actualizar producto
 export const updateProduct = async (productId: string, productData: FormData): Promise<any> => {
-    productData.forEach((value, key) => {
-  console.log(key, value);
-});
     const response = await api.put(`/products/${productId}`, productData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
