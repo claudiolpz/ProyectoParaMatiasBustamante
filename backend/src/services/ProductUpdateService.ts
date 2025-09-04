@@ -1,8 +1,8 @@
 import prisma from "../config/prisma";
 import { validatePartialProductData } from "../validators";
 import { cleanupCloudinaryFile, getPublicIdFromUrl } from "../middleware/upload";
-import { handleBrandById, handleBrandByName, handleCategoryById, handleCategoryByName } from "./productService";
-import type { UpdateProductResult, UpdateProductRequest, ValidationSuccessResult, ValidationErrorResult, CategorySuccessResult, CategoryErrorResult, BrandSuccessResult, BrandErrorResult } from "../types/index"
+import type { UpdateProductResult, UpdateProductRequest, ValidationSuccessResult, ValidationErrorResult } from "../types/index"
+import { processProductBrand, processProductCategory } from "../helpers/productHelpers";
 
 // Helper para manejar tipos de Cloudinary
 const getCloudinaryFile = (file: Express.Multer.File | undefined) => file as any;
@@ -26,19 +26,21 @@ export class ProductUpdateService {
             }
 
             // 3.1. Procesar categoría (solo si se proporciona)
-            const categoryResult = await this.processCategoryUpdate(request);
+
+            const categoryResult = await processProductCategory(request.categoryId, request.categoryName);
             if (!categoryResult.success) {
                 await this.cleanupImageIfProvided(request.imageFile);
                 return categoryResult;
             }
             // 3.2. Procesar marca (solo si se proporciona)
-            const brandResult = await this.processBrandUpdate(request);
+            const brandResult = await processProductBrand(request.brandId, request.brandName);
             if (!brandResult.success) {
                 await this.cleanupImageIfProvided(request.imageFile);
                 return brandResult;
             }
+
             // 4. Construir datos de actualización (solo campos proporcionados)
-            const updateData = await this.buildPartialUpdateData(request, validation.validatedData, categoryResult.categoryData, brandResult.brandData);
+            const updateData = await this.buildPartialUpdateData(request, validation.validatedData, categoryResult, brandResult);
 
             // 5. Manejar imagen
             await this.handleImageUpdate(request, existingProduct.product, updateData);
@@ -137,90 +139,12 @@ export class ProductUpdateService {
             }
         };
     }
-
-    private async processCategoryUpdate(
-        request: UpdateProductRequest
-    ): Promise<CategorySuccessResult | CategoryErrorResult> {
-        const { categoryId, categoryName } = request;
-
-        // Si no se proporciona categoría, no hacer nada
-        if (categoryId === undefined && categoryName === undefined) {
-            return {
-                success: true,
-                categoryData: undefined
-            };
-        }
-
-        let categoryResult;
-        if (categoryId !== undefined && categoryId !== null) {
-            categoryResult = await handleCategoryById(categoryId);
-        } else if (categoryName) {
-            categoryResult = await handleCategoryByName(categoryName);
-        } else {
-            return {
-                success: false,
-                error: "Si proporciona categoría, debe ser categoryId o categoryName válido",
-                statusCode: 400
-            };
-        }
-
-        if (!categoryResult.isValid) {
-            return {
-                success: false,
-                error: categoryResult.error,
-                statusCode: categoryId !== undefined ? 404 : 400
-            };
-        }
-        return {
-            success: true,
-            categoryData: categoryResult.categoryData
-        };
-    }
-
-    private async processBrandUpdate(
-        request: UpdateProductRequest
-    ): Promise<BrandSuccessResult | BrandErrorResult> {
-        const { brandId, brandName } = request;
-        // Si no se proporciona categoría, no hacer nada
-        if (brandId === undefined && brandName === undefined) {
-            return {
-                success: true,
-                brandData: undefined
-            };
-        }
-
-        let brandResult;
-        if (brandId !== undefined && brandId !== null) {
-            brandResult = await handleBrandById(brandId);
-        } else if (brandName) {
-            brandResult = await handleBrandByName(brandName);
-        } else {
-            return {
-                success: false,
-                error: "Si proporciona marca, debe ser brandId o brandName válido",
-                statusCode: 400
-            };
-        }
-
-        if (!brandResult.isValid) {
-            return {
-                success: false,
-                error: brandResult.error,
-                statusCode: brandId !== undefined ? 404 : 400
-            };
-        }
-        return {
-            success: true,
-            brandData: brandResult.brandData
-        };
-    }
-
     // construir datos parciales
     private async buildPartialUpdateData(
         request: UpdateProductRequest,
         validatedData: { priceNum?: number; stockNum?: number },
-        categoryData?: any,
-        brandData?: any
+        categoryResult?: any,
+        brandResult?: any
     ): Promise<any> {
 
         const { name } = request;
@@ -237,26 +161,16 @@ export class ProductUpdateService {
         if (stockNum !== undefined) {
             updateData.stock = stockNum;
         }
-        if (brandData?.connect?.id) {
-            // Marca existente
-            updateData.brandId = brandData.connect.id;
-        } else if (brandData?.create?.name) {
-            // Crear nueva marca primero
-            const newBrand = await prisma.brand.create({
-                data: { name: brandData.create.name }
-            });
-            updateData.brandId = newBrand.id;
+        if (categoryResult?.success) {
+            // Categoría existente
+            updateData.categoryId = categoryResult.categoryData.id;
         }
 
-        if (categoryData?.connect?.id) {
-            // Categoría existente
-            updateData.categoryId = categoryData.connect.id;
-        } else if (categoryData?.create?.name) {
-            // Crear nueva categoría primero
-            const newCategory = await prisma.category.create({
-                data: { name: categoryData.create.name }
-            });
-            updateData.categoryId = newCategory.id;
+        if (brandResult?.success.brandData) {
+            // Marca existente
+            updateData.brandId = brandResult.brandData.id;
+        }else{
+            updateData.brandId = null;
         }
 
         return updateData;
@@ -277,7 +191,6 @@ export class ProductUpdateService {
                     await cleanupCloudinaryFile(oldPublicId);
                 }
             }
-
             // Agregar nueva imagen (URL completa de Cloudinary)
             updateData.image = imageFile.path;
         }
