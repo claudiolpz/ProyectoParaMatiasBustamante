@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import Swal from "sweetalert2"; // Agregar esta importación
+import { useSwalAlerts } from "../utils/Swalalerts";
 import { useProductForm } from "../hooks/useProductForm";
 import { useProductSubmit } from "../hooks/useProductSubmit";
 import CategorySelector from "../components/CategorySelector";
@@ -17,13 +17,11 @@ import type { CreateProductForm, ProductFormContainerProps } from "../types";
 import BrandSelector from "./BrandSelector";
 import ProductName from "../components/ProductForm";
 
-
-
 const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProps) => {
     const [isDragOver, setIsDragOver] = useState(false);
     const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
     const { isSubmitting, handleSubmit } = useProductSubmit(!!productId);
-
+    const { showLoadingSwal, showResultSwal } = useSwalAlerts();
     const {
         form,
         categories,
@@ -37,50 +35,6 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         isEditing,
         initialProduct
     } = useProductForm({ productId, onSuccess });
-
-    // Funciones para SweetAlert2
-    const showLoadingSwal = useCallback((isEditing: boolean) => {
-        Swal.fire({
-            title: isEditing ? 'Actualizando producto...' : 'Creando producto...',
-            html: `
-                <div class="flex flex-col items-center py-4">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                    <p class="text-gray-600">Procesando información...</p>
-                </div>
-            `,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            showConfirmButton: false,
-            background: '#fff',
-            customClass: {
-                popup: 'rounded-lg shadow-xl',
-                htmlContainer: 'p-0'
-            }
-        });
-    }, []);
-
-    const showResultSwal = useCallback((success: boolean, isEditing: boolean, message = '') => {
-        let defaultMessage;
-        if (success) {
-            defaultMessage = `Producto ${isEditing ? 'actualizado' : 'creado'} correctamente`;
-        } else {
-            defaultMessage = `Error al ${isEditing ? 'actualizar' : 'crear'} el producto`;
-        }
-
-        Swal.fire({
-            title: success ? '¡Éxito!' : 'Error',
-            text: message || defaultMessage,
-            icon: success ? 'success' : 'error',
-            confirmButtonText: 'Entendido',
-            confirmButtonColor: '#3B82F6',
-            timer: success ? 3000 : undefined,
-            timerProgressBar: success,
-            customClass: {
-                popup: 'rounded-lg shadow-xl'
-            }
-        });
-    }, []);
 
     // Effect para resetear la imagen cuando el formulario se resetea
     useEffect(() => {

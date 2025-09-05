@@ -1,14 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { useAuth, useAuthRoles } from '../context/AuthProvider';
-import Swal from 'sweetalert2';
 import { toast } from 'sonner';
-
+import { useAuth, useAuthRoles } from '../context/AuthProvider';
+import { useSwalAlerts} from '../utils/Swalalerts';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shouldShowAuth, setShouldShowAuth] = useState(false);
   const { user, handleCerrarSesion, handleEstaLogeado, loading } = useAuth();
   const { isAdmin } = useAuthRoles();
+  const { confirmarCerrarSesion } = useSwalAlerts();
+
+ const handleConfirmCerrarSesion = async (isMobile: boolean = false) => {
+  const result = await confirmarCerrarSesion();
+
+  if (result.isConfirmed) {
+    if (isMobile) {
+      setMobileMenuOpen(false);
+    }
+    handleCerrarSesion();
+    toast.success('¡Sesión cerrada exitosamente!');
+  }
+};
 
   useEffect(() => {
     if (!loading) {
@@ -16,68 +28,7 @@ export default function Header() {
     }
   }, [loading]);
 
-  // Función para confirmar cierre de sesión
-  const confirmarCerrarSesion = async () => {
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Quieres cerrar tu sesión actual?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626', // red-600
-      cancelButtonColor: '#6b7280', // gray-500
-      confirmButtonText: 'Sí, cerrar sesión',
-      cancelButtonText: 'Cancelar',
-      background: '#ffffff',
-      color: '#1f2937', // gray-800
-      customClass: {
-        popup: 'rounded-lg shadow-xl select-none',
-        title: 'text-lg font-semibold',
-        htmlContainer: 'text-sm text-gray-600',
-        confirmButton: 'px-4 py-2 rounded-md font-medium',
-        cancelButton: 'px-4 py-2 rounded-md font-medium'
-      },
-      buttonsStyling: true
-    });
-
-    if (result.isConfirmed) {
-
-      handleCerrarSesion();
-      toast.success('¡Sesión cerrada exitosamente!')
-    }
-  };
-
-  // Función para cerrar sesión en móvil (con cierre de menú)
-  const confirmarCerrarSesionMobile = async () => {
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Quieres cerrar tu sesión actual?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Sí, cerrar sesión',
-      cancelButtonText: 'Cancelar',
-      background: '#ffffff',
-      color: '#1f2937',
-      customClass: {
-        popup: 'rounded-lg shadow-xl select-none',
-        title: 'text-lg font-semibold',
-        htmlContainer: 'text-sm text-gray-600',
-        confirmButton: 'px-4 py-2 rounded-md font-medium',
-        cancelButton: 'px-4 py-2 rounded-md font-medium'
-      },
-      buttonsStyling: true
-    });
-
-    if (result.isConfirmed) {
-      // Cerrar menú móvil primero
-      setMobileMenuOpen(false);
-      // Cerrar sesión
-      handleCerrarSesion();
-      toast.success('¡Sesión cerrada exitosamente')
-    }
-  };
-
+  
   // Extraer lógica del ternario anidado
   const renderAuthSection = () => {
     if (loading && !shouldShowAuth) {
@@ -99,7 +50,7 @@ export default function Header() {
             {user?.role || 'user'}
           </span>
           <button
-            onClick={confirmarCerrarSesion}
+            onClick={() => handleConfirmCerrarSesion(false)}
             className="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200"
           >
             Cerrar Sesión
@@ -145,7 +96,7 @@ export default function Header() {
             <p className="text-xs text-gray-500">{user?.role || 'user'}</p>
           </div>
           <button
-            onClick={confirmarCerrarSesionMobile}
+            onClick={() => handleConfirmCerrarSesion(true)}
             className="block w-full text-left rounded-lg px-3 py-2 text-base font-semibold text-red-600 hover:bg-gray-50 transition-colors duration-200"
           >
             Cerrar Sesión
