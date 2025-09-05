@@ -1,4 +1,4 @@
-import type { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 
 export type User = {
   email: string ,
@@ -132,7 +132,6 @@ export type ProductFiltersProps = {
 export type ProductFormFieldsProps = {
     register: UseFormRegister<CreateProductForm>;
     errors: FieldErrors<CreateProductForm>;
-    watch: UseFormWatch<CreateProductForm>;
 }
 
 export type CategorySelectorProps = {
