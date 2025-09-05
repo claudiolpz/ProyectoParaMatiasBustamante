@@ -18,9 +18,7 @@ const LoginView = () => {
     const [resendingEmail, setResendingEmail] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const toastShown = useRef(false);
-
-
-
+    
     // Verificar si ya está logueado al cargar el componente
     useEffect(() => {
         if (!loading) {

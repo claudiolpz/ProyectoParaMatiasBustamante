@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { useAuth, useAuthRoles } from '../context/AuthProvider';
-import { useSwalAlerts } from '../utils/Swalalerts';
+import { useSwalAlerts } from '../utils/swalAlerts';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
