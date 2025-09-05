@@ -43,7 +43,8 @@ export const useProductFormLogic = ({
                 brandName: initialProduct.brand?.name || undefined,
                 categoryId: initialProduct.category?.id?.toString() || undefined,
                 categoryName: initialProduct.category?.name || undefined,
-                image: undefined
+                image: undefined,
+                isActive: initialProduct.isActive || false
             });
         }
     }, [isEditing, initialProduct, reset]);

@@ -6,7 +6,12 @@ import { processProductBrand, processProductCategory } from "../helpers/productH
 
 // Helper para manejar tipos de Cloudinary
 const getCloudinaryFile = (file: Express.Multer.File | undefined) => file as any;
-
+const normalizeBoolean = (value: boolean | string | undefined): boolean | undefined => {
+    if (typeof value === 'boolean') return value;
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+};
 export class ProductUpdateService {
 
     async updateProduct(request: UpdateProductRequest): Promise<UpdateProductResult> {
@@ -39,7 +44,6 @@ export class ProductUpdateService {
             }
             // 5. Construir datos de actualización (solo campos proporcionados)
             const updateData = await this.buildPartialUpdateData(request, validation.validatedData, categoryResult, brandResult);
-
             // 6. Manejar imagen
             await this.handleImageUpdate(request, existingProduct.product, updateData);
 
@@ -51,7 +55,6 @@ export class ProductUpdateService {
                     statusCode: 400
                 };
             }
-
             // 8. Ejecutar actualización
             const updatedProduct = await this.executeUpdate(request.id, updateData);
 
@@ -108,15 +111,15 @@ export class ProductUpdateService {
         request: UpdateProductRequest,
         existingProduct: any
     ): Promise<ValidationSuccessResult | ValidationErrorResult> {
-        const { name, price, stock, categoryId, categoryName } = request;
+        const { name, price, stock, categoryId, categoryName, isActive } = request;
 
-        // CORREGIDO: Usar validatePartialProductData
         const validation = validatePartialProductData({
             name,
             price,
             stock,
             categoryId,
-            categoryName
+            categoryName,
+            isActive
         });
 
         if (!validation.isValid) {
@@ -146,12 +149,17 @@ export class ProductUpdateService {
     ): Promise<any> {
 
         const { name } = request;
+        const normalizedValue = normalizeBoolean(request.isActive);
         const { priceNum, stockNum } = validatedData;
 
         const updateData: any = {};
 
+
         if (name !== undefined) {
             updateData.name = name.trim();
+        }
+        if (normalizedValue !== undefined) {
+            updateData.isActive = normalizedValue;
         }
         if (priceNum !== undefined) {
             updateData.price = priceNum;

@@ -1,82 +1,41 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { useAuth, useAuthRoles } from '../context/AuthProvider';
-import Swal from 'sweetalert2';
 import { toast } from 'sonner';
+import { useAuth, useAuthRoles } from '../context/AuthProvider';
+import { useSwalAlerts } from '../utils/Swalalerts';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shouldShowAuth, setShouldShowAuth] = useState(false);
   const { user, handleCerrarSesion, handleEstaLogeado, loading } = useAuth();
   const { isAdmin } = useAuthRoles();
+  const { confirmarCerrarSesion } = useSwalAlerts();
+
+  // Variables para mejor legibilidad (NUEVAS)
+  const isAuthenticated = handleEstaLogeado();
+  const isUserAdmin = isAdmin();
+  const showAdminLinks = !loading && isAuthenticated && isUserAdmin;
+
+  const handleConfirmCerrarSesion = async (isMobile: boolean = false) => {
+    const result = await confirmarCerrarSesion();
+
+    if (result.isConfirmed) {
+      if (isMobile) {
+        setMobileMenuOpen(false);
+      }
+      handleCerrarSesion();
+      toast.success('¡Sesión cerrada exitosamente!');
+    }
+  };
+
+  // Función para cerrar menú móvil
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   useEffect(() => {
     if (!loading) {
       setShouldShowAuth(true);
     }
   }, [loading]);
-
-  // Función para confirmar cierre de sesión
-  const confirmarCerrarSesion = async () => {
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Quieres cerrar tu sesión actual?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626', // red-600
-      cancelButtonColor: '#6b7280', // gray-500
-      confirmButtonText: 'Sí, cerrar sesión',
-      cancelButtonText: 'Cancelar',
-      background: '#ffffff',
-      color: '#1f2937', // gray-800
-      customClass: {
-        popup: 'rounded-lg shadow-xl select-none',
-        title: 'text-lg font-semibold',
-        htmlContainer: 'text-sm text-gray-600',
-        confirmButton: 'px-4 py-2 rounded-md font-medium',
-        cancelButton: 'px-4 py-2 rounded-md font-medium'
-      },
-      buttonsStyling: true
-    });
-
-    if (result.isConfirmed) {
-
-      handleCerrarSesion();
-      toast.success('¡Sesión cerrada exitosamente!')
-    }
-  };
-
-  // Función para cerrar sesión en móvil (con cierre de menú)
-  const confirmarCerrarSesionMobile = async () => {
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Quieres cerrar tu sesión actual?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Sí, cerrar sesión',
-      cancelButtonText: 'Cancelar',
-      background: '#ffffff',
-      color: '#1f2937',
-      customClass: {
-        popup: 'rounded-lg shadow-xl select-none',
-        title: 'text-lg font-semibold',
-        htmlContainer: 'text-sm text-gray-600',
-        confirmButton: 'px-4 py-2 rounded-md font-medium',
-        cancelButton: 'px-4 py-2 rounded-md font-medium'
-      },
-      buttonsStyling: true
-    });
-
-    if (result.isConfirmed) {
-      // Cerrar menú móvil primero
-      setMobileMenuOpen(false);
-      // Cerrar sesión
-      handleCerrarSesion();
-      toast.success('¡Sesión cerrada exitosamente')
-    }
-  };
 
   // Extraer lógica del ternario anidado
   const renderAuthSection = () => {
@@ -89,7 +48,7 @@ export default function Header() {
       );
     }
 
-    if (handleEstaLogeado()) {
+    if (isAuthenticated) {
       return (
         <div className="flex items-center gap-x-4 animate-fade-in">
           <span className="text-sm text-gray-600">
@@ -99,7 +58,7 @@ export default function Header() {
             {user?.role || 'user'}
           </span>
           <button
-            onClick={confirmarCerrarSesion}
+            onClick={() => handleConfirmCerrarSesion(false)}
             className="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200"
           >
             Cerrar Sesión
@@ -137,7 +96,7 @@ export default function Header() {
       );
     }
 
-    if (handleEstaLogeado()) {
+    if (isAuthenticated) {
       return (
         <div className="space-y-2 animate-fade-in select-none">
           <div className="px-3 py-2">
@@ -145,7 +104,7 @@ export default function Header() {
             <p className="text-xs text-gray-500">{user?.role || 'user'}</p>
           </div>
           <button
-            onClick={confirmarCerrarSesionMobile}
+            onClick={() => handleConfirmCerrarSesion(true)}
             className="block w-full text-left rounded-lg px-3 py-2 text-base font-semibold text-red-600 hover:bg-gray-50 transition-colors duration-200"
           >
             Cerrar Sesión
@@ -158,14 +117,14 @@ export default function Header() {
       <div className="space-y-2 animate-fade-in select-none">
         <Link
           to="/auth/login"
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={closeMobileMenu}
           className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
         >
           Iniciar Sesión
         </Link>
         <Link
           to="/auth/register"
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={closeMobileMenu}
           className="block rounded-lg px-3 py-2 text-base font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
         >
           Registrarse
@@ -177,7 +136,7 @@ export default function Header() {
   return (
     <header className="bg-white shadow-sm select-none">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
-        {/* Logo - Siempre visible */}
+        {/* Logo */}
         <div className="flex lg:flex-1">
           <Link to="/" className="-m-1.5 p-1.5">
             <img alt="Logo" src="/mancuerna.svg" className="h-8 w-auto" />
@@ -198,20 +157,19 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Desktop Navigation - Productos siempre visible */}
+        {/* Desktop Navigation */}
         <div className="hidden lg:flex lg:gap-x-12">
-          {/* Productos - Siempre visible para todos los usuarios */}
           <Link to="/" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
             Productos
           </Link>
 
           {/* Enlaces solo para usuarios autenticados y admin */}
-          {(!loading && handleEstaLogeado() && isAdmin()) && (
+          {showAdminLinks && (
             <>
               <Link to="/products/create" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
                 Crear Producto
               </Link>
-              <Link to="/Sales" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
+              <Link to="/sales" className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200">
                 Ventas
               </Link>
             </>
@@ -231,17 +189,17 @@ export default function Header() {
           <button
             type="button"
             className="fixed inset-0 z-50 bg-black bg-opacity-25 animate-fade-in cursor-default"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={closeMobileMenu}
             aria-label="Cerrar menú"
           />
           <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white p-6 sm:max-w-sm border-l animate-slide-in-right">
             <div className="flex items-center justify-between">
-              <Link to="/" className="-m-1.5 p-1.5" onClick={() => setMobileMenuOpen(false)}>
+              <Link to="/" className="-m-1.5 p-1.5" onClick={closeMobileMenu}>
                 <img alt="Logo" src="/mancuerna.svg" className="h-8 w-auto" />
               </Link>
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
                 className="-m-2.5 rounded-md p-2.5 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
               >
                 <span className="sr-only">Cerrar menú</span>
@@ -254,29 +212,27 @@ export default function Header() {
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-2 py-6">
-
-                  {/* Productos - Siempre visible en mobile también */}
                   <Link
                     to="/"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                     className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
                   >
                     Productos
                   </Link>
 
                   {/* Mobile navigation - Solo mostrar enlaces admin si está autenticado y es admin */}
-                  {(!loading && handleEstaLogeado() && isAdmin()) && (
+                  {showAdminLinks && (
                     <>
                       <Link
                         to="/products/create"
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={closeMobileMenu}
                         className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
                       >
                         Crear Producto
                       </Link>
                       <Link
                         to="/sales"
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={closeMobileMenu}
                         className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
                       >
                         Ventas
