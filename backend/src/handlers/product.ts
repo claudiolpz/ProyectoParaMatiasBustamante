@@ -302,7 +302,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     const productUpdateService = new ProductUpdateService();
     try {
         const { id } = req.params;
-        const { name, price, stock, brandId, brandName,categoryId, categoryName, isActive } = req.body;
+        const { name, price, stock, brandId, brandName, categoryId, categoryName, isActive } = req.body;
         const imageFile = req.file;
         const productId = parseInt(id);
         // Procesar precio removiendo puntos (para formato chileno: 12.000 -> 12000)

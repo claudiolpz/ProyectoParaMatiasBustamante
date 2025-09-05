@@ -15,6 +15,9 @@ export const prepareProductFormData = (formData: CreateProductForm): FormData =>
         productData.append('stock', formData.stock.toString());
     }
 
+    if (formData.isActive !== undefined) {
+        productData.append('isActive', formData.isActive.toString());
+    }
 
     addBrandToFormData(productData, formData);
     addCategoryToFormData(productData, formData);
