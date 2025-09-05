@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { useSwalAlerts } from "../utils/Swalalerts";
+import { useSwalAlerts } from "../utils/swalAlerts";
 import { useProductForm } from "../hooks/useProductForm";
 import { useProductSubmit } from "../hooks/useProductSubmit";
 import CategorySelector from "../components/CategorySelector";
