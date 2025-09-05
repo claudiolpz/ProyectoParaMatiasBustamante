@@ -1,4 +1,4 @@
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import { ProductUpdateService } from "../services/ProductUpdateService";
 import { cleanupCloudinaryFile } from '../middleware/upload';
