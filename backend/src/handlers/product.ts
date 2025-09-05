@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import prisma from "../config/prisma";
 import { ProductUpdateService } from "../services/ProductUpdateService";
 import { cleanupCloudinaryFile } from '../middleware/upload';
@@ -299,14 +299,12 @@ export const sellProduct = async (req: Request, res: Response) => {
 
 /* ACTUALIZAR PRODUCTO COMPLETO */
 export const updateProduct = async (req: Request, res: Response) => {
-
     const productUpdateService = new ProductUpdateService();
     try {
         const { id } = req.params;
         const { name, price, stock, brandId, brandName,categoryId, categoryName, isActive } = req.body;
         const imageFile = req.file;
         const productId = parseInt(id);
-
         // Procesar precio removiendo puntos (para formato chileno: 12.000 -> 12000)
         const processedPrice = typeof price === 'string' ? price.replace(/\./g, '') : price;
 

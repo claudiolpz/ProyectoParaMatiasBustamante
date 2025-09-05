@@ -14,6 +14,7 @@ export const useProductFormLogic = ({
     onSuccess
 }: UseProductFormLogicProps) => {
     const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+    const [showNewBrandInput, setShowNewBrandInput] = useState(false);
 
     const initialValues: CreateProductForm = {
         name: "",
@@ -21,12 +22,15 @@ export const useProductFormLogic = ({
         stock: undefined,
         categoryId: undefined,
         categoryName: "",
+        brandId: undefined,
+        brandName: "",
         image: undefined
     };
 
     const form = useForm({ defaultValues: initialValues });
     const { register, reset, handleSubmit, watch, setValue, getValues, formState: { errors } } = form;
     const watchCategoryId = watch("categoryId");
+    const watchBrandId = watch("brandId");
 
     // Llenar formulario cuando se carga el producto
     useEffect(() => {
@@ -54,6 +58,16 @@ export const useProductFormLogic = ({
         }
     }, [watchCategoryId, setValue]);
 
+    // Manejar cambio de marca
+    useEffect(() => {
+        if (watchBrandId === "0") {
+            setShowNewBrandInput(true);
+        } else {
+            setShowNewBrandInput(false);
+            setValue("brandName", "");
+        }
+    }, [watchBrandId, setValue]);
+
     // Función para resetear completamente el formulario
     const resetFormCompletely = () => {
         if (isEditing && initialProduct) {
@@ -63,6 +77,8 @@ export const useProductFormLogic = ({
                 stock: initialProduct.stock,
                 categoryId: initialProduct.category?.id?.toString() || undefined,
                 categoryName: "",
+                brandId: initialProduct.brand?.id?.toString() || undefined,
+                brandName: "",
                 image: undefined
             });
         } else {
@@ -70,6 +86,7 @@ export const useProductFormLogic = ({
         }
 
         setShowNewCategoryInput(false);
+        setShowNewBrandInput(false);
         clearFileInput();
     };
 
@@ -78,6 +95,7 @@ export const useProductFormLogic = ({
         try {
             // Usar el prepareProductFormData directamente
             const productData = prepareProductFormData(formData);
+
             // Si hay transactionId en formData, agregarlo
             if (formData.transactionId) {
                 productData.append('transactionId', formData.transactionId);
@@ -108,6 +126,7 @@ export const useProductFormLogic = ({
     return {
         form: { register, handleSubmit, errors, getValues, setValue, watch, reset },
         showNewCategoryInput,
+        showNewBrandInput,
         handleSubmitProduct,
         resetForm: resetFormCompletely
     };

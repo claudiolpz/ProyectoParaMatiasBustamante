@@ -205,7 +205,6 @@ router.put('/products/:id',
     param('id')
         .isInt({ min: 1 })
         .withMessage('El ID debe ser un número entero válido'),
-
     // Validaciones condicionales
     body('name')
         .optional()
@@ -213,38 +212,32 @@ router.put('/products/:id',
         .notEmpty()
         .withMessage('El nombre del producto no puede estar vacío')
         .trim(),
-
     body('price')
         .optional()
         .if(body('price').exists())
         .isInt({ min: 1 })
         .withMessage('El precio debe ser un número entero mayor a 0 (pesos chilenos)'),
-
     body('stock')
         .optional()
         .if(body('stock').exists())
         .isInt({ min: 0 })
         .withMessage('El stock debe ser un número entero mayor o igual a 0'),
-
     body('brandId')
         .optional()
         .if(body('brandId').exists())
         .isInt({ min: 1 })
         .withMessage('brandId debe ser un número entero válido'),
-
     body('brandName')
         .optional()
         .if(body('brandName').exists())
         .isLength({ min: 2, max: 50 })
         .withMessage('El nombre de la marca debe tener entre 2 y 50 caracteres')
         .trim(),
-
     body('categoryId')
         .optional()
         .if(body('categoryId').exists())
         .isInt({ min: 1 })
         .withMessage('categoryId debe ser un número entero válido'),
-
     body('categoryName')
         .optional()
         .if(body('categoryName').exists())
@@ -255,7 +248,6 @@ router.put('/products/:id',
         .optional()
         .isBoolean()
         .withMessage('isActive debe ser un valor booleano'),
-
     handleInputErrors,
     updateProduct);
 

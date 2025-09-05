@@ -25,27 +25,25 @@ export class ProductUpdateService {
                 return validation;
             }
 
-            // 3.1. Procesar categoría (solo si se proporciona)
-
+            // 3. Procesar categoría (solo si se proporciona)
             const categoryResult = await processProductCategory(request.categoryId, request.categoryName);
             if (!categoryResult.success) {
                 await this.cleanupImageIfProvided(request.imageFile);
                 return categoryResult;
             }
-            // 3.2. Procesar marca (solo si se proporciona)
+            // 4. Procesar marca (solo si se proporciona)
             const brandResult = await processProductBrand(request.brandId, request.brandName);
             if (!brandResult.success) {
                 await this.cleanupImageIfProvided(request.imageFile);
                 return brandResult;
             }
-
-            // 4. Construir datos de actualización (solo campos proporcionados)
+            // 5. Construir datos de actualización (solo campos proporcionados)
             const updateData = await this.buildPartialUpdateData(request, validation.validatedData, categoryResult, brandResult);
 
-            // 5. Manejar imagen
+            // 6. Manejar imagen
             await this.handleImageUpdate(request, existingProduct.product, updateData);
 
-            // 6. Verificar que hay algo para actualizar
+            // 7. Verificar que hay algo para actualizar
             if (Object.keys(updateData).length === 0) {
                 return {
                     success: false,
@@ -54,7 +52,7 @@ export class ProductUpdateService {
                 };
             }
 
-            // 7. Ejecutar actualización
+            // 8. Ejecutar actualización
             const updatedProduct = await this.executeUpdate(request.id, updateData);
 
             return {
@@ -166,10 +164,10 @@ export class ProductUpdateService {
             updateData.categoryId = categoryResult.categoryData.id;
         }
 
-        if (brandResult?.success.brandData) {
+        if (brandResult?.brandData !== null && brandResult?.success) {
             // Marca existente
             updateData.brandId = brandResult.brandData.id;
-        }else{
+        } else {
             updateData.brandId = null;
         }
 

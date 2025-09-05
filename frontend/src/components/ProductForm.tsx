@@ -1,21 +1,7 @@
 import type { ProductFormFieldsProps } from "../types";
 import ErrorMessage from "./ErrorMessage";
-import BrandSelector from "./BrandSelector";
-import { useBrands } from "../hooks/useBrands";
-import { useEffect, useState } from "react";
 
-const ProductFormFields = ({ register, errors, watch }: ProductFormFieldsProps) => {
-    const { brands, loading: loadingBrands, fetchBrands } = useBrands();
-    const [showNewBrandInput, setShowNewBrandInput] = useState(false);
-    const watchBrandId = watch("brandId");
-    useEffect(() => {
-        fetchBrands();
-    }, [fetchBrands]);
-
-    useEffect(() => {
-        setShowNewBrandInput(watchBrandId === "0");
-    }, [watchBrandId]);
-
+const ProductName = ({ register, errors }: ProductFormFieldsProps) => {
     return (
         <>
             {/* 1. Nombre del producto */}
@@ -34,17 +20,8 @@ const ProductFormFields = ({ register, errors, watch }: ProductFormFieldsProps) 
                 />
                 {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
             </div>
-
-            {/* 2. Marca */}
-            <BrandSelector
-                register={register}
-                errors={errors}
-                brands={brands}
-                loadingBrands={loadingBrands}
-                showNewBrandInput={showNewBrandInput}
-            />
         </>
     );
 };
 
-export default ProductFormFields;
+export default ProductName;

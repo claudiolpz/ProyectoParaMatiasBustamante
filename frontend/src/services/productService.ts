@@ -59,5 +59,6 @@ export const updateProduct = async (productId: string, productData: FormData): P
     const response = await api.put(`/products/${productId}`, productData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
+    console.log('Respuesta de actualización:', response.data);
     return response.data;
 };

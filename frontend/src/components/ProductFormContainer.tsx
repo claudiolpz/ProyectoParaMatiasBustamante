@@ -5,7 +5,6 @@ import Swal from "sweetalert2"; // Agregar esta importación
 import { useProductForm } from "../hooks/useProductForm";
 import { useProductSubmit } from "../hooks/useProductSubmit";
 import CategorySelector from "../components/CategorySelector";
-import ProductFormFields from "../components/ProductForm";
 import ErrorMessage from "../components/ErrorMessage";
 import {
     CameraOutlined,
@@ -15,6 +14,8 @@ import {
     LoadingOutlined,
 } from "@ant-design/icons";
 import type { CreateProductForm, ProductFormContainerProps } from "../types";
+import BrandSelector from "./BrandSelector";
+import ProductName from "../components/ProductForm";
 
 
 
@@ -27,8 +28,11 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         form,
         categories,
         loadingCategories,
-        loadingProduct,
         showNewCategoryInput,
+        loadingProduct,
+        brands,
+        loadingBrands,
+        showNewBrandInput,
         handleSubmitProduct,
         isEditing,
         initialProduct
@@ -157,7 +161,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
     );
 
     const navigate = useNavigate();
-    
+
     // Función personalizada para manejar el submit con SweetAlert2
     const onSubmit = useCallback(
         async (data: CreateProductForm) => {
@@ -176,11 +180,11 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     // Cerrar loading y mostrar resultado
                     if (success) {
                         showResultSwal(true, isEditing);
-                        
+
                         if (!isEditing) {
                             setSelectedFileName(null);
                         }
-                        
+
                         // Esperar un poco antes de navegar para que el usuario vea el éxito
                         setTimeout(() => {
                             if (onSuccess) {
@@ -197,7 +201,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                 });
             } catch (error: any) {
                 console.error('Error en submit:', error);
-                
+
                 // Mostrar error con SweetAlert
                 showResultSwal(false, isEditing, error.message || 'Error al procesar el producto');
             }
@@ -315,14 +319,21 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                 className="bg-white px-5 py-8 rounded-lg space-y-8 mt-6"
                 encType="multipart/form-data"
             >
-                {/* 1. Nombre y Marca */}
-                <ProductFormFields
+                {/* 1. Nombre */}
+                <ProductName
                     register={form.register}
                     errors={form.errors}
-                    watch={form.watch}
+                />
+                {/* 2. Marca */}
+                <BrandSelector
+                    register={form.register}
+                    errors={form.errors}
+                    brands={brands}
+                    loadingBrands={loadingBrands}
+                    showNewBrandInput={showNewBrandInput}
                 />
 
-                {/* 2. Categoría */}
+                {/* 3. Categoría */}
                 <CategorySelector
                     register={form.register}
                     errors={form.errors}
@@ -331,7 +342,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     showNewCategoryInput={showNewCategoryInput}
                 />
 
-                {/* 3. Stock */}
+                {/* 5. Stock */}
                 <div className="grid grid-cols-1 space-y-3">
                     <label htmlFor="stock" className="text-2xl text-slate-500">
                         Stock
@@ -353,7 +364,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     )}
                 </div>
 
-                {/* 4. Precio */}
+                {/* 6. Precio */}
                 <div className="grid grid-cols-1 space-y-3">
                     <label htmlFor="price" className="text-2xl text-slate-500">
                         Precio
@@ -390,7 +401,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     </p>
                 </div>
 
-                {/* 5. Imagen */}
+                {/* 7. Imagen */}
                 <div className="grid grid-cols-1 space-y-3">
                     <label htmlFor="image" className="text-2xl text-slate-500">
                         {isEditing ? 'Cambiar Imagen (Opcional)' : 'Imagen del Producto (Opcional)'}
@@ -452,7 +463,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                     )}
                 </div>
 
-                {/* 6. Estado Activo */}
+                {/* 8. Estado Activo */}
                 <div className="space-y-3">
                     <label htmlFor="isActive" className="text-2xl text-slate-500">
                         Estado del Producto
@@ -480,11 +491,10 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`p-3 text-lg w-full uppercase text-white rounded-lg font-bold transition-colors duration-200 flex items-center justify-center ${
-                        isSubmitting 
-                            ? 'bg-blue-400 cursor-not-allowed' 
+                    className={`p-3 text-lg w-full uppercase text-white rounded-lg font-bold transition-colors duration-200 flex items-center justify-center ${isSubmitting
+                            ? 'bg-blue-400 cursor-not-allowed'
                             : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-                    }`}
+                        }`}
                 >
                     {isSubmitting ? (
                         <>
