@@ -432,3 +432,11 @@ export interface BrandSelectorProps {
     loadingBrands: boolean;
     showNewBrandInput: boolean;
 }
+
+export interface UseTransactionResult {
+  transactionId: string;
+  isLoading: boolean;
+  startTransaction: () => void;
+  completeTransaction: () => void;
+  clearTransaction: () => void;
+}

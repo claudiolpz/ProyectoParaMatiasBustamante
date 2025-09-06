@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface UseTransactionResult {
-  transactionId: string;
-  isLoading: boolean;
-  startTransaction: () => void;
-  completeTransaction: () => void;
-  clearTransaction: () => void;
-}
+import type { UseTransactionResult } from '../types';
 
 export const useTransaction = (type: 'create' | 'update'): UseTransactionResult => {
   const [transactionId, setTransactionId] = useState<string>('');

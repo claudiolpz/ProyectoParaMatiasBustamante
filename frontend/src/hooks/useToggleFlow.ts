@@ -9,7 +9,6 @@ import {
 import type { UseToggleFlowProps } from '../types';
 
 
-
 export const useToggleFlow = ({ products, onRefresh }: UseToggleFlowProps) => {
   const { toggleStatus, loading } = useProductToggle();
 

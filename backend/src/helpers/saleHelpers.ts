@@ -1,4 +1,5 @@
-import type {SalePaginationParams} from "../types";
+import { DateTime } from 'luxon'; 
+import type { SalePaginationParams } from "../types";
 
 // Validar parámetros de query para ventas
 export const validateSaleQueryParams = (query: any) => {
@@ -8,7 +9,7 @@ export const validateSaleQueryParams = (query: any) => {
 
     const userId = query.userId ? parseInt(query.userId as string) : undefined;
     const productId = query.productId ? parseInt(query.productId as string) : undefined;
-    const categoryId = query.categoryId ? parseInt(query.categoryId as string) : undefined; 
+    const categoryId = query.categoryId ? parseInt(query.categoryId as string) : undefined;
 
     //Busqueda por texto
     const search = query.search ? query.search.toString().trim() : undefined;
@@ -16,7 +17,7 @@ export const validateSaleQueryParams = (query: any) => {
     // Fechas de filtro
     const startDate = query.startDate ? new Date(query.startDate as string) : undefined;
     const endDate = query.endDate ? new Date(query.endDate as string) : undefined;
-    
+
     // Ordenamiento
     const orderBy = query.orderBy as string || 'createdAt';
     const order = query.order as string || 'desc';
@@ -97,15 +98,17 @@ const buildDateClause = (startDate?: Date, endDate?: Date) => {
     if (!startDate && !endDate) return null;
 
     const dateClause: any = {};
-    
+
     if (startDate) {
         const startStr = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
-        dateClause.gte = new Date(startStr + 'T00:00:00.000');
+        const startChile = DateTime.fromISO(startStr + 'T00:00:00', { zone: 'America/Santiago' });
+        dateClause.gte = startChile.toUTC().toJSDate();
     }
-    
+
     if (endDate) {
         const endStr = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
-        dateClause.lte = new Date(endStr + 'T23:59:59.999');
+        const endChile = DateTime.fromISO(endStr + 'T23:59:59.999', { zone: 'America/Santiago' });
+        dateClause.lte = endChile.toUTC().toJSDate();
     }
 
     return dateClause;

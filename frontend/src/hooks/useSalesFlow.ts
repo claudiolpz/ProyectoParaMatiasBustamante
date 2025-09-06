@@ -7,12 +7,8 @@ import {
   showSuccessModal,
   showErrorModal
 } from '../utils/productModals';
-import type { Product } from '../types';
+import type { UseSalesFlowProps } from '../types';
 
-interface UseSalesFlowProps {
-  products: Product[] | undefined;
-  onRefresh: () => void;
-}
 
 export const useSalesFlow = ({ products, onRefresh }: UseSalesFlowProps) => {
   const { sellProduct, loading } = useSales();
