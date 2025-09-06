@@ -13,7 +13,6 @@ export async function getUser() {
     }
 } 
 
-// === MARCAS ===
 export async function getBrands() {
     try {
         const { data } = await api.get('/brands');

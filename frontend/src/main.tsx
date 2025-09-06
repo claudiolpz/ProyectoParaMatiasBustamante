@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-import SobreNosotrosView from "./views/SobreNosotrosView";
 import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
 import CreateProduct from "./views/CreateProduct";
@@ -101,11 +100,6 @@ const router = createBrowserRouter([
             ),
           },
         ]
-      },
-
-      {
-        path: "/sobre-nosotros",
-        element: <SobreNosotrosView />,
       },
 
     ]
