@@ -67,7 +67,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/auth/register",
+            path: "/auth/secret/register",
             element: (
               <GuestRoute>
                 <RegisterView />

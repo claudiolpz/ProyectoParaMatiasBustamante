@@ -314,13 +314,6 @@ const SalesTable = () => {
                                         <LoginOutlined className="mr-1.5" />
                                         Iniciar Sesión
                                     </Link>
-                                    <Link
-                                        to="/auth/register"
-                                        className="inline-flex items-center px-3 py-1.5 bg-slate-600 text-white text-sm font-medium rounded-md hover:bg-slate-700 transition-colors duration-200"
-                                    >
-                                        <UserAddOutlined className="mr-1.5" />
-                                        Registrarse
-                                    </Link>
                                 </div>
                             </div>
                         </div>

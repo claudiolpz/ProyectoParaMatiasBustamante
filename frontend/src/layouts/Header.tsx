@@ -71,15 +71,9 @@ export default function Header() {
       <div className="flex items-center gap-x-4 animate-fade-in select-none">
         <Link
           to="/auth/login"
-          className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200"
+          className="block rounded-lg px-3 py-2 text-base font-semibold bg-blue-600 text-white hover:bg-blue-950 transition-colors duration-200"
         >
           Iniciar Sesión
-        </Link>
-        <Link
-          to="/auth/register"
-          className="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-        >
-          Registrarse
         </Link>
       </div>
     );
@@ -118,16 +112,9 @@ export default function Header() {
         <Link
           to="/auth/login"
           onClick={closeMobileMenu}
-          className="block rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+          className="block rounded-lg px-3 py-2 text-base font-semibold bg-blue-600 text-white hover:bg-blue-950 transition-colors duration-200"
         >
           Iniciar Sesión
-        </Link>
-        <Link
-          to="/auth/register"
-          onClick={closeMobileMenu}
-          className="block rounded-lg px-3 py-2 text-base font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
-        >
-          Registrarse
         </Link>
       </div>
     );
