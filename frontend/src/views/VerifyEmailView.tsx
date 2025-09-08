@@ -145,12 +145,6 @@ const VerifyEmailView = () => {
                                 </button>
                             )}
                             <Link
-                                to="/auth/register"
-                                className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-center"
-                            >
-                                Registrarse de nuevo
-                            </Link>
-                            <Link
                                 to="/auth/login"
                                 className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-center"
                             >
@@ -176,12 +170,6 @@ const VerifyEmailView = () => {
                                 className="block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-center"
                             >
                                 Ir al Login
-                            </Link>
-                            <Link
-                                to="/auth/register"
-                                className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-center"
-                            >
-                                Registrarse de nuevo
                             </Link>
                         </div>
                     </div>

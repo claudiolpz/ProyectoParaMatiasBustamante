@@ -31,14 +31,6 @@ const HomeView = () => {
                     Login
                 </NavLink>
                 <NavLink
-                    to="/auth/register"
-                    className={({ isActive }) =>
-                        isActive ? "text-blue-600 font-bold underline" : "text-gray-600"
-                    }
-                >
-                    register
-                </NavLink>
-                <NavLink
                     to="/products/create"
                     className={({ isActive }) =>
                         isActive ? "text-blue-600 font-bold underline" : "text-gray-600"

@@ -85,12 +85,6 @@ const ForgotPasswordView = () => {
                         >
                             Volver a Iniciar Sesión 
                         </Link>
-                        <Link
-                            to="/auth/register"
-                            className="block text-blue-400 hover:underline  hover:text-white"
-                        >
-                            Crear cuenta nueva
-                        </Link>
                     </div>
                 </>
             ) : (
@@ -115,13 +109,7 @@ const ForgotPasswordView = () => {
                             to="/auth/login"
                             className="block text-blue-400 hover:underline"
                         >
-                            Volver al login
-                        </Link>
-                        <Link
-                            to="/auth/register"
-                            className="block text-blue-400 hover:underline"
-                        >
-                            Crear cuenta nueva
+                            Volver a Iniciar Sesión
                         </Link>
                     </div>
                 </>

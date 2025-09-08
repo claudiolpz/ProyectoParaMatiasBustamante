@@ -9,7 +9,7 @@ const Error404 = () => {
   };
 
   const handleGoProducts = () => {
-    navigate('/products');
+    navigate('/');
   };
 
   return (
