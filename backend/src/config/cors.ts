@@ -5,6 +5,7 @@ export const corsConfig: CorsOptions = {
 
     const whitelist: (string | undefined)[] = [
       process.env.FRONTEND_URL,
+      process.env.CLOUDINARY_URL
     ];
 
     // Permitir llamadas internas backend → backend (sin Origin)
