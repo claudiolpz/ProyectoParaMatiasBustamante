@@ -15,24 +15,31 @@ const CategorySelector = ({
                 <label htmlFor="categoryId" className="text-2xl text-slate-500">
                     Categoría
                 </label>
-                <select
-                    id="categoryId"
-                    className="bg-slate-100 border-none p-3 rounded-lg"
-                    {...register("categoryId", {
-                        required: showNewCategoryInput ? false : "Debe Seleccionar una Categoría"
-                    })}
-                    disabled={loadingCategories}
-                >
-                    <option value="">
-                        {loadingCategories ? "Cargando categorías..." : "Seleccionar categoría"}
-                    </option>
-                    {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                            {category.name}
+                <div className="relative">
+                    <select
+                        id="categoryId"
+                        className="bg-slate-100 border-none p-3 rounded-lg appearance-none w-full pr-10"
+                        {...register("categoryId", {
+                            required: showNewCategoryInput ? false : "Debe Seleccionar una Categoría"
+                        })}
+                        disabled={loadingCategories}
+                    >
+                        <option value="">
+                            {loadingCategories ? "Cargando categorías..." : "Seleccionar categoría"}
                         </option>
-                    ))}
-                    <option value="0">Crear nueva categoría</option>
-                </select>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                        <option value="0">Crear nueva categoría</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
                 {errors.categoryId && <ErrorMessage>{errors.categoryId.message}</ErrorMessage>}
             </div>
 

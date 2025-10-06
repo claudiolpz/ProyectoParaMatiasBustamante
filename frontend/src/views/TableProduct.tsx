@@ -212,9 +212,9 @@ const TableProduct = () => {
           {renderSortableHeader('brand', 'Marca', 'min-w-[100px]')}
           {renderSortableHeader('category', 'Categoría', 'min-w-[120px]')}
           {renderSortableHeader('price', 'Precio', 'min-w-[100px]')}
-          {renderSortableHeader('stock', 'Stock', 'min-w-[100px]')}
-          
-
+           
+          {/* Columna de stock solo para admin */}
+          {(handleEstaLogeado() && isAdmin()) && renderSortableHeader('stock', 'Stock', 'min-w-[100px]')}
           {/* Columna de acciones solo para admin */}
           {(handleEstaLogeado() && isAdmin()) && (
             <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider w-24">
@@ -313,12 +313,14 @@ const TableProduct = () => {
           </span>
         </td>
 
-        {/* STOCK CON HELPER - Sin ternarios anidados */}
-        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStockBadgeStyleDetailed(product)}`}>
-            {product.stock}
-          </span>
-        </td>
+          {/* STOCK CON HELPER - Sin ternarios anidados - Solo visible para admin */}
+        {isUserAdmin && (
+          <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStockBadgeStyleDetailed(product)}`}>
+              {product.stock}
+            </span>
+          </td>
+        )}
 
         {/* Acciones con botón toggle en vez de eliminar */}
         {isUserAdmin && (
@@ -362,8 +364,8 @@ const TableProduct = () => {
   return (
     <div className="w-full min-h-screen bg-slate-800">
       {/* Header */}
-      <div className="bg-slate-900 shadow-lg border-b border-slate-700 px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-slate-900 shadow-lg border-b border-slate-700 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">
@@ -376,6 +378,7 @@ const TableProduct = () => {
                 } (10 por página)
               </p>
             </div>
+
             {/* Botón Crear Producto solo para admin */}
             {handleEstaLogeado() && isAdmin() && (
               <Link

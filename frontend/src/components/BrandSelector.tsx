@@ -15,9 +15,12 @@ const BrandSelector = ({
                 <label htmlFor="brandId" className="text-2xl text-slate-500">
                     Marca
                 </label>
+                <div className="relative">
+
+                
                 <select
                     id="brandId"
-                    className="bg-slate-100 border-none p-3 rounded-lg"
+                    className="bg-slate-100 border-none p-3 rounded-lg appearance-none w-full pr-10"
                     {...register("brandId", {
                         required: false // Marca no es obligatoria
                     })}
@@ -33,6 +36,12 @@ const BrandSelector = ({
                     ))}
                     <option value="0">Crear nueva marca</option>
                 </select>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
                 {errors.brandId && <ErrorMessage>{errors.brandId.message}</ErrorMessage>}
             </div>
 
