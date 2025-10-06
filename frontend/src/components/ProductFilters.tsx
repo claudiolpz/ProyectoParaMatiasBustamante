@@ -51,27 +51,29 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         {/* Segunda fila - Filtros */}
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Filtro por categoría */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 relative">
             <select
-              className="w-full px-4 py-2 border border-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-600 text-white"
+              className="w-full px-4 py-2 border border-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-600 text-white appearance-none pr-10"
               onChange={(e) => onCategoryFilter(e.target.value)}
               value={currentFilters?.categoryId || ''}
               disabled={categoriesLoading}
             >
-
               <option value="" className="bg-slate-600">
                 {categoriesLoading ? 'Cargando categorías...' : 'Todas las categorías'}
               </option>
               {renderCategoryOptions()}
             </select>
-
-
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
           {showActiveFilter && (
-            <div className="flex-1 min-w-0 sm:max-w-xs">
+            <div className="flex-1 min-w-0 sm:max-w-xs relative">
               <select
-                className="w-full px-4 py-2 border border-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-600 text-white"
+                className="w-full px-4 py-2 border border-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-600 text-white appearance-none pr-10"
                 onChange={(e) => onActiveStatusFilter(e.target.value)}
                 value={getSelectValue()}
               >
@@ -85,6 +87,12 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                   Productos inactivos
                 </option>
               </select>
+              {/* Flecha personalizada */}
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           )}
           <button
