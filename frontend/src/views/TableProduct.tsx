@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { SearchOutlined, EditOutlined, EyeOutlined, CaretUpOutlined, PlusCircleOutlined, PoweroffOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useProducts } from '../hooks/useProducts';
@@ -43,6 +43,8 @@ const TableProduct = () => {
     imageAlt: ''
   });
 
+  const initializedRef = useRef(false);
+
   const [filters, setFilters] = useState<ProductFilters>({
     search: '',
     categoryId: undefined,
@@ -75,17 +77,18 @@ const TableProduct = () => {
     });
   }, []);
 
-  // Cargar filtros desde URL al montar
+  // Cargar filtros desde URL al montar — el ref evita que se re-ejecute
+  // cuando getFiltersFromURL cambia de referencia tras cada actualización de URL
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     const urlFilters = getFiltersFromURL();
-
-    const validOrder: 'asc' | 'desc' = urlFilters.order === 'desc' ? 'desc' : 'asc';
-
     const validFilters: ProductFilters = {
       search: urlFilters.search,
       categoryId: urlFilters.categoryId,
       orderBy: urlFilters.orderBy,
-      order: validOrder,
+      order: urlFilters.order === 'desc' ? 'desc' : 'asc',
       isActive: urlFilters.isActive
     };
 
@@ -104,13 +107,17 @@ const TableProduct = () => {
   }, []);
 
   // Efecto para manejar la búsqueda con debounce
+  // filtersRef evita incluir el objeto `filters` en las deps (causa re-ejecuciones en cada cambio de filtro)
+  const filtersRef = useRef(filters);
+  useEffect(() => { filtersRef.current = filters; });
+
   useEffect(() => {
-    if (debouncedSearchTerm !== filters.search) {
-      const newFilters: ProductFilters = { ...filters, search: debouncedSearchTerm };
-      setFilters(newFilters);
-      fetchProducts(newFilters, 1);
-    }
-  }, [debouncedSearchTerm, filters, fetchProducts]);
+    if (!initializedRef.current) return;
+    if (debouncedSearchTerm === filtersRef.current.search) return;
+    const newFilters: ProductFilters = { ...filtersRef.current, search: debouncedSearchTerm };
+    setFilters(newFilters);
+    fetchProducts(newFilters, 1);
+  }, [debouncedSearchTerm, fetchProducts]);
 
   // Handlers que actualizan URL
   const handleSearch = useCallback((value: string) => {

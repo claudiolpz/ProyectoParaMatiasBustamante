@@ -49,25 +49,16 @@ export const useProductFormLogic = ({
         }
     }, [isEditing, initialProduct, reset]);
 
-    // Manejar cambio de categoría
+    // Manejar cambio de categoría y marca
     useEffect(() => {
-        if (watchCategoryId === "0") {
-            setShowNewCategoryInput(true);
-        } else {
-            setShowNewCategoryInput(false);
-            setValue("categoryName", "");
-        }
-    }, [watchCategoryId, setValue]);
+        const isNewCategory = watchCategoryId === "0";
+        setShowNewCategoryInput(isNewCategory);
+        if (!isNewCategory) setValue("categoryName", "");
 
-    // Manejar cambio de marca
-    useEffect(() => {
-        if (watchBrandId === "0") {
-            setShowNewBrandInput(true);
-        } else {
-            setShowNewBrandInput(false);
-            setValue("brandName", "");
-        }
-    }, [watchBrandId, setValue]);
+        const isNewBrand = watchBrandId === "0";
+        setShowNewBrandInput(isNewBrand);
+        if (!isNewBrand) setValue("brandName", "");
+    }, [watchCategoryId, watchBrandId, setValue]);
 
     // Función para resetear completamente el formulario
     const resetFormCompletely = () => {
