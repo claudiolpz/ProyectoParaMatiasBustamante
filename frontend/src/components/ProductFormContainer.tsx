@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useSwalAlerts } from "../utils/swalAlerts";
 import { useProductForm } from "../hooks/useProductForm";
@@ -163,26 +163,26 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         [handleSubmit, handleSubmitProduct, isEditing, isSubmitting, navigate, onSuccess, showLoadingSwal, showResultSwal]
     );
 
-    // Funciones para obtener clases CSS
-    const getInputLabelClasses = useCallback(() => {
+    // Clases CSS derivadas del estado del drag & drop
+    const inputLabelClasses = useMemo(() => {
         if (isDragOver) return "bg-blue-50 border-blue-500 text-blue-700";
         if (selectedFileName) return "bg-green-50 border-green-300";
         return "bg-slate-100 border-slate-300 hover:bg-slate-200";
     }, [isDragOver, selectedFileName]);
 
-    const getTextClasses = useCallback(() => {
+    const textClasses = useMemo(() => {
         if (isDragOver) return "text-blue-700";
         if (selectedFileName) return "text-green-700 font-medium";
         return "text-slate-500";
     }, [isDragOver, selectedFileName]);
 
-    const getButtonClasses = useCallback(() => {
+    const buttonClasses = useMemo(() => {
         if (isDragOver) return "bg-blue-200 text-blue-800";
         if (selectedFileName) return "bg-green-100 text-green-700";
         return "bg-blue-100 text-blue-700";
     }, [isDragOver, selectedFileName]);
 
-    const getDisplayText = useCallback(() => {
+    const displayText = useMemo(() => {
         if (isDragOver) return "¡Suelta la imagen aquí!";
         if (selectedFileName)
             return (
@@ -199,7 +199,7 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
         return "Seleccionar archivo o arrastra aquí...";
     }, [isDragOver, selectedFileName]);
 
-    const getButtonText = useCallback(() => {
+    const buttonText = useMemo(() => {
         if (selectedFileName)
             return (
                 <span className="flex items-center space-x-1">
@@ -374,18 +374,18 @@ const ProductFormContainer = ({ productId, onSuccess }: ProductFormContainerProp
                         <div className="space-y-2">
                             <button
                                 type="button"
-                                className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${getInputLabelClasses()}`}
+                                className={`w-full flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all duration-200 ${inputLabelClasses}`}
                                 onClick={() => document.getElementById("image")?.click()}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 aria-label="Seleccionar archivo de imagen. Puedes hacer clic o arrastrar archivos aquí"
                             >
-                                <span className={getTextClasses()}>{getDisplayText()}</span>
+                                <span className={textClasses}>{displayText}</span>
                                 <span
-                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${getButtonClasses()}`}
+                                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${buttonClasses}`}
                                 >
-                                    {getButtonText()}
+                                    {buttonText}
                                 </span>
                             </button>
 
